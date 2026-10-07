@@ -100,7 +100,7 @@ function r1(){
         ['Khoảng trống còn lại',f(gap)],
         ['thực hiện cần / hiện tại',f(need)+' / '+f(pace)],
         ['Hệ số tăng tốc',isFinite(acc)?acc.toFixed(2)+'x':'–'],
-        ['dự kiến (thực hiện bình quân)',proj_avg],
+        ['dự kiến (THBQ)',proj_avg],
         ['dự kiến (mùa vụ)',proj_season],
         ['Trong đó: kinh doanh thẻ',c=='T'?f(thSum(g,n))+' ('+(th?p(thSum(g,n)/th):'–')+')':'–'],
         ['Tăng trưởng cùng kỳ',growth_ck]
@@ -177,7 +177,7 @@ function r6(){const{g,c,n}=S(),sel=$('fu').value,q=+$('fq').value,cw=sm(W,n),qi=
  if(!sel){$('ud').innerHTML='';return}
  const v=V_data.find(x=>x[0]==sel),a=ua(v,'T'),khY=a.khY,th=sm(a.th,n),gap=Math.max(khY-th,0),pace=th/n,need=n<12?gap/(12-n):0,ck=sm(a.ck,n),tc=sm(v[9],n);
  const rk=V_data.filter(x=>x[1]!='Khác').map(x=>{const b=ua(x,'T');return{n:x[0],pm:b.khY?sm(b.th,n)/(b.khY*cw):-1}}).sort((x,y)=>y.pm-x.pm),pos=rk.findIndex(o=>o.n==sel)+1;
- const K=[['KH năm',f(khY)],['Thực hiện lũy kế T'+n,f(th)],['% KH năm',khY?p(th/khY):'–'],['% mục tiêu lũy kế',khY?p(th/(khY*cw)):'–'],['Xếp hạng theo % mục tiêu',pos?pos+' / '+rk.length:'–'],['Gap còn lại',f(gap)],['thực hiện cần / hiện tại',f(need)+' / '+f(pace)],['Hệ số tăng tốc',pace?isFinite(need/pace)?(need/pace).toFixed(2)+'x':'–':'–'],['dự kiến (thực hiện bình quân)',khY?p((th+pace*(12-n))/khY):'–'],['Tăng trưởng cùng kỳ',ck>1000?(th/ck-1>=0?'+':'')+p(th/ck-1):'–'],['Kinh doanh thẻ',f(tc)+(th?' ('+p(tc/th)+')':'')]];
+ const K=[['KH năm',f(khY)],['Thực hiện lũy kế T'+n,f(th)],['% KH năm',khY?p(th/khY):'–'],['% mục tiêu lũy kế',khY?p(th/(khY*cw)):'–'],['Xếp hạng theo % mục tiêu',pos?pos+' / '+rk.length:'–'],['Gap còn lại',f(gap)],['thực hiện cần / hiện tại',f(need)+' / '+f(pace)],['Hệ số tăng tốc',pace?isFinite(need/pace)?(need/pace).toFixed(2)+'x':'–':'–'],['dự kiến (THBQ)',khY?p((th+pace*(12-n))/khY):'–'],['Tăng trưởng cùng kỳ',ck>1000?(th/ck-1>=0?'+':'')+p(th/ck-1):'–'],['Kinh doanh thẻ',f(tc)+(th?' ('+p(tc/th)+')':'')]];
  const tb=['BL','GT','B2B'].map(C=>{const u=ua(v,C),t=sm(u.th,n),k=u.khY;return`<tr><td>${CH[C]}</td><td>${f(k)}</td><td>${f(t)}</td><td>${k?p(t/k):'–'}</td><td class="h" style="background:${k?col(t/(k*cw)):'transparent'};color:${k?'#fff':'inherit'}">${k?p(t/(k*cw)):'–'}</td><td>${f(Math.max(k-t,0))}</td></tr>`}).join('');
  const Wd=560,H=200,L=44,B=24,T=10,pw=(Wd-L-8)/12,st=Array(n).fill(0).map((_,i)=>['BL','GT','B2B'].reduce((s,k)=>s+Math.max((v[CI[k][1]][i]||0),0),0)),mx=Math.max(...a.kh,...st,...a.ck.slice(0,n),1)*1.1,y=q=>H-B-q/mx*(H-B-T),x=i=>L+pw*i+pw/2,cl={BL:'#1f5fbf',GT:'#2e9e5b',B2B:'#e0a12b'};
  let s=`<svg viewBox="0 0 ${Wd} ${H}">`;for(let i=0;i<=4;i++){const q=mx/1.1*i/4;s+=`<line x1="${L}" x2="${Wd-8}" y1="${y(q)}" y2="${y(q)}" stroke="var(--bd)"/><text x="${L-4}" y="${y(q)+3}" text-anchor="end">${f(q/1000)}k</text>`}
