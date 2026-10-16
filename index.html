@@ -425,7 +425,7 @@ async function loadGoogleSheetData() {
             for(let j=1; j<=max_month_th; j++) smDropdown.add(new Option('T'+j, j, 0, j===max_month_th));
             $('fn').value = max_month_th;
 
-            $('page-sub').innerText = `Dữ liệu thực hiện cập nhật tự động đến T${max_month_th}/${latest_year} · Đơn vị giả định: triệu đồng · Được thiết kế bởi ThanhDD`;
+            $('page-sub').innerText = `Dữ liệu thực hiện cập nhật tự động đến T${max_month_th}/${latest_year} · Đơn vị tính: triệu đồng · Được thiết kế bởi ThanhDD`;
             $('loading').style.display = 'none';
             rrep();
             $('fu').innerHTML = '<option value="">— Tất cả đơn vị —</option>';
