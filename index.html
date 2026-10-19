@@ -1,8 +1,3 @@
-Nguyên nhân khiến các đơn vị chưa tự động nhận đúng vùng/miền là do trong file dữ liệu gốc trên Google Sheet, tên đơn vị đôi khi có chữ "TT" ở đầu hoặc có khoảng trắng thừa, dẫn đến việc Object Map không nhận diện được chính xác. Bên cạnh đó, để hiển thị "doanh thu tháng hiện tại" rõ ràng ra bên ngoài danh sách thanh tiến trình, tôi đã bổ sung cột hiển thị doanh thu thực hiện ngay cạnh tỷ lệ %.
-
-Dưới đây là toàn bộ mã nguồn file `index.html` đã được chỉnh sửa logic tự động phân vùng (bằng cách dò chuỗi thông minh) và hoàn thiện chức năng chọn Tháng ở Tab 2. Bạn hãy copy toàn bộ mã dưới đây và dán đè vào file hiện tại:
-
-```html
 <!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Kết quả kinh doanh dịch vụ Phân phối bán lẻ trên mạng lưới Bưu điện</title>
 <style>
 :root{--bg:#f4f5f7;--cd:#fff;--tx:#1b2430;--mu:#6b7686;--bd:#e2e6ec;--ac:#1f5fbf;--g:#2e9e5b;--a:#e0a12b;--r:#d64545;--pu:#8e44ad;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -879,5 +874,3 @@ window.onload = () => {
     loadTenderData();
 };
 </script></body></html>
-
-```
