@@ -190,17 +190,22 @@ function r1(){
     const proj_season = (kY && cw < 1) ? p((th + kY*(1-cw)*(th/k_n))/kY) : (kY ? p(th/kY) : '–');
     const growth_ck = ck ? (th/ck-1>=0?'+':'') + p(th/ck-1) : '–';
 
+    const th_month = a.th[n-1] || 0;
+    const th_month_BL = agg(g, 'BL').th[n-1] || 0;
+    const th_month_GT = agg(g, 'GT').th[n-1] || 0;
+    const th_month_B2B = agg(g, 'B2B').th[n-1] || 0;
+
     const K=[
         ['KH năm',f(kY)],
         ['Thực hiện lũy kế T'+n,f(th)],
         ['% KH năm',kY?p(th/kY):'–'],
         ['% mục tiêu lũy kế',pct_target_cum],
         ['Khoảng trống còn lại',f(gap)],
-        ['thực hiện cần / hiện tại',f(need)+' / '+f(pace)],
+        // Điều chỉnh cỡ chữ ở đây để tránh bị xuống dòng
+        ['thực hiện cần / hiện tại', `<span style="font-size:15px; letter-spacing:-0.2px">${f(need)} / ${f(pace)}</span>`],
         ['Hệ số tăng tốc',isFinite(acc)?acc.toFixed(2)+'x':'–'],
         ['dự kiến (THBQ)',proj_avg],
         ['dự kiến (mùa vụ)',proj_season],
-        ['Trong đó: kinh doanh thẻ',c=='T'?f(thSum(g,n))+' ('+(th?p(thSum(g,n)/th):'–')+')':'–'],
         ['Tăng trưởng cùng kỳ',growth_ck]
     ];
     $('k1').innerHTML=K.map(([x,y])=>`<div class="k"><span>${x}</span><b>${y}</b></div>`).join('');
@@ -292,33 +297,33 @@ function r6(){
  
  const rows = (!isMonth && q && !mm) ? [] : V_data.filter(v=>g?v[1]==g:v[1]!='Khác').map(v=>{
      const a=ua(v,c), kY=a.khY;
-     let p_=null, kq=0, tq=0;
-
+     const aBL=ua(v,'BL'), aGT=ua(v,'GT'), aB2B=ua(v,'B2B');
+     let p_=null, kq=0, tq=0, tBL=0, tGT=0, tB2B=0;
      if(isMonth){
          kq = kY * W[m_sel-1];
          tq = a.th[m_sel-1];
+         tBL = aBL.th[m_sel-1]||0; tGT = aGT.th[m_sel-1]||0; tB2B = aB2B.th[m_sel-1]||0;
          p_ = kq ? tq/kq : null;
      } else if(q){
          kq = kY * sm(W.slice(3*qi,3*qi+mm),mm);
          tq = sm(a.th.slice(3*qi,3*qi+mm),mm);
+         tBL = sm(aBL.th.slice(3*qi,3*qi+mm),mm); tGT = sm(aGT.th.slice(3*qi,3*qi+mm),mm); tB2B = sm(aB2B.th.slice(3*qi,3*qi+mm),mm);
          p_ = kq ? tq/kq : null;
      } else {
          kq = kY;
          tq = sm(a.th,n);
+         tBL = sm(aBL.th,n); tGT = sm(aGT.th,n); tB2B = sm(aB2B.th,n);
          p_ = kY ? tq/kY : null;
      }
-     
      let m_val = (isMonth || q) ? p_ : (cw&&kY?sm(a.th,n)/(kY*cw):-1);
-     let p_text = (isMonth||q) ? (kq ? p(tq/kq) : '–') : (kY ? p(tq/kY) : '–');
-     
-     return {n:v[0], kh:kY, th_val:tq, p:p_, p_text:p_text, m:m_val};
+     return {n:v[0],kh:kY,th_val:tq, th_bl:tBL, th_gt:tGT, th_b2b:tB2B, p:p_,m:m_val};
  }).filter(o=>o.kh>0&&o.p!=null).sort((x,y)=>y.p-x.p);
  
  const nG=rows.filter(o=>o.m>=1).length,nA=rows.filter(o=>o.m>=.7&&o.m<1).length,nR=rows.length-nG-nA,pc=x=>rows.length?x/rows.length*100:0;
  $('us').textContent=rows.length+' đơn vị';
  $('dist').innerHTML=rows.length?`<div class="mix">${[[nG,'var(--g)',(isMonth||q)?'đạt KH kỳ':'đạt mục tiêu'],[nA,'var(--a)','70–100%'],[nR,'var(--r)','dưới 70%']].map(([x,cl,t])=>`<div style="width:${pc(x)}%;background:${cl}">${x?x+' '+t:''}</div>`).join('')}</div>`:'';
  
- $('ub').innerHTML=rows.length?rows.map(o=>`<div class="row ur${o.n==sel?' sel':''}" data-u="${o.n}" style="grid-template-columns:135px 1fr 50px;cursor:pointer"><span class="n" title="${o.n}">${o.n}</span><div class="t"><i style="width:${Math.min(o.p,2)*50}%;background:${col(o.m)}"></i>${(isMonth||q)?'':`<b class="mk" style="left:${cw*50}%"></b>`}</div><span class="v">${o.p_text}</span></div>`).join(''):'<div class="lg">Chưa có thực hiện trong kỳ đã chọn.</div>';
+ $('ub').innerHTML=rows.length?rows.map(o=>`<div class="row ur${o.n==sel?' sel':''}" data-u="${o.n}" style="grid-template-columns:130px 1fr 150px;cursor:pointer;align-items:start"><span class="n" title="${o.n}" style="margin-top:2px">${o.n}</span><div class="t" style="margin-top:4px"><i style="width:${Math.min(o.p,2)*50}%;background:${col(o.m)}"></i>${(isMonth||q)?'':`<b class="mk" style="left:${cw*50}%"></b>`}</div><span class="v" style="color:var(--tx);line-height:1.35;text-align:right"><b>${f(o.th_val)}</b> <span style="color:var(--mu)">· ${p(o.p)}</span><br><span style="font-size:10px;color:var(--mu)">T${active_m}: BL ${f(o.th_bl)} · GT ${f(o.th_gt)} · B2B ${f(o.th_b2b)}</span></span></div>`).join(''):'<div class="lg">Chưa có thực hiện trong kỳ đã chọn.</div>';
  
  $('ul').innerHTML='Thanh = '+(isMonth?`% hoàn thành KH Tháng ${m_sel}`: (q?`% hoàn thành KH Quý ${q}`:'% KH năm'))+' (tối đa 200%) · vạch đứt giữa = 100%'+((isMonth||q)?'':' · vạch đậm = mục tiêu lũy kế đến tháng đã chọn')+' · màu: xanh ≥100% '+((isMonth||q)?'KH kỳ':'mục tiêu')+', vàng ≥70%, đỏ &lt;70% · bấm vào một dòng để xem chi tiết. Bộ lọc nhóm, kênh, tháng ở trên đều áp dụng.';
  rq(g,c,n,cw);
