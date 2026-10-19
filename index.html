@@ -54,7 +54,16 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
 <label>Kênh <select id="fc"><option value="T">Tổng</option><option value="BL">Bán lẻ</option><option value="GT">GT</option><option value="B2B">B2B</option></select></label>
 <label>Lũy kế đến tháng <select id="fn"></select></label><span class="lg" id="fh"></span></div>
 
-<div class="v2 on" id="p1"><div class="kp" id="k1"></div><div class="grid"><div class="c"><h2>Kết quả theo kênh</h2><div id="ch"></div></div><div class="c"><h2>Cơ cấu kênh: KH và thực hiện lũy kế</h2><div id="mx"></div></div></div></div>
+<div class="v2 on" id="p1">
+    <div class="kp" id="k1"></div>
+    <div class="grid">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="c"><h2>Kết quả theo kênh (Lũy kế)</h2><div id="ch"></div></div>
+            <div class="c"><h2 id="month-title">Thực hiện riêng Tháng</h2><div id="ch-month"></div></div>
+        </div>
+        <div class="c"><h2>Cơ cấu kênh: KH và thực hiện lũy kế</h2><div id="mx"></div></div>
+    </div>
+</div>
 <div class="v2" id="pu">
 <div class="bar" style="margin-bottom:10px">
     <label>Chọn đơn vị <select id="fu"><option value="">— Tất cả đơn vị —</option></select></label>
@@ -181,27 +190,40 @@ function r1(){
     const proj_season = (kY && cw < 1) ? p((th + kY*(1-cw)*(th/k_n))/kY) : (kY ? p(th/kY) : '–');
     const growth_ck = ck ? (th/ck-1>=0?'+':'') + p(th/ck-1) : '–';
 
-    const th_month = a.th[n-1] || 0;
-    const th_month_BL = agg(g, 'BL').th[n-1] || 0;
-    const th_month_GT = agg(g, 'GT').th[n-1] || 0;
-    const th_month_B2B = agg(g, 'B2B').th[n-1] || 0;
-
     const K=[
         ['KH năm',f(kY)],
         ['Thực hiện lũy kế T'+n,f(th)],
         ['% KH năm',kY?p(th/kY):'–'],
         ['% mục tiêu lũy kế',pct_target_cum],
-        ['Thực hiện riêng Tháng ' + n, `<span style="color:var(--ac)">${f(th_month)}</span>`],
-        ['Tỉ trọng kênh Tháng ' + n, `BL: ${th_month?p(th_month_BL/th_month):'0%'} · GT: ${th_month?p(th_month_GT/th_month):'0%'} · B2B: ${th_month?p(th_month_B2B/th_month):'0%'}`],
         ['Khoảng trống còn lại',f(gap)],
         ['thực hiện cần / hiện tại',f(need)+' / '+f(pace)],
         ['Hệ số tăng tốc',isFinite(acc)?acc.toFixed(2)+'x':'–'],
         ['dự kiến (THBQ)',proj_avg],
         ['dự kiến (mùa vụ)',proj_season],
+        ['Trong đó: kinh doanh thẻ',c=='T'?f(thSum(g,n))+' ('+(th?p(thSum(g,n)/th):'–')+')':'–'],
         ['Tăng trưởng cùng kỳ',growth_ck]
     ];
     $('k1').innerHTML=K.map(([x,y])=>`<div class="k"><span>${x}</span><b>${y}</b></div>`).join('');
-    $('ch').innerHTML=['BL','GT','B2B'].map(C=>{const b=agg(g,C),t=sm(b.th,n),kk=sm(b.kh,12); const m=kk*cw; return`<div class="row" style="grid-template-columns:60px 1fr 140px"><span class="n">${CH[C]}</span><div class="t p"><i style="width:${Math.min(kk?t/kk:0,1.5)/1.5*100}%;background:${col(m?t/m:0)}"></i></div><span class="v">${kk?p(t/kk):'–'} KH · mục tiêu ${m?p(t/m):'–'} · CK ${sm(b.ck,n)?p(t/sm(b.ck,n)-1):'–'}</span></div>`}).join('')+'<div class="lg">Thanh = % KH năm (tối đa 150%); màu theo % mục tiêu lũy kế.</div>';
+    
+    $('ch').innerHTML=['BL','GT','B2B'].map(C=>{const b=agg(g,C),t=sm(b.th,n),kk=sm(b.kh,12); const m=kk*cw; return`<div class="row" style="grid-template-columns:60px 1fr 180px"><span class="n">${CH[C]}</span><div class="t p"><i style="width:${Math.min(kk?t/kk:0,1.5)/1.5*100}%;background:${col(m?t/m:0)}"></i></div><span class="v">${kk?p(t/kk):'–'} KH · mục tiêu ${m?p(t/m):'–'} · CK ${sm(b.ck,n)?p(t/sm(b.ck,n)-1):'–'}</span></div>`}).join('')+'<div class="lg">Thanh = % KH năm (tối đa 150%); màu theo % mục tiêu lũy kế.</div>';
+    
+    // DASHBOARD RIÊNG CHO THÁNG HIỆN TẠI
+    $('month-title').innerText = `Thực hiện riêng Tháng ${n} theo kênh`;
+    $('ch-month').innerHTML=['BL','GT','B2B'].map(C=>{
+        const b=agg(g,C), t_m=b.th[n-1]||0, kk=sm(b.kh,12);
+        const m_m=kk*W[n-1];
+        const ck_m=b.ck[n-1]||0;
+        return`<div class="row" style="grid-template-columns:60px 1fr 180px">
+            <span class="n">${CH[C]}</span>
+            <div class="t p"><i style="width:${Math.min(m_m?t_m/m_m:0,1.5)/1.5*100}%;background:${col(m_m?t_m/m_m:0)}"></i></div>
+            <span class="v" style="color:var(--tx)"><b>${f(t_m)}</b> <span style="color:var(--mu);font-size:11px">/ ${f(m_m)} (${m_m?p(t_m/m_m):'–'}) · CK ${ck_m?(t_m/ck_m-1>=0?'+':'')+p(t_m/ck_m-1):'–'}</span></span>
+        </div>`
+    }).join('')+`<div class="row" style="grid-template-columns:60px 1fr 180px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--bd)">
+        <span class="n"><b>Tổng</b></span>
+        <div class="t p"><i style="width:${Math.min((kY*W[n-1])?(a.th[n-1]||0)/(kY*W[n-1]):0,1.5)/1.5*100}%;background:${col((kY*W[n-1])?(a.th[n-1]||0)/(kY*W[n-1]):0)}"></i></div>
+        <span class="v" style="color:var(--tx)"><b>${f(a.th[n-1]||0)}</b> <span style="color:var(--mu);font-size:11px">/ ${f(kY*W[n-1])} (${(kY*W[n-1])?p((a.th[n-1]||0)/(kY*W[n-1])):'–'})</span></span>
+    </div>`+`<div class="lg" style="margin-top:8px">Thanh = % mục tiêu riêng tháng đã chọn (tối đa 150%); màu = % mục tiêu tháng.<br>Số hiển thị: TH / KH tháng (% KH tháng) · % tăng trưởng CK tháng.</div>`;
+
     const cols={BL:'#1f5fbf',GT:'#2e9e5b',B2B:'#e0a12b'},mix=k=>{const v=['BL','GT','B2B'].map(C=>{const b=agg(g,C);return k=='kh'?sm(b.kh,12)*cw:Math.max(sm(b.th,n),0)}),T=v.reduce((x,y)=>x+y,0)||1;return v.map((x,i)=>`<div style="width:${x/T*100}%;background:${Object.values(cols)[i]}">${x/T>.07?p(x/T):''}</div>`).join('')};
     $('mx').innerHTML=`<div class="lg">KH lũy kế</div><div class="mix">${mix('kh')}</div><div class="lg">Thực hiện lũy kế</div><div class="mix">${mix('th')}</div><div class="lg">${Object.keys(cols).map(C=>`<span style="color:${cols[C]}">■</span> ${CH[C]}`).join(' &nbsp; ')}</div>`
 }
@@ -296,7 +318,6 @@ function r6(){
  $('us').textContent=rows.length+' đơn vị';
  $('dist').innerHTML=rows.length?`<div class="mix">${[[nG,'var(--g)',(isMonth||q)?'đạt KH kỳ':'đạt mục tiêu'],[nA,'var(--a)','70–100%'],[nR,'var(--r)','dưới 70%']].map(([x,cl,t])=>`<div style="width:${pc(x)}%;background:${cl}">${x?x+' '+t:''}</div>`).join('')}</div>`:'';
  
- // Trả lại giao diện gọn gàng cho danh sách
  $('ub').innerHTML=rows.length?rows.map(o=>`<div class="row ur${o.n==sel?' sel':''}" data-u="${o.n}" style="grid-template-columns:135px 1fr 50px;cursor:pointer"><span class="n" title="${o.n}">${o.n}</span><div class="t"><i style="width:${Math.min(o.p,2)*50}%;background:${col(o.m)}"></i>${(isMonth||q)?'':`<b class="mk" style="left:${cw*50}%"></b>`}</div><span class="v">${o.p_text}</span></div>`).join(''):'<div class="lg">Chưa có thực hiện trong kỳ đã chọn.</div>';
  
  $('ul').innerHTML='Thanh = '+(isMonth?`% hoàn thành KH Tháng ${m_sel}`: (q?`% hoàn thành KH Quý ${q}`:'% KH năm'))+' (tối đa 200%) · vạch đứt giữa = 100%'+((isMonth||q)?'':' · vạch đậm = mục tiêu lũy kế đến tháng đã chọn')+' · màu: xanh ≥100% '+((isMonth||q)?'KH kỳ':'mục tiêu')+', vàng ≥70%, đỏ &lt;70% · bấm vào một dòng để xem chi tiết. Bộ lọc nhóm, kênh, tháng ở trên đều áp dụng.';
@@ -364,7 +385,7 @@ function r6(){
          k = u.khY; t = sm(u.th,n); gap_c = Math.max(k-t, 0); p_main = k ? p(t/k) : '–'; p_sub = (k&&cw) ? p(t/(k*cw)) : '–';
      }
      return `<tr>
-         <td>${CH[C]}</td><td>${f(k)}</td><td>${f(t)}</td>
+         <td>${CH[C]}</td><td>${f(k)}</td><td>${f(t)}<br><span style="font-size:10px;color:var(--mu)">T${active_m}: ${f(u.th[active_m-1]||0)}</span></td>
          <td class="h" style="background:${k?col(t/k):'transparent'};color:${k?'#fff':'inherit'}">${p_main}</td>
          <td>${p_sub}</td><td>${f(gap_c)}</td>
      </tr>`;
@@ -440,11 +461,12 @@ async function loadGoogleSheetData() {
         const U_map = {}; 
         let detectedMax = 0;
         
-        // SỬ DỤNG HELPER FUNCTION ĐỂ NGĂN CHẶN LỖI NAN
+        // KHỞI TẠO MẶC ĐỊNH SỐ 0 CHO CÁC NHÓM NGĂN CHẶN LỖI NAN
         const M_groups = {};
         Array.from($('fg').options).forEach(opt => {
-            if(opt.value !== "Tất cả" && opt.text !== "Tất cả") {
-                M_groups[opt.text] = createEmptyGroup();
+            let text = opt.text;
+            if(text !== "Tất cả") {
+                M_groups[text] = createEmptyGroup();
             }
         });
         M_groups["Khác"] = createEmptyGroup();
