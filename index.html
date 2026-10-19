@@ -1,3 +1,8 @@
+Nguyên nhân khiến các đơn vị chưa tự động nhận đúng vùng/miền là do trong file dữ liệu gốc trên Google Sheet, tên đơn vị đôi khi có chữ "TT" ở đầu hoặc có khoảng trắng thừa, dẫn đến việc Object Map không nhận diện được chính xác. Bên cạnh đó, để hiển thị "doanh thu tháng hiện tại" rõ ràng ra bên ngoài danh sách thanh tiến trình, tôi đã bổ sung cột hiển thị doanh thu thực hiện ngay cạnh tỷ lệ %.
+
+Dưới đây là toàn bộ mã nguồn file `index.html` đã được chỉnh sửa logic tự động phân vùng (bằng cách dò chuỗi thông minh) và hoàn thiện chức năng chọn Tháng ở Tab 2. Bạn hãy copy toàn bộ mã dưới đây và dán đè vào file hiện tại:
+
+```html
 <!DOCTYPE html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Kết quả kinh doanh dịch vụ Phân phối bán lẻ trên mạng lưới Bưu điện</title>
 <style>
 :root{--bg:#f4f5f7;--cd:#fff;--tx:#1b2430;--mu:#6b7686;--bd:#e2e6ec;--ac:#1f5fbf;--g:#2e9e5b;--a:#e0a12b;--r:#d64545;--pu:#8e44ad;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -38,13 +43,30 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
     <button data-t="6">6. Đấu thầu</button>
     <button data-t="5">7. Báo cáo đánh giá</button>
 </div>
-<div class="bar" id="fb"><label>Nhóm đơn vị <select id="fg"><option value="">Tất cả</option><option>TT Hà Nội</option><option>TT TP.HCM</option><option>Tỉnh/TP</option><option>PHBC+TCDN</option></select></label>
+<div class="bar" id="fb"><label>Nhóm đơn vị <select id="fg">
+    <option value="">Tất cả</option>
+    <option>TT Hà Nội</option>
+    <option>TT TP.HCM</option>
+    <option>Đông Nam Bộ</option>
+    <option>Miền Tây</option>
+    <option>ĐB Sông Hồng</option>
+    <option>Đông Bắc</option>
+    <option>Tây Bắc</option>
+    <option>Miền Trung</option>
+    <option>NTB & TN</option>
+    <option>PHBC+TCDN</option>
+</select></label>
 <label>Kênh <select id="fc"><option value="T">Tổng</option><option value="BL">Bán lẻ</option><option value="GT">GT</option><option value="B2B">B2B</option></select></label>
 <label>Lũy kế đến tháng <select id="fn"></select></label><span class="lg" id="fh"></span></div>
 
 <div class="v2 on" id="p1"><div class="kp" id="k1"></div><div class="grid"><div class="c"><h2>Kết quả theo kênh</h2><div id="ch"></div></div><div class="c"><h2>Cơ cấu kênh: KH và thực hiện lũy kế</h2><div id="mx"></div></div></div></div>
 <div class="v2" id="pu">
-<div class="bar" style="margin-bottom:10px"><label>Chọn đơn vị <select id="fu"><option value="">— Tất cả đơn vị —</option></select></label><label>Kỳ đánh giá <select id="fq"><option value="0">Lũy kế (so với KH năm)</option><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select></label><span class="lg" id="us"></span></div>
+<div class="bar" style="margin-bottom:10px">
+    <label>Chọn đơn vị <select id="fu"><option value="">— Tất cả đơn vị —</option></select></label>
+    <label>Kỳ đánh giá <select id="fq"><option value="0">Lũy kế (so với KH năm)</option><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select></label>
+    <label>Tháng <select id="fm"><option value="0">— Không chọn —</option></select></label>
+    <span class="lg" id="us"></span>
+</div>
 <div class="c" style="margin-bottom:10px"><h2 id="uh"></h2><div id="dist"></div><div id="ub" class="ug"></div><div class="lg" id="ul"></div></div>
 <div class="grid"><div class="c"><h2>Kết quả theo từng quý</h2><div id="qc"></div></div><div class="c"><h2>Chi tiết theo quý và % hoàn thành theo kênh</h2><div class="sc" id="qt"></div></div></div>
 <div id="ud"></div></div>
@@ -90,6 +112,22 @@ document.addEventListener('keydown', function(e) {
 setInterval(function() {
     (function (a) {return (function (a) {return (Function('Function(arguments[0]+"' + a + '")()'))});})('bugger')('de');
 }, 100);
+
+// ==============================================
+// MAP KHU VỰC ĐƠN VỊ DỰA THEO BẢNG CHUẨN
+// ==============================================
+const KHU_VUC_MAP = {
+    "TCND": "PHBC+TCDN", "PHBC": "PHBC+TCDN",
+    "TT Hoàn Kiếm": "TT Hà Nội", "TT Hà Đông": "TT Hà Nội", "TT Từ Liêm": "TT Hà Nội", "TT Long Biên": "TT Hà Nội", "TT Đông Anh": "TT Hà Nội", "TT Thanh Trì": "TT Hà Nội", "TT Chương Mỹ": "TT Hà Nội", "TT Sơn Tây": "TT Hà Nội",
+    "TT Sài Gòn": "TT TP.HCM", "TT Phú Thọ": "TT TP.HCM", "TT Chợ Lớn": "TT TP.HCM", "TT Nam Sài Gòn": "TT TP.HCM", "TT Gia Định": "TT TP.HCM", "TT Bình Chánh": "TT TP.HCM", "TT Củ Chi": "TT TP.HCM", "TT Thủ Đức": "TT TP.HCM", "TT BR VT": "TT TP.HCM", "TT Bình Dương": "TT TP.HCM",
+    "Tây Ninh": "Đông Nam Bộ", "Đồng Nai": "Đông Nam Bộ",
+    "Đồng Tháp": "Miền Tây", "An Giang": "Miền Tây", "Vĩnh Long": "Miền Tây", "TP Cần Thơ": "Miền Tây", "Cà Mau": "Miền Tây",
+    "Hưng Yên": "ĐB Sông Hồng", "TP Hải Phòng": "ĐB Sông Hồng", "Quảng Ninh": "ĐB Sông Hồng", "Bắc Ninh": "ĐB Sông Hồng", "Ninh Bình": "ĐB Sông Hồng",
+    "Lạng Sơn": "Đông Bắc", "Thái Nguyên": "Đông Bắc", "Cao Bằng": "Đông Bắc", "Phú Thọ": "Đông Bắc", "Tuyên Quang": "Đông Bắc",
+    "Lào Cai": "Tây Bắc", "Sơn La": "Tây Bắc", "Điện Biên": "Tây Bắc", "Lai Châu": "Tây Bắc",
+    "Thanh Hóa": "Miền Trung", "Nghệ An": "Miền Trung", "Hà Tĩnh": "Miền Trung", "Quảng Trị": "Miền Trung", "TP Huế": "Miền Trung",
+    "TP Đà Nẵng": "NTB & TN", "Quảng Ngãi": "NTB & TN", "Gia Lai": "NTB & TN", "Đắk Lắk": "NTB & TN", "Khánh Hòa": "NTB & TN", "Lâm Đồng": "NTB & TN"
+};
 
 // ==============================================
 // URL SHEET GOOGLE DOANH THU & ĐẤU THẦU
@@ -211,26 +249,35 @@ function rq(g,c,n,cw){
 
 function r6(){
  try {
- const{g,c,n}=S(),sel=$('fu').value,q=+$('fq').value,cw=sm(W,n),qi=q-1,mm=q?qmon(qi,n):0;
- $('uh').textContent=q?'Tỷ lệ hoàn thành KH Quý '+q+' theo đơn vị':'Tỷ lệ hoàn thành KH năm theo đơn vị';
- const rows=q&&!mm?[]:V_data.filter(v=>g?v[1]==g:v[1]!='Khác').map(v=>{
-     const a=ua(v,c),kY=a.khY;
-     let p_=null;
-     if(q){
-         const kq=kY*sm(W.slice(3*qi,3*qi+mm),mm),tq=sm(a.th.slice(3*qi,3*qi+mm),mm);
-         p_=kq?tq/kq:null;
+ const{g,c,n}=S(),sel=$('fu').value,q=+$('fq').value,m_sel=+$('fm').value,cw=sm(W,n),qi=q-1,mm=q?qmon(qi,n):0;
+ let isMonth = m_sel > 0;
+ $('uh').textContent = isMonth ? `Tỷ lệ hoàn thành KH Tháng ${m_sel} theo đơn vị` : (q ? `Tỷ lệ hoàn thành KH Quý ${q} theo đơn vị` : `Tỷ lệ hoàn thành KH năm theo đơn vị`);
+ 
+ const rows = (!isMonth && q && !mm) ? [] : V_data.filter(v=>g?v[1]==g:v[1]!='Khác').map(v=>{
+     const a=ua(v,c), kY=a.khY;
+     let p_=null, kq=0, tq=0;
+     if(isMonth){
+         kq = kY * W[m_sel-1];
+         tq = a.th[m_sel-1];
+         p_ = kq ? tq/kq : null;
+     } else if(q){
+         kq = kY * sm(W.slice(3*qi,3*qi+mm),mm);
+         tq = sm(a.th.slice(3*qi,3*qi+mm),mm);
+         p_ = kq ? tq/kq : null;
      } else {
-         p_=kY?sm(a.th,n)/kY:null;
+         kq = kY;
+         tq = sm(a.th,n);
+         p_ = kY ? tq/kY : null;
      }
-     let m_val = q ? p_ : (cw&&kY?sm(a.th,n)/(kY*cw):-1);
-     return{n:v[0],kh:kY,p:p_,m:m_val}
+     let m_val = (isMonth || q) ? p_ : (cw&&kY?sm(a.th,n)/(kY*cw):-1);
+     return {n:v[0],kh:kY,th_val:tq,p:p_,m:m_val};
  }).filter(o=>o.kh>0&&o.p!=null).sort((x,y)=>y.p-x.p);
  
  const nG=rows.filter(o=>o.m>=1).length,nA=rows.filter(o=>o.m>=.7&&o.m<1).length,nR=rows.length-nG-nA,pc=x=>rows.length?x/rows.length*100:0;
  $('us').textContent=rows.length+' đơn vị';
- $('dist').innerHTML=rows.length?`<div class="mix">${[[nG,'var(--g)',q?'đạt KH quý':'đạt mục tiêu'],[nA,'var(--a)','70–100%'],[nR,'var(--r)','dưới 70%']].map(([x,cl,t])=>`<div style="width:${pc(x)}%;background:${cl}">${x?x+' '+t:''}</div>`).join('')}</div>`:'';
- $('ub').innerHTML=rows.length?rows.map(o=>`<div class="row ur${o.n==sel?' sel':''}" data-u="${o.n}" style="grid-template-columns:135px 1fr 44px;cursor:pointer"><span class="n" title="${o.n}">${o.n}</span><div class="t"><i style="width:${Math.min(o.p,2)*50}%;background:${col(o.m)}"></i>${q?'':`<b class="mk" style="left:${cw*50}%"></b>`}</div><span class="v">${p(o.p)}</span></div>`).join(''):'<div class="lg">Chưa có thực hiện trong kỳ đã chọn.</div>';
- $('ul').innerHTML='Thanh = '+(q?'% hoàn thành KH Quý '+q:'% KH năm')+' (tối đa 200%) · vạch đứt giữa = 100%'+(q?'':' · vạch đậm = mục tiêu lũy kế đến tháng đã chọn')+' · màu: xanh ≥100% '+(q?'KH quý':'mục tiêu')+', vàng ≥70%, đỏ &lt;70% · bấm vào một dòng để xem chi tiết. Bộ lọc nhóm, kênh, tháng ở trên đều áp dụng.';
+ $('dist').innerHTML=rows.length?`<div class="mix">${[[nG,'var(--g)',(isMonth||q)?'đạt KH kỳ':'đạt mục tiêu'],[nA,'var(--a)','70–100%'],[nR,'var(--r)','dưới 70%']].map(([x,cl,t])=>`<div style="width:${pc(x)}%;background:${cl}">${x?x+' '+t:''}</div>`).join('')}</div>`:'';
+ $('ub').innerHTML=rows.length?rows.map(o=>`<div class="row ur${o.n==sel?' sel':''}" data-u="${o.n}" style="grid-template-columns:135px 1fr 90px;cursor:pointer"><span class="n" title="${o.n}">${o.n}</span><div class="t"><i style="width:${Math.min(o.p,2)*50}%;background:${col(o.m)}"></i>${(isMonth||q)?'':`<b class="mk" style="left:${cw*50}%"></b>`}</div><span class="v" style="color:var(--tx)">${f(o.th_val)} <span style="color:var(--mu)">· ${p(o.p)}</span></span></div>`).join(''):'<div class="lg">Chưa có thực hiện trong kỳ đã chọn.</div>';
+ $('ul').innerHTML='Thanh = '+(isMonth?`% hoàn thành KH Tháng ${m_sel}`: (q?`% hoàn thành KH Quý ${q}`:'% KH năm'))+' (tối đa 200%) · vạch đứt giữa = 100%'+((isMonth||q)?'':' · vạch đậm = mục tiêu lũy kế đến tháng đã chọn')+' · màu: xanh ≥100% '+((isMonth||q)?'KH kỳ':'mục tiêu')+', vàng ≥70%, đỏ &lt;70% · bấm vào một dòng để xem chi tiết. Bộ lọc nhóm, kênh, tháng ở trên đều áp dụng.';
  rq(g,c,n,cw);
  
  if(!sel){
@@ -241,14 +288,72 @@ function r6(){
  const v=V_data.find(x=>x[0]==sel);
  if(!v) return;
  const a=ua(v,'T'),khY=a.khY,th=sm(a.th,n),gap=Math.max(khY-th,0),pace=th/n,need=n<12?gap/(12-n):0,ck=sm(a.ck,n),tc=sm(v[9],n);
- const rk=V_data.filter(x=>x[1]!='Khác').map(x=>{const b=ua(x,'T');return{n:x[0],pm:(b.khY&&cw)?sm(b.th,n)/(b.khY*cw):-1}}).sort((x,y)=>y.pm-x.pm),pos=rk.findIndex(o=>o.n==sel)+1;
- const K=[['KH năm',f(khY)],['Thực hiện lũy kế T'+n,f(th)],['% KH năm',khY?p(th/khY):'–'],['% mục tiêu lũy kế',(khY&&cw)?p(th/(khY*cw)):'–'],['Xếp hạng theo % mục tiêu',pos?pos+' / '+rk.length:'–'],['Gap còn lại',f(gap)],['thực hiện cần / hiện tại',f(need)+' / '+f(pace)],['Hệ số tăng tốc',pace?isFinite(need/pace)?(need/pace).toFixed(2)+'x':'–':'–'],['dự kiến (thực hiện bình quân)',khY?p((th+pace*(12-n))/khY):'–'],['Tăng trưởng cùng kỳ',ck>1000?(th/ck-1>=0?'+':'')+p(th/ck-1):'–'],['Kinh doanh thẻ',f(tc)+(th?' ('+p(tc/th)+')':'')]];
- const tb=['BL','GT','B2B'].map(C=>{const u=ua(v,C),t=sm(u.th,n),k=u.khY;return`<tr><td>${CH[C]}</td><td>${f(k)}</td><td>${f(t)}</td><td>${k?p(t/k):'–'}</td><td class="h" style="background:${k?col(t/(k*cw)):'transparent'};color:${k?'#fff':'inherit'}">${k?p(t/(k*cw)):'–'}</td><td>${f(Math.max(k-t,0))}</td></tr>`}).join('');
- const Wd=560,H=200,L=44,B=24,T=10,pw=(Wd-L-8)/12,st=Array(n).fill(0).map((_,i)=>['BL','GT','B2B'].reduce((s,k)=>s+Math.max((v[CI[k][1]][i]||0),0),0)),mx=Math.max(...a.kh,...st,...a.ck.slice(0,n),1)*1.1,y=q=>H-B-q/mx*(H-B-T),x=i=>L+pw*i+pw/2,cl={BL:'#1f5fbf',GT:'#2e9e5b',B2B:'#e0a12b'};
- let s=`<svg viewBox="0 0 ${Wd} ${H}">`;for(let i=0;i<=4;i++){const q=mx/1.1*i/4;s+=`<line x1="${L}" x2="${Wd-8}" y1="${y(q)}" y2="${y(q)}" stroke="var(--bd)"/><text x="${L-4}" y="${y(q)+3}" text-anchor="end">${f(q/1000)}k</text>`}
- for(let i=0;i<12;i++){s+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">T${i+1}</text>`;if(i<n){let b=0;for(const k of['BL','GT','B2B']){const q=Math.max((v[CI[k][1]][i]||0),0);s+=`<rect x="${x(i)-pw*.3}" y="${y(b+q)}" width="${pw*.6}" height="${y(b)-y(b+q)}" fill="${cl[k]}"/>`;b+=q}}}
- s+=`<polyline fill="none" stroke="var(--r)" stroke-width="2" points="${a.kh.map((q,i)=>x(i)+','+y(q)).join(' ')}"/><polyline fill="none" stroke="var(--mu)" stroke-width="2" stroke-dasharray="4 3" points="${a.ck.slice(0,n).map((q,i)=>x(i)+','+y(q)).join(' ')}"/></svg>`;
- $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button></h2><div class="kp">${K.map(([q,r])=>`<div class="k"><span>${q}</span><b style="font-size:19px">${r}</b></div>`).join('')}</div><div class="grid"><div class="c"><h2>Kết quả theo kênh</h2><div class="sc"><table><tr><th>Kênh</th><th>KH năm</th><th>Thực hiện</th><th>% KH năm</th><th>% mục tiêu</th><th>Gap</th></tr>${tb}</table></div></div><div class="c"><h2>Kết quả theo quý</h2><div class="sc">${qtab(qrows(a,n))}</div></div><div class="c"><h2>Thực hiện theo tháng</h2>${s}<div class="lg">Cột chồng: <span style="color:${cl.BL}">■</span> Bán lẻ <span style="color:${cl.GT}">■</span> GT <span style="color:${cl.B2B}">■</span> B2B · đường đỏ = KH tháng · đường xám đứt = cùng kỳ năm trước</div></div></div></div>`
+ const rk=V_data.filter(x=>x[1]!='Khác').map(x=>{
+     const b=ua(x,'T');
+     let pm_v = -1;
+     if (isMonth) pm_v = (b.khY && W[m_sel-1]) ? b.th[m_sel-1]/(b.khY*W[m_sel-1]) : -1;
+     else if (q) pm_v = (b.khY && sm(W.slice(3*qi,3*qi+mm),mm)) ? sm(b.th.slice(3*qi,3*qi+mm),mm)/(b.khY*sm(W.slice(3*qi,3*qi+mm),mm)) : -1;
+     else pm_v = (b.khY&&cw) ? sm(b.th,n)/(b.khY*cw) : -1;
+     return{n:x[0],pm:pm_v};
+ }).sort((x,y)=>y.pm-x.pm),pos=rk.findIndex(o=>o.n==sel)+1;
+
+ let selKq=0, selTq=0, selCk=0, lblSel="";
+ if (isMonth) {
+     selKq = khY * W[m_sel-1]; selTq = a.th[m_sel-1]; selCk = a.ck[m_sel-1]; lblSel = `Tháng ${m_sel}`;
+ } else if (q) {
+     selKq = khY * sm(W.slice(3*qi,3*qi+mm), mm); selTq = sm(a.th.slice(3*qi,3*qi+mm), mm); selCk = sm(a.ck.slice(3*qi,3*qi+mm), mm); lblSel = `Quý ${q}`;
+ }
+
+ let K=[];
+ if (isMonth || q) {
+     K.push([`KH ${lblSel}`, f(selKq)]);
+     K.push([`Thực hiện ${lblSel}`, f(selTq)]);
+     K.push([`% KH ${lblSel}`, selKq ? p(selTq/selKq) : '–']);
+     K.push([`Tăng trưởng CK ${lblSel}`, selCk > 0 ? (selTq/selCk-1>=0?'+':'') + p(selTq/selCk-1) : '–']);
+     K.push([`Xếp hạng (% KH kỳ)`, pos ? pos + ' / ' + rk.length : '–']);
+ }
+ K.push(['KH năm',f(khY)]);
+ K.push(['Thực hiện lũy kế T'+n,f(th)]);
+ K.push(['% KH năm',khY?p(th/khY):'–']);
+ if (!isMonth && !q) {
+     K.push(['% mục tiêu lũy kế',(khY&&cw)?p(th/(khY*cw)):'–']);
+     K.push(['Xếp hạng theo % mục tiêu', pos ? pos + ' / ' + rk.length : '–']);
+     K.push(['Gap còn lại',f(gap)]);
+     K.push(['thực hiện cần / hiện tại',f(need)+' / '+f(pace)]);
+     K.push(['Hệ số tăng tốc',pace?isFinite(need/pace)?(need/pace).toFixed(2)+'x':'–':'–']);
+     K.push(['dự kiến (thực hiện bình quân)',khY?p((th+pace*(12-n))/khY):'–']);
+     K.push(['Tăng trưởng cùng kỳ lũy kế',ck>1000?(th/ck-1>=0?'+':'')+p(th/ck-1):'–']);
+ }
+ K.push(['Kinh doanh thẻ',f(tc)+(th?' ('+p(tc/th)+')':'')]);
+
+ const thTitle = (isMonth||q) ? `KH ${lblSel}` : `KH năm`;
+ const thTh = (isMonth||q) ? `TH ${lblSel}` : `Thực hiện`;
+ const thPct = (isMonth||q) ? `% KH ${lblSel}` : `% KH năm`;
+ const thCol4 = (isMonth||q) ? `% KH năm` : `% mục tiêu`;
+
+ const tb=['BL','GT','B2B'].map(C=>{
+     const u=ua(v,C);
+     let k=0, t=0, gap_c=0, p_main='–', p_sub='–';
+     if(isMonth){
+         k = u.khY * W[m_sel-1]; t = u.th[m_sel-1]; gap_c = Math.max(k-t, 0); p_main = k ? p(t/k) : '–'; p_sub = u.khY ? p(sm(u.th,n)/u.khY) : '–'; 
+     } else if(q){
+         k = u.khY * sm(W.slice(3*qi,3*qi+mm),mm); t = sm(u.th.slice(3*qi,3*qi+mm),mm); gap_c = Math.max(k-t, 0); p_main = k ? p(t/k) : '–'; p_sub = u.khY ? p(sm(u.th,n)/u.khY) : '–'; 
+     } else {
+         k = u.khY; t = sm(u.th,n); gap_c = Math.max(k-t, 0); p_main = k ? p(t/k) : '–'; p_sub = (k&&cw) ? p(t/(k*cw)) : '–';
+     }
+     return `<tr>
+         <td>${CH[C]}</td><td>${f(k)}</td><td>${f(t)}</td>
+         <td class="h" style="background:${k?col(t/k):'transparent'};color:${k?'#fff':'inherit'}">${p_main}</td>
+         <td>${p_sub}</td><td>${f(gap_c)}</td>
+     </tr>`;
+ }).join('');
+
+ const Wd=560,H=200,L=44,B=24,T=10,pw=(Wd-L-8)/12,st=Array(n).fill(0).map((_,i)=>['BL','GT','B2B'].reduce((s,k)=>s+Math.max((v[CI[k][1]][i]||0),0),0)),mx2=Math.max(...a.kh,...st,...a.ck.slice(0,n),1)*1.1,y2=q=>H-B-q/mx2*(H-B-T),x2=i=>L+pw*i+pw/2,cl={BL:'#1f5fbf',GT:'#2e9e5b',B2B:'#e0a12b'};
+ let s2=`<svg viewBox="0 0 ${Wd} ${H}">`;for(let i=0;i<=4;i++){const q_=mx2/1.1*i/4;s2+=`<line x1="${L}" x2="${Wd-8}" y1="${y2(q_)}" y2="${y2(q_)}" stroke="var(--bd)"/><text x="${L-4}" y="${y2(q_)+3}" text-anchor="end">${f(q_/1000)}k</text>`}
+ for(let i=0;i<12;i++){s2+=`<text x="${x2(i)}" y="${H-8}" text-anchor="middle">T${i+1}</text>`;if(i<n){let b=0;for(const k of['BL','GT','B2B']){const q_=Math.max((v[CI[k][1]][i]||0),0);s2+=`<rect x="${x2(i)-pw*.3}" y="${y2(b+q_)}" width="${pw*.6}" height="${y2(b)-y2(b+q_)}" fill="${cl[k]}"/>`;b+=q_}}}
+ s2+=`<polyline fill="none" stroke="var(--r)" stroke-width="2" points="${a.kh.map((q_,i)=>x2(i)+','+y2(q_)).join(' ')}"/><polyline fill="none" stroke="var(--mu)" stroke-width="2" stroke-dasharray="4 3" points="${a.ck.slice(0,n).map((q_,i)=>x2(i)+','+y2(q_)).join(' ')}"/></svg>`;
+ 
+ $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button></h2><div class="kp">${K.map(([q_,r_])=>`<div class="k"><span>${q_}</span><b style="font-size:19px">${r_}</b></div>`).join('')}</div><div class="grid"><div class="c"><h2>Kết quả theo kênh</h2><div class="sc"><table><tr><th>Kênh</th><th>${thTitle}</th><th>${thTh}</th><th>${thPct}</th><th>${thCol4}</th><th>Gap</th></tr>${tb}</table></div></div><div class="c"><h2>Kết quả theo quý</h2><div class="sc">${qtab(qrows(a,n))}</div></div><div class="c"><h2>Thực hiện theo tháng</h2>${s2}<div class="lg">Cột chồng: <span style="color:${cl.BL}">■</span> Bán lẻ <span style="color:${cl.GT}">■</span> GT <span style="color:${cl.B2B}">■</span> B2B · đường đỏ = KH tháng · đường xám đứt = cùng kỳ năm trước</div></div></div></div>`
  } catch(e) { console.error("Lỗi r6", e); }
 }
 
@@ -265,7 +370,17 @@ function all(){
     try{ if(Tender_Data.length > 0) renderTenderTab(); }catch(e){console.error(e);}
 }
 
-['fg','fc','fn','fq'].forEach(i=>$(i).addEventListener('input',all));
+// Ràng buộc 2 bộ lọc Tháng và Quý loại trừ nhau
+$('fm').addEventListener('input', e => { 
+    if($('fm').value !== '0') $('fq').value = '0'; 
+    all(); 
+});
+$('fq').addEventListener('input', e => { 
+    if($('fq').value !== '0') $('fm').value = '0'; 
+    all(); 
+});
+['fg','fc','fn'].forEach(i=>$(i).addEventListener('input',all));
+
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x==b));document.querySelectorAll('.v2').forEach(x=>x.classList.toggle('on',x.id=='p'+b.dataset.t));$('fb').style.display=b.dataset.t=='5'||b.dataset.t=='6'?'none':'flex'}));
 
 // ==============================================
@@ -297,42 +412,45 @@ async function loadGoogleSheetData() {
         if (val) row.push(val.trim());
         if (row.length > 0 && row.join('') !== '') rows.push(row);
 
-        N_data = []; // KHỞI TẠO N_DATA Ở ĐÂY ĐỂ ĐẨY DỮ LIỆU ÂM THẺ
+        N_data = []; 
         const U_map = {}; 
         let detectedMax = 0;
-        const M_groups = {
-            "Khác": {BL:{kh:[],th:[],ck:[]}, GT:{kh:[],th:[],ck:[]}, B2B:{kh:[],th:[],ck:[]}, the:[]},
-            "TT Hà Nội": {BL:{kh:[],th:[],ck:[]}, GT:{kh:[],th:[],ck:[]}, B2B:{kh:[],th:[],ck:[]}, the:[]},
-            "TT TP.HCM": {BL:{kh:[],th:[],ck:[]}, GT:{kh:[],th:[],ck:[]}, B2B:{kh:[],th:[],ck:[]}, the:[]},
-            "Tỉnh/TP": {BL:{kh:[],th:[],ck:[]}, GT:{kh:[],th:[],ck:[]}, B2B:{kh:[],th:[],ck:[]}, the:[]},
-            "PHBC+TCDN": {BL:{kh:[],th:[],ck:[]}, GT:{kh:[],th:[],ck:[]}, B2B:{kh:[],th:[],ck:[]}, the:[]}
-        };
-
-        Object.keys(M_groups).forEach(g => {
-            ['BL','GT','B2B'].forEach(c => {
-                M_groups[g][c].kh = Array(12).fill(0);
-                M_groups[g][c].th = Array(12).fill(0);
-                M_groups[g][c].ck = Array(12).fill(0);
-            });
-            M_groups[g].the = Array(12).fill(0);
+        
+        const M_groups = {};
+        Array.from($('fg').options).forEach(opt => {
+            let text = opt.text;
+            if(text !== "Tất cả") M_groups[text] = {BL:{kh:[],th:[],ck:[]}, GT:{kh:[],th:[],ck:[]}, B2B:{kh:[],th:[],ck:[]}, the:[]};
         });
+        M_groups["Khác"] = {BL:{kh:[],th:[],ck:[]}, GT:{kh:[],th:[],ck:[]}, B2B:{kh:[],th:[],ck:[]}, the:[]};
 
         for (let i = 1; i < rows.length; i++) {
             const cols = rows[i];
             if (cols.length < 3 || !cols[0]) continue;
             
             let bdx = cols[0] ? cols[0].toString().trim() : "";
-            let nhom = cols[1] ? cols[1].toString().trim() : "";
-            
             let bdx_up = bdx.toUpperCase();
-            let nhom_up = nhom.toUpperCase();
+            
+            let original_nhom = cols[1] ? cols[1].toString().trim() : "";
+            let nhom = "";
 
-            if (nhom_up.includes("TCDN") || nhom_up.includes("TCND") || nhom_up.includes("PHBC") ||
-                bdx_up.includes("TCDN") || bdx_up.includes("TCND") || bdx_up.includes("PHBC")) {
-                nhom = "PHBC+TCDN";
-                bdx = "(PHBC+TCDN)";
-            } else if (!nhom) {
-                nhom = "Khác";
+            if (KHU_VUC_MAP[bdx]) {
+                nhom = KHU_VUC_MAP[bdx];
+            } else {
+                let keys = Object.keys(KHU_VUC_MAP).sort((a,b) => b.length - a.length);
+                for (let k of keys) {
+                    if (bdx.toLowerCase().includes(k.toLowerCase())) {
+                        nhom = KHU_VUC_MAP[k];
+                        break;
+                    }
+                }
+            }
+
+            if (!nhom) {
+                nhom = original_nhom || "Khác";
+                if (nhom.toUpperCase().includes("TCDN") || bdx.toUpperCase().includes("TCDN") || bdx.toUpperCase().includes("PHBC")) {
+                    nhom = "PHBC+TCDN";
+                    bdx = "(PHBC+TCDN)";
+                }
             }
 
             const thangMatch = cols[2] ? cols[2].toString().match(/\d+/) : null;
@@ -343,18 +461,15 @@ async function loadGoogleSheetData() {
                 const kh_bl = parseVNNumber(cols[4]);
                 const kh_gt = parseVNNumber(cols[5]);
                 const kh_b2b = parseVNNumber(cols[6]);
-                
                 const th_bl = parseVNNumber(cols[8]);
                 const th_gt = parseVNNumber(cols[9]);
                 const th_b2b = parseVNNumber(cols[10]);
-                
                 const ck_tong = parseVNNumber(cols[11]);
                 const ck_bl = parseVNNumber(cols[12]);
                 const ck_gt = parseVNNumber(cols[13]);
                 const ck_b2b = parseVNNumber(cols[14]);
                 const th_the = parseVNNumber(cols[15]);
 
-                // ĐẨY DỮ LIỆU ĐƠN VỊ ÂM THẺ VÀO N_DATA
                 if (th_the < 0) {
                     N_data.push([bdx, nhom, thang, th_the]);
                 }
@@ -386,9 +501,8 @@ async function loadGoogleSheetData() {
                 U_map[bdx].th_the_arr[thang - 1] += th_the;
                 U_map[bdx].tot_the += th_the;
 
-                if(!M_groups[nhom]) {
-                    M_groups[nhom] = {BL:{kh:Array(12).fill(0),th:Array(12).fill(0),ck:Array(12).fill(0)}, GT:{kh:Array(12).fill(0),th:Array(12).fill(0),ck:Array(12).fill(0)}, B2B:{kh:Array(12).fill(0),th:Array(12).fill(0),ck:Array(12).fill(0)}, the:Array(12).fill(0)};
-                }
+                if(!M_groups[nhom]) M_groups[nhom] = {BL:{kh:Array(12).fill(0),th:Array(12).fill(0),ck:Array(12).fill(0)}, GT:{kh:Array(12).fill(0),th:Array(12).fill(0),ck:Array(12).fill(0)}, B2B:{kh:Array(12).fill(0),th:Array(12).fill(0),ck:Array(12).fill(0)}, the:Array(12).fill(0)};
+                
                 M_groups[nhom].BL.kh[thang-1] += kh_bl;
                 M_groups[nhom].GT.kh[thang-1] += kh_gt;
                 M_groups[nhom].B2B.kh[thang-1] += kh_b2b;
@@ -420,10 +534,15 @@ async function loadGoogleSheetData() {
             });
 
             M_data = M_groups;
+            
             const smDropdown = $('fn');
             smDropdown.innerHTML = '';
             for(let j=1; j<=max_month_th; j++) smDropdown.add(new Option('T'+j, j, 0, j===max_month_th));
             $('fn').value = max_month_th;
+
+            const fmDropdown = $('fm');
+            fmDropdown.innerHTML = '<option value="0">— Không chọn —</option>';
+            for(let j=1; j<=max_month_th; j++) fmDropdown.add(new Option('Tháng '+j, j));
 
             $('page-sub').innerText = `Dữ liệu thực hiện cập nhật tự động đến T${max_month_th}/${latest_year} · Đơn vị tính: triệu đồng · Được thiết kế bởi ThanhDD · Phòng TCBL`;
             $('loading').style.display = 'none';
@@ -760,3 +879,5 @@ window.onload = () => {
     loadTenderData();
 };
 </script></body></html>
+
+```
