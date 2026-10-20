@@ -182,7 +182,7 @@ const parseVNNumber = (str) => {
     if (str === undefined || str === null) return 0;
     let s = str.toString().trim();
     if (s === '-' || s === '') return 0;
-    s = s.replace(/\./g, '').replace(/,/g, '.').replace(/[^\d.-]/g, '');
+    s = s.replace(/\./g, '').replace(/,/g, '.replace(/[^\d.-]/g, '');
     return parseFloat(s) || 0;
 };
 
@@ -225,17 +225,10 @@ const qrows = (A, n) => [0, 1, 2, 3].map(qi => {
 function r1(){
     const{g,c,n}=S(),a=agg(g,c),kY=sm(a.kh,12),th=sm(a.th,n),ck=sm(a.ck,n),gap=Math.max(kY-th,0);
     const cw = sm(W, n); const k_n = kY * cw; 
-    const pace=th/n,need=n<12?gap/(12-n):0,acc=pace?need/pace:0;
+    const pace=th/n,need=n<12?gap/(12-n):0;
     
     const pct_target_cum = k_n ? p(th/k_n) : '–';
-    const proj_avg = kY ? p((th+pace*(12-n))/kY) : '–';
-    const proj_season = (kY && cw < 1) ? p((th + kY*(1-cw)*(th/k_n))/kY) : (kY ? p(th/kY) : '–');
     const growth_ck = ck ? (th/ck-1>=0?'+':'') + p(th/ck-1) : '–';
-
-    const th_month = a.th[n-1] || 0;
-    const th_month_BL = agg(g, 'BL').th[n-1] || 0;
-    const th_month_GT = agg(g, 'GT').th[n-1] || 0;
-    const th_month_B2B = agg(g, 'B2B').th[n-1] || 0;
 
     const K=[
         ['KH năm',f(kY)],
@@ -244,9 +237,6 @@ function r1(){
         ['% mục tiêu lũy kế',pct_target_cum],
         ['Khoảng trống còn lại',f(gap)],
         ['thực hiện cần / hiện tại', `<span style="font-size:15px; letter-spacing:-0.2px">${f(need)} / ${f(pace)}</span>`],
-        ['Hệ số tăng tốc',isFinite(acc)?acc.toFixed(2)+'x':'–'],
-        ['dự kiến (THBQ)',proj_avg],
-        ['dự kiến (mùa vụ)',proj_season],
         ['Tăng trưởng cùng kỳ',growth_ck]
     ];
     $('k1').innerHTML=K.map(([x,y])=>`<div class="k"><span>${x}</span><b>${y}</b></div>`).join('');
@@ -407,8 +397,6 @@ function r6(){
      K.push(['Xếp hạng theo % mục tiêu', pos ? pos + ' / ' + rk.length : '–']);
      K.push(['Gap còn lại',f(gap)]);
      K.push(['thực hiện cần / hiện tại', `<span style="font-size:15px; letter-spacing:-0.2px">${f(need)} / ${f(pace)}</span>`]);
-     K.push(['Hệ số tăng tốc',pace?isFinite(need/pace)?(need/pace).toFixed(2)+'x':'–':'–']);
-     K.push(['dự kiến (thực hiện bình quân)',khY?p((th+pace*(12-n))/khY):'–']);
      K.push(['Tăng trưởng cùng kỳ lũy kế',ck>1000?(th/ck-1>=0?'+':'')+p(th/ck-1):'–']);
  }
 
@@ -669,7 +657,7 @@ async function loadGoogleSheetData() {
 
 function rrep() {
     const {g, n} = S(); 
-    const sel = $('fu').value; // Kiểm tra xem người dùng có đang chọn 1 đơn vị cụ thể hay không
+    const sel = $('fu').value; 
 
     let total_KH = 0, total_TH = 0, total_CK = 0;
     let bl_KH = 0, bl_TH = 0, gt_KH = 0, gt_TH = 0, b2b_KH = 0, b2b_TH = 0;
@@ -677,14 +665,13 @@ function rrep() {
     let month_KH = 0, month_TH = 0, month_CK = 0;
     let month_bl_TH = 0, month_gt_TH = 0, month_b2b_TH = 0;
 
-    const cw = sm(W, n); // Trọng số mục tiêu lũy kế
-    const w_month = W[n-1]; // Trọng số mục tiêu riêng tháng hiện tại
+    const cw = sm(W, n); 
+    const w_month = W[n-1]; 
 
     let topGaps = [];
     let donViName = sel ? sel : (g ? `Nhóm ${g}` : "Toàn mạng lưới");
 
     if (sel) {
-        // --- CHẾ ĐỘ 1: BÁO CÁO CHO 1 ĐƠN VỊ CỤ THỂ ---
         const v = V_data.find(x => x[0] == sel);
         if (!v) return;
 
@@ -699,7 +686,6 @@ function rrep() {
         month_TH = uT.th[n-1] || 0; month_CK = uT.ck[n-1] || 0;
         month_bl_TH = uBL.th[n-1] || 0; month_gt_TH = uGT.th[n-1] || 0; month_b2b_TH = uB2B.th[n-1] || 0;
 
-        // Tính Gap các kênh của đơn vị
         topGaps = [
             {n: 'Bán lẻ', gap: Math.max(bl_KH * cw - bl_TH, 0)},
             {n: 'GT', gap: Math.max(gt_KH * cw - gt_TH, 0)},
@@ -707,7 +693,6 @@ function rrep() {
         ].filter(o => o.gap > 0).sort((a,b) => b.gap - a.gap);
 
     } else {
-        // --- CHẾ ĐỘ 2: BÁO CÁO TOÀN MẠNG LƯỚI HOẶC NHÓM ---
         for (const G in M_data) {
             if(g && G != g) continue;
             bl_KH += sm(M_data[G].BL.kh, 12); bl_TH += sm(M_data[G].BL.th, n); month_bl_TH += M_data[G].BL.th[n-1] || 0;
@@ -720,7 +705,6 @@ function rrep() {
         total_TH = bl_TH + gt_TH + b2b_TH;
         month_TH = month_bl_TH + month_gt_TH + month_b2b_TH;
 
-        // Lấy Top 5 đơn vị có Gap mục tiêu lớn nhất
         const rs_gaps = V_data.filter(x=>(g?x[1]==g:x[1]!='Khác')).map(x => {
             const a = ua(x, 'T');
             const t = sm(a.th, n);
@@ -732,7 +716,6 @@ function rrep() {
     month_KH = total_KH * w_month;
     const muctieu_LK = total_KH * cw;
 
-    // TÍNH TOÁN CÁC CHỈ SỐ %
     const pct_nam = total_KH ? (total_TH / total_KH * 100) : 0;
     const pct_mt = muctieu_LK ? (total_TH / muctieu_LK * 100) : 0;
     const tang_truong = total_CK ? (total_TH / total_CK * 100) : 0;
@@ -740,7 +723,6 @@ function rrep() {
     const pct_month = month_KH ? (month_TH / month_KH * 100) : 0;
     const tang_truong_month = month_CK ? (month_TH / month_CK * 100) : 0;
 
-    // --- SINH TEXT ĐÁNH GIÁ TỰ ĐỘNG ---
     let nhanXetB2B = "";
     if (total_TH > 0 && (b2b_TH / total_TH) > 0.6) {
         nhanXetB2B = `Tuy nhiên, kết quả tổng thể đang phụ thuộc quá nhiều vào một kênh: <b>B2B chiếm tới ${p(b2b_TH/total_TH)} doanh thu</b>, trong khi Bán lẻ và GT vẫn đang chậm tiến độ. ${sel ? 'Đơn vị' : 'Mạng lưới'} cần rà soát lại cơ cấu doanh thu thực chất.`;
@@ -776,7 +758,6 @@ function rrep() {
         nhanXetThang += `<span style="color:var(--r)"><b>Đánh giá: Chậm tiến độ.</b> Kết quả tháng ${n} đang thấp hơn so với kỳ vọng, cần có các biện pháp thúc đẩy bán hàng ngay lập tức.</span>`;
     }
 
-    // --- RENDER HTML ---
     let h = `<h1 class="rt" style="text-transform:uppercase">BÁO CÁO ĐÁNH GIÁ TỰ ĐỘNG THÁNG ${n} ${sel ? '- ĐƠN VỊ ' + sel : ''}</h1>`;
     h += `<div class="rs">Đơn vị: ${donViName} · Kỳ báo cáo: T1–T${n}/${latest_year}</div>`;
     h += `<div class="rm">Nội dung báo cáo được hệ thống tự động bóc tách và phân tích theo số liệu ${sel ? 'riêng của đơn vị' : 'toàn mạng lưới'}.</div>`;
