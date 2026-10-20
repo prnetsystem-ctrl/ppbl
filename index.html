@@ -36,7 +36,7 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
     <button data-t="3">4. Khoảng trống &amp; xếp hạng</button>
     <button data-t="4">5. Doanh thu thẻ</button>
     <button data-t="6">6. Đấu thầu</button>
-    <button data-t="5">7. Báo cáo đánh giá tự động</button>
+    <button data-t="5">7. Báo cáo đánh giá</button>
 </div>
 <div class="bar" id="fb"><label>Nhóm đơn vị <select id="fg">
     <option value="">Tất cả</option>
@@ -405,7 +405,7 @@ function r6(){
  if (!isMonth && !q) {
      K.push(['% mục tiêu lũy kế',(khY&&cw)?p(th/(khY*cw)):'–']);
      K.push(['Xếp hạng theo % mục tiêu', pos ? pos + ' / ' + rk.length : '–']);
-     K.push(['Khoảng trống còn lại',f(gap)]);
+     K.push(['Gap còn lại',f(gap)]);
      K.push(['thực hiện cần / hiện tại', `<span style="font-size:15px; letter-spacing:-0.2px">${f(need)} / ${f(pace)}</span>`]);
      K.push(['Hệ số tăng tốc',pace?isFinite(need/pace)?(need/pace).toFixed(2)+'x':'–':'–']);
      K.push(['dự kiến (thực hiện bình quân)',khY?p((th+pace*(12-n))/khY):'–']);
@@ -669,79 +669,149 @@ async function loadGoogleSheetData() {
 
 function rrep() {
     const {g, n} = S(); 
-    
-    // 1. TÍNH TOÁN CÁC SỐ LIỆU TỔNG QUAN TỪ DỮ LIỆU THỰC
+    const sel = $('fu').value; // Kiểm tra xem người dùng có đang chọn 1 đơn vị cụ thể hay không
+
     let total_KH = 0, total_TH = 0, total_CK = 0;
     let bl_KH = 0, bl_TH = 0, gt_KH = 0, gt_TH = 0, b2b_KH = 0, b2b_TH = 0;
-    
-    // Tính tổng toàn mạng từ M_data
-    for (const G in M_data) {
-        if(g && G != g) continue;
-        bl_KH += sm(M_data[G].BL.kh, 12); bl_TH += sm(M_data[G].BL.th, n);
-        gt_KH += sm(M_data[G].GT.kh, 12); gt_TH += sm(M_data[G].GT.th, n);
-        b2b_KH += sm(M_data[G].B2B.kh, 12); b2b_TH += sm(M_data[G].B2B.th, n);
-        total_CK += sm(M_data[G].BL.ck, n) + sm(M_data[G].GT.ck, n) + sm(M_data[G].B2B.ck, n);
+
+    let month_KH = 0, month_TH = 0, month_CK = 0;
+    let month_bl_TH = 0, month_gt_TH = 0, month_b2b_TH = 0;
+
+    const cw = sm(W, n); // Trọng số mục tiêu lũy kế
+    const w_month = W[n-1]; // Trọng số mục tiêu riêng tháng hiện tại
+
+    let topGaps = [];
+    let donViName = sel ? sel : (g ? `Nhóm ${g}` : "Toàn mạng lưới");
+
+    if (sel) {
+        // --- CHẾ ĐỘ 1: BÁO CÁO CHO 1 ĐƠN VỊ CỤ THỂ ---
+        const v = V_data.find(x => x[0] == sel);
+        if (!v) return;
+
+        const uT = ua(v, 'T'), uBL = ua(v, 'BL'), uGT = ua(v, 'GT'), uB2B = ua(v, 'B2B');
+
+        total_KH = uT.khY;
+        bl_KH = uBL.khY; gt_KH = uGT.khY; b2b_KH = uB2B.khY;
+
+        total_TH = sm(uT.th, n); bl_TH = sm(uBL.th, n); gt_TH = sm(uGT.th, n); b2b_TH = sm(uB2B.th, n);
+        total_CK = sm(uT.ck, n);
+
+        month_TH = uT.th[n-1] || 0; month_CK = uT.ck[n-1] || 0;
+        month_bl_TH = uBL.th[n-1] || 0; month_gt_TH = uGT.th[n-1] || 0; month_b2b_TH = uB2B.th[n-1] || 0;
+
+        // Tính Gap các kênh của đơn vị
+        topGaps = [
+            {n: 'Bán lẻ', gap: Math.max(bl_KH * cw - bl_TH, 0)},
+            {n: 'GT', gap: Math.max(gt_KH * cw - gt_TH, 0)},
+            {n: 'B2B', gap: Math.max(b2b_KH * cw - b2b_TH, 0)}
+        ].filter(o => o.gap > 0).sort((a,b) => b.gap - a.gap);
+
+    } else {
+        // --- CHẾ ĐỘ 2: BÁO CÁO TOÀN MẠNG LƯỚI HOẶC NHÓM ---
+        for (const G in M_data) {
+            if(g && G != g) continue;
+            bl_KH += sm(M_data[G].BL.kh, 12); bl_TH += sm(M_data[G].BL.th, n); month_bl_TH += M_data[G].BL.th[n-1] || 0;
+            gt_KH += sm(M_data[G].GT.kh, 12); gt_TH += sm(M_data[G].GT.th, n); month_gt_TH += M_data[G].GT.th[n-1] || 0;
+            b2b_KH += sm(M_data[G].B2B.kh, 12); b2b_TH += sm(M_data[G].B2B.th, n); month_b2b_TH += M_data[G].B2B.th[n-1] || 0;
+            total_CK += sm(M_data[G].BL.ck, n) + sm(M_data[G].GT.ck, n) + sm(M_data[G].B2B.ck, n);
+            month_CK += (M_data[G].BL.ck[n-1] || 0) + (M_data[G].GT.ck[n-1] || 0) + (M_data[G].B2B.ck[n-1] || 0);
+        }
+        total_KH = bl_KH + gt_KH + b2b_KH;
+        total_TH = bl_TH + gt_TH + b2b_TH;
+        month_TH = month_bl_TH + month_gt_TH + month_b2b_TH;
+
+        // Lấy Top 5 đơn vị có Gap mục tiêu lớn nhất
+        const rs_gaps = V_data.filter(x=>(g?x[1]==g:x[1]!='Khác')).map(x => {
+            const a = ua(x, 'T');
+            const t = sm(a.th, n);
+            return {n: x[0], gap: Math.max(a.khY * cw - t, 0)};
+        }).sort((a,b) => b.gap - a.gap);
+        topGaps = rs_gaps.slice(0, 5).filter(o => o.gap > 0);
     }
-    total_KH = bl_KH + gt_KH + b2b_KH;
-    total_TH = bl_TH + gt_TH + b2b_TH;
-    
-    const cw = sm(W, n); // Trọng số thời gian
+
+    month_KH = total_KH * w_month;
     const muctieu_LK = total_KH * cw;
-    
+
+    // TÍNH TOÁN CÁC CHỈ SỐ %
     const pct_nam = total_KH ? (total_TH / total_KH * 100) : 0;
     const pct_mt = muctieu_LK ? (total_TH / muctieu_LK * 100) : 0;
     const tang_truong = total_CK ? (total_TH / total_CK * 100) : 0;
-    
-    // Tìm các đơn vị có Gap lớn nhất
-    const rs = U_data.filter(u=>(g?u[1]==g:u[1]!='Khác')).map(u => {
-        const kh = u[2]+u[3]+u[4];
-        const th = u[5]+u[6]+u[7];
-        return { n: u[0], gap: Math.max(kh - th, 0) };
-    }).sort((a, b) => b.gap - a.gap);
-    const topGaps = rs.slice(0, 5).filter(o => o.gap > 0);
 
-    // 2. SINH VĂN BẢN ĐÁNH GIÁ TỰ ĐỘNG (Dựa trên if/else)
+    const pct_month = month_KH ? (month_TH / month_KH * 100) : 0;
+    const tang_truong_month = month_CK ? (month_TH / month_CK * 100) : 0;
+
+    // --- SINH TEXT ĐÁNH GIÁ TỰ ĐỘNG ---
     let nhanXetB2B = "";
     if (total_TH > 0 && (b2b_TH / total_TH) > 0.6) {
-        nhanXetB2B = `Tuy nhiên, kết quả tổng thể đang phụ thuộc quá nhiều vào một kênh: <b>B2B chiếm tới ${p(b2b_TH/total_TH)} doanh thu</b>, trong khi Bán lẻ và GT vẫn đang chậm tiến độ. Mạng lưới chưa hoàn thành mục tiêu về cơ cấu bán lẻ đúng nghĩa.`;
+        nhanXetB2B = `Tuy nhiên, kết quả tổng thể đang phụ thuộc quá nhiều vào một kênh: <b>B2B chiếm tới ${p(b2b_TH/total_TH)} doanh thu</b>, trong khi Bán lẻ và GT vẫn đang chậm tiến độ. ${sel ? 'Đơn vị' : 'Mạng lưới'} cần rà soát lại cơ cấu doanh thu thực chất.`;
     } else {
         nhanXetB2B = `Cơ cấu doanh thu các kênh đang duy trì ở mức tương đối ổn định.`;
     }
 
     let nhanXetGap = "";
-    if (topGaps.length > 0) {
-        nhanXetGap = `Các đơn vị đang có khoảng trống (Gap) hụt kế hoạch lớn nhất cần tập trung xử lý là: ` + 
-                     topGaps.map(x => `<b>${x.n}</b> (hụt ${f(x.gap)})`).join(', ') + `.`;
+    if (sel) {
+        if (topGaps.length > 0) {
+            nhanXetGap = `Đơn vị đang có khoảng trống (Gap) hụt so với mục tiêu lũy kế cần tập trung đẩy mạnh là: ` + topGaps.map(x => `<b>Kênh ${x.n}</b> (hụt ${f(x.gap)})`).join(', ') + `.`;
+        } else {
+            nhanXetGap = `Đơn vị đang bám sát và hoàn thành tốt tiến độ kế hoạch ở các kênh.`;
+        }
     } else {
-        nhanXetGap = `Đa số các đơn vị đều theo kịp hoặc vượt tiến độ kế hoạch đặt ra.`;
+        if (topGaps.length > 0) {
+            nhanXetGap = `Các đơn vị đang có khoảng trống (Gap) hụt mục tiêu lớn nhất mạng lưới cần tập trung hỗ trợ/xử lý là: ` + topGaps.map(x => `<b>${x.n}</b> (hụt ${f(x.gap)})`).join(', ') + `.`;
+        } else {
+            nhanXetGap = `Đa số các đơn vị đều theo kịp hoặc vượt tiến độ kế hoạch đặt ra.`;
+        }
     }
 
-    // 3. XÂY DỰNG GIAO DIỆN HTML CHO BÁO CÁO
-    let h = `<h1 class="rt">BÁO CÁO ĐÁNH GIÁ TỰ ĐỘNG (THÁNG ${n})</h1>`;
-    h += `<div class="rs">Mạng lưới Tổng công ty Bưu điện Việt Nam · Kỳ báo cáo: lũy kế T1–T${n}/${latest_year}</div>`;
-    h += `<div class="rm">Nội dung báo cáo được hệ thống tự động phân tích và tổng hợp từ số liệu thực tế của các đơn vị.</div>`;
+    let nhanXetThang = `Trong tháng ${n}, ${sel ? 'đơn vị' : 'toàn mạng'} thực hiện đạt <b>${f(month_TH)}</b>, tương đương <b>${pct_month.toFixed(1)}%</b> mục tiêu giao riêng trong tháng (${f(month_KH)}). `;
+    if (month_CK > 0) {
+        nhanXetThang += `So với cùng kỳ năm trước, doanh thu riêng tháng ${n} đạt <b>${tang_truong_month.toFixed(1)}%</b>. `;
+    }
     
-    h += `<h3>I. Đánh giá chung</h3>`;
-    h += `<p>Sau ${n} tháng, toàn mạng thực hiện đạt <b>${f(total_TH)}</b>, tương đương <b>${pct_nam.toFixed(1)}%</b> kế hoạch năm (${f(total_KH)}). So với mục tiêu luỹ kế đến thời điểm hiện tại, toàn mạng đạt <b>${pct_mt.toFixed(1)}%</b> và bằng <b>${tang_truong.toFixed(1)}%</b> so với cùng kỳ năm trước.</p>`;
+    if (pct_month >= 100) {
+        nhanXetThang += `<span style="color:var(--g)"><b>Đánh giá: Rất tốt.</b> Đã hoàn thành và vượt mục tiêu doanh thu của tháng.</span>`;
+    } else if (pct_month >= 80) {
+        nhanXetThang += `<span style="color:var(--a)"><b>Đánh giá: Đạt yêu cầu.</b> Đang bám sát mục tiêu tháng, cần nỗ lực thêm để về đích trọn vẹn.</span>`;
+    } else {
+        nhanXetThang += `<span style="color:var(--r)"><b>Đánh giá: Chậm tiến độ.</b> Kết quả tháng ${n} đang thấp hơn so với kỳ vọng, cần có các biện pháp thúc đẩy bán hàng ngay lập tức.</span>`;
+    }
+
+    // --- RENDER HTML ---
+    let h = `<h1 class="rt" style="text-transform:uppercase">BÁO CÁO ĐÁNH GIÁ TỰ ĐỘNG THÁNG ${n} ${sel ? '- ĐƠN VỊ ' + sel : ''}</h1>`;
+    h += `<div class="rs">Đơn vị: ${donViName} · Kỳ báo cáo: T1–T${n}/${latest_year}</div>`;
+    h += `<div class="rm">Nội dung báo cáo được hệ thống tự động bóc tách và phân tích theo số liệu ${sel ? 'riêng của đơn vị' : 'toàn mạng lưới'}.</div>`;
+    
+    h += `<h3>I. Đánh giá lũy kế T1-T${n}</h3>`;
+    h += `<p>Sau ${n} tháng, ${sel ? 'đơn vị' : 'toàn mạng'} thực hiện đạt <b>${f(total_TH)}</b>, tương đương <b>${pct_nam.toFixed(1)}%</b> kế hoạch năm (${f(total_KH)}). So với mục tiêu luỹ kế đến thời điểm hiện tại, đạt <b>${pct_mt.toFixed(1)}%</b> và bằng <b>${tang_truong.toFixed(1)}%</b> so với cùng kỳ năm trước.</p>`;
     h += `<p>${nhanXetB2B}</p>`;
     
-    // Tạo bảng chi tiết tự động
     h += `<div class="sc"><table style="margin-top:10px">
-        <tr><th style="text-align:left">Kênh</th><th>KH Năm</th><th>Thực hiện T1-${n}</th><th>% KH Năm</th><th>% Mục tiêu</th></tr>
-        <tr><td style="text-align:left">Bán lẻ</td><td>${f(bl_KH)}</td><td>${f(bl_TH)}</td><td>${bl_KH?p(bl_TH/bl_KH):'-'}</td><td class="h" style="background:${bl_KH?col(bl_TH/(bl_KH*cw)):'transparent'}">${bl_KH?p(bl_TH/(bl_KH*cw)):'-'}</td></tr>
-        <tr><td style="text-align:left">GT</td><td>${f(gt_KH)}</td><td>${f(gt_TH)}</td><td>${gt_KH?p(gt_TH/gt_KH):'-'}</td><td class="h" style="background:${gt_KH?col(gt_TH/(gt_KH*cw)):'transparent'}">${gt_KH?p(gt_TH/(gt_KH*cw)):'-'}</td></tr>
-        <tr><td style="text-align:left">B2B</td><td>${f(b2b_KH)}</td><td>${f(b2b_TH)}</td><td>${b2b_KH?p(b2b_TH/b2b_KH):'-'}</td><td class="h" style="background:${b2b_KH?col(b2b_TH/(b2b_KH*cw)):'transparent'}">${b2b_KH?p(b2b_TH/(b2b_KH*cw)):'-'}</td></tr>
-        <tr><td style="text-align:left"><b>Tổng</b></td><td><b>${f(total_KH)}</b></td><td><b>${f(total_TH)}</b></td><td><b>${total_KH?p(total_TH/total_KH):'-'}</b></td><td class="h" style="background:${total_KH?col(total_TH/muctieu_LK):'transparent'}"><b>${total_KH?p(total_TH/muctieu_LK):'-'}</b></td></tr>
+        <tr><th style="text-align:left">Kênh</th><th>KH Năm</th><th>Thực hiện LK</th><th>% KH Năm</th><th>% Mục tiêu LK</th></tr>
+        <tr><td style="text-align:left">Bán lẻ</td><td>${f(bl_KH)}</td><td>${f(bl_TH)}</td><td>${bl_KH?p(bl_TH/bl_KH):'-'}</td><td class="h" style="background:${bl_KH?col(bl_TH/(bl_KH*cw)):'transparent'};color:${bl_KH?'#fff':'inherit'}">${bl_KH?p(bl_TH/(bl_KH*cw)):'-'}</td></tr>
+        <tr><td style="text-align:left">GT</td><td>${f(gt_KH)}</td><td>${f(gt_TH)}</td><td>${gt_KH?p(gt_TH/gt_KH):'-'}</td><td class="h" style="background:${gt_KH?col(gt_TH/(gt_KH*cw)):'transparent'};color:${gt_KH?'#fff':'inherit'}">${gt_KH?p(gt_TH/(gt_KH*cw)):'-'}</td></tr>
+        <tr><td style="text-align:left">B2B</td><td>${f(b2b_KH)}</td><td>${f(b2b_TH)}</td><td>${b2b_KH?p(b2b_TH/b2b_KH):'-'}</td><td class="h" style="background:${b2b_KH?col(b2b_TH/(b2b_KH*cw)):'transparent'};color:${b2b_KH?'#fff':'inherit'}">${b2b_KH?p(b2b_TH/(b2b_KH*cw)):'-'}</td></tr>
+        <tr><td style="text-align:left"><b>Tổng</b></td><td><b>${f(total_KH)}</b></td><td><b>${f(total_TH)}</b></td><td><b>${total_KH?p(total_TH/total_KH):'-'}</b></td><td class="h" style="background:${total_KH?col(total_TH/muctieu_LK):'transparent'};color:${total_KH?'#fff':'inherit'}"><b>${total_KH?p(total_TH/muctieu_LK):'-'}</b></td></tr>
     </table></div>`;
 
-    h += `<h3>II. Cảnh báo đơn vị</h3>`;
+    h += `<h3>II. Đánh giá riêng Tháng ${n}</h3>`;
+    h += `<p>${nhanXetThang}</p>`;
+    
+    h += `<div class="sc"><table style="margin-top:10px">
+        <tr><th style="text-align:left">Kênh</th><th>KH Tháng ${n}</th><th>Thực hiện T${n}</th><th>% KH Tháng</th></tr>
+        <tr><td style="text-align:left">Bán lẻ</td><td>${f(bl_KH*w_month)}</td><td>${f(month_bl_TH)}</td><td class="h" style="background:${(bl_KH*w_month)?col(month_bl_TH/(bl_KH*w_month)):'transparent'};color:${(bl_KH*w_month)?'#fff':'inherit'}">${(bl_KH*w_month)?p(month_bl_TH/(bl_KH*w_month)):'-'}</td></tr>
+        <tr><td style="text-align:left">GT</td><td>${f(gt_KH*w_month)}</td><td>${f(month_gt_TH)}</td><td class="h" style="background:${(gt_KH*w_month)?col(month_gt_TH/(gt_KH*w_month)):'transparent'};color:${(gt_KH*w_month)?'#fff':'inherit'}">${(gt_KH*w_month)?p(month_gt_TH/(gt_KH*w_month)):'-'}</td></tr>
+        <tr><td style="text-align:left">B2B</td><td>${f(b2b_KH*w_month)}</td><td>${f(month_b2b_TH)}</td><td class="h" style="background:${(b2b_KH*w_month)?col(month_b2b_TH/(b2b_KH*w_month)):'transparent'};color:${(b2b_KH*w_month)?'#fff':'inherit'}">${(b2b_KH*w_month)?p(month_b2b_TH/(b2b_KH*w_month)):'-'}</td></tr>
+        <tr><td style="text-align:left"><b>Tổng</b></td><td><b>${f(month_KH)}</b></td><td><b>${f(month_TH)}</b></td><td class="h" style="background:${month_KH?col(month_TH/month_KH):'transparent'};color:${month_KH?'#fff':'inherit'}"><b>${month_KH?p(month_TH/month_KH):'-'}</b></td></tr>
+    </table></div>`;
+
+    h += `<h3>III. Nhận diện rủi ro & Khoảng trống (Gap)</h3>`;
     h += `<p>${nhanXetGap}</p>`;
     
-    h += `<h3>III. Khuyến nghị hành động</h3>`;
+    h += `<h3>IV. Khuyến nghị hành động</h3>`;
     h += `<ul>
-        <li><b>Kênh Bán Lẻ:</b> Rà soát lại năng lực bán lẻ tại các đơn vị có Gap lớn, ưu tiên tăng cường danh mục hàng và nhân sự.</li>
-        <li><b>Kênh GT:</b> Xác nhận lại định nghĩa và cách ghi nhận kênh GT tại các đơn vị đang có doanh thu quá thấp.</li>
-        <li><b>Kênh B2B:</b> Tiếp tục theo dõi tiến độ giải ngân hợp đồng để đảm bảo không bị rơi rớt doanh thu vào cuối năm.</li>
+        <li><b>Kênh Bán Lẻ:</b> Rà soát lại năng lực bán lẻ${sel ? ' tại đơn vị' : ' tại các đơn vị có Gap lớn'}, đẩy mạnh các chương trình khuyến mại bám sát mục tiêu tháng.</li>
+        <li><b>Kênh GT:</b> ${sel ? 'Khai thác tối đa tiềm năng tại các điểm bán trên địa bàn.' : 'Xác nhận lại định nghĩa và cách ghi nhận kênh GT tại các đơn vị đang có doanh thu quá thấp.'}</li>
+        <li><b>Kênh B2B:</b> ${sel ? 'Theo sát tiến độ đàm phán, thanh toán và giải ngân các hợp đồng B2B đã ký.' : 'Tiếp tục theo dõi tiến độ giải ngân hợp đồng mạng lưới để đảm bảo không bị rơi rớt doanh thu cuối năm.'}</li>
     </ul>`;
 
     if($('rp')) $('rp').innerHTML = h;
