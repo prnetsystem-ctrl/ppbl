@@ -36,7 +36,7 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
     <button data-t="3">4. Khoảng trống &amp; xếp hạng</button>
     <button data-t="4">5. Doanh thu thẻ</button>
     <button data-t="6">6. Đấu thầu</button>
-    <button data-t="5">7. Báo cáo đánh giá</button>
+    <button data-t="5">7. Báo cáo đánh giá tự động</button>
 </div>
 <div class="bar" id="fb"><label>Nhóm đơn vị <select id="fg">
     <option value="">Tất cả</option>
@@ -405,7 +405,7 @@ function r6(){
  if (!isMonth && !q) {
      K.push(['% mục tiêu lũy kế',(khY&&cw)?p(th/(khY*cw)):'–']);
      K.push(['Xếp hạng theo % mục tiêu', pos ? pos + ' / ' + rk.length : '–']);
-     K.push(['Gap còn lại',f(gap)]);
+     K.push(['Khoảng trống còn lại',f(gap)]);
      K.push(['thực hiện cần / hiện tại', `<span style="font-size:15px; letter-spacing:-0.2px">${f(need)} / ${f(pace)}</span>`]);
      K.push(['Hệ số tăng tốc',pace?isFinite(need/pace)?(need/pace).toFixed(2)+'x':'–':'–']);
      K.push(['dự kiến (thực hiện bình quân)',khY?p((th+pace*(12-n))/khY):'–']);
