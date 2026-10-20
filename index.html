@@ -74,16 +74,15 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
         <label>Tháng <select id="fm"><option value="0">— Không chọn —</option></select></label>
         <span class="lg" id="us"></span>
     </div>
-    
     <div class="c" style="margin-bottom:10px"><h2 id="uh"></h2><div id="dist"></div><div id="ub" class="ug"></div><div class="lg" id="ul"></div></div>
     
-    <!-- DASHBOARD MẶC ĐỊNH (KHI CHƯA CHỌN ĐƠN VỊ) -->
+    <!-- GRID HIỂN THỊ CHUNG KHI CHƯA CHỌN ĐƠN VỊ CỤ THỂ -->
     <div class="grid" id="global-q-dash">
         <div class="c"><h2>Kết quả theo từng quý</h2><div id="qc"></div></div>
         <div class="c"><h2>Chi tiết theo quý và % hoàn thành theo kênh</h2><div class="sc" id="qt"></div></div>
     </div>
     
-    <!-- DASHBOARD CHI TIẾT (KHI ĐÃ CHỌN ĐƠN VỊ) -->
+    <!-- GRID HIỂN THỊ CHI TIẾT KHI ĐÃ CHỌN ĐƠN VỊ -->
     <div id="ud"></div>
 </div>
 
@@ -223,7 +222,6 @@ function r1(){
     
     $('ch').innerHTML=['BL','GT','B2B'].map(C=>{const b=agg(g,C),t=sm(b.th,n),kk=sm(b.kh,12); const m=kk*cw; return`<div class="row" style="grid-template-columns:60px 1fr 180px"><span class="n">${CH[C]}</span><div class="t p"><i style="width:${Math.min(kk?t/kk:0,1.5)/1.5*100}%;background:${col(m?t/m:0)}"></i></div><span class="v">${kk?p(t/kk):'–'} KH · mục tiêu ${m?p(t/m):'–'} · CK ${sm(b.ck,n)?p(t/sm(b.ck,n)-1):'–'}</span></div>`}).join('')+'<div class="lg">Thanh = % KH năm (tối đa 150%); màu theo % mục tiêu lũy kế.</div>';
     
-    // DASHBOARD RIÊNG CHO THÁNG HIỆN TẠI NẰM Ở CỘT BÊN PHẢI
     $('month-title').innerText = `Thực hiện riêng Tháng ${n} theo kênh`;
     $('ch-month').innerHTML=['BL','GT','B2B'].map(C=>{
         const b=agg(g,C), t_m=b.th[n-1]||0, kk=sm(b.kh,12);
@@ -287,9 +285,9 @@ function rq(g,c,n,cw){
  const A=agg(g,c),Q=qrows(A,n),Wd=420,H=190,L=40,B=26,T=16,gw=(Wd-L-6)/4,bw=gw*.2,mx=Math.max(...Q.map(o=>Math.max(o.khf,o.th,o.ck)),1)*1.12,y=v=>H-B-v/mx*(H-B-T);
  let s=`<svg viewBox="0 0 ${Wd} ${H}">`;for(let i=0;i<=3;i++){const v=mx/1.12*i/3;s+=`<line x1="${L}" x2="${Wd-6}" y1="${y(v)}" y2="${y(v)}" stroke="var(--bd)"/><text x="${L-4}" y="${y(v)+3}" text-anchor="end">${f(v/1000)}k</text>`}
  Q.forEach((o,i)=>{const x0=L+gw*i+gw/2-bw*1.6;[[o.khf,'var(--mu)',.4],[o.th,'var(--ac)',1],[o.ck,'var(--a)',.85]].forEach(([v,cl,op],j)=>{if(v>0)s+=`<rect x="${x0+j*bw*1.1}" y="${y(v)}" width="${bw}" height="${H-B-y(v)}" fill="${cl}" opacity="${op}"/>`});s+=`<text x="${L+gw*i+gw/2}" y="${H-9}" text-anchor="middle">Quý ${i+1}</text>`;const yy=y(Math.max(o.khf,o.th,o.ck))-4;s+=o.mm&&o.khi?`<text x="${L+gw*i+gw/2}" y="${yy}" text-anchor="middle" style="fill:var(--tx);font-weight:600">${p(o.th/o.khi)}</text>`:`<text x="${L+gw*i+gw/2}" y="${yy}" text-anchor="middle">chưa có TH</text>`});
- $('qc').innerHTML=s+'</svg><div class="lg"><span style="opacity:.5">■</span> KH quý &nbsp; <span style="color:var(--ac)">■</span> Thực hiện &nbsp; <span style="color:var(--a)">■</span> Cùng kỳ năm trước · số trên cột = % hoàn thành KH quý</div>';
+ if($('qc')) $('qc').innerHTML=s+'</svg><div class="lg"><span style="opacity:.5">■</span> KH quý &nbsp; <span style="color:var(--ac)">■</span> Thực hiện &nbsp; <span style="color:var(--a)">■</span> Cùng kỳ năm trước · số trên cột = % hoàn thành KH quý</div>';
  const mt=['BL','GT','B2B','T'].map(C=>{const a2=agg(g,C),R=qrows(a2,n),kY=sm(a2.kh,12),th=sm(a2.th,n);return`<tr><td>${C=='T'?'<b>Tổng</b>':CH[C]}</td>${R.map(o=>o.mm&&o.khi?`<td class="h" style="background:${col(o.th/o.khi)}">${p(o.th/o.khi)}</td>`:'<td>–</td>').join('')}<td class="h" style="background:${kY?col(th/(kY*cw)):'transparent'};color:${kY?'#fff':'inherit'}">${kY?p(th/kY):'–'}</td></tr>`}).join('');
- $('qt').innerHTML=qtab(Q)+`<h2 style="margin-top:12px">% hoàn thành KH quý theo kênh</h2><table><tr><th>Kênh</th><th>Quý 1</th><th>Quý 2</th><th>Quý 3</th><th>Quý 4</th><th>% KH năm</th></tr>${mt}</table><div class="lg">Ô % KH năm tô màu theo % mục tiêu lũy kế.</div>`;
+ if($('qt')) $('qt').innerHTML=qtab(Q)+`<h2 style="margin-top:12px">% hoàn thành KH quý theo kênh</h2><table><tr><th>Kênh</th><th>Quý 1</th><th>Quý 2</th><th>Quý 3</th><th>Quý 4</th><th>% KH năm</th></tr>${mt}</table><div class="lg">Ô % KH năm tô màu theo % mục tiêu lũy kế.</div>`;
 }
 
 function r6(){
@@ -334,15 +332,14 @@ function r6(){
  
  $('ul').innerHTML='Thanh = '+(isMonth?`% hoàn thành KH Tháng ${m_sel}`: (q?`% hoàn thành KH Quý ${q}`:'% KH năm'))+' (tối đa 200%) · vạch đứt giữa = 100%'+((isMonth||q)?'':' · vạch đậm = mục tiêu lũy kế đến tháng đã chọn')+' · màu: xanh ≥100% '+((isMonth||q)?'KH kỳ':'mục tiêu')+', vàng ≥70%, đỏ &lt;70% · bấm vào một dòng để xem chi tiết. Bộ lọc nhóm, kênh, tháng ở trên đều áp dụng.';
  
- rq(g,c,n,cw); // LUÔN GỌI HÀM NÀY ĐỂ CẬP NHẬT BIỂU ĐỒ GLOBAL QUÝ TRƯỚC
- 
  if(!sel){
-    $('global-q-dash').style.display = 'grid'; // Hiển thị biểu đồ quý chung khi chưa chọn đơn vị
+    if($('global-q-dash')) $('global-q-dash').style.display = 'grid';
     $('ud').innerHTML=`<div class="c" style="margin-top:10px;text-align:center;padding:30px;"><span class="lg">Hãy bấm chọn một đơn vị ở bảng trên để xem chi tiết các chỉ số của đơn vị đó.</span></div>`;
+    rq(g,c,n,cw); // Phục hồi hiển thị biểu đồ Quý cho mạng lưới
     return;
  }
  
- $('global-q-dash').style.display = 'none'; // Ẩn biểu đồ quý chung để hiển thị chi tiết của 1 đơn vị
+ if($('global-q-dash')) $('global-q-dash').style.display = 'none';
  
  const v=V_data.find(x=>x[0]==sel);
  if(!v) return;
@@ -406,12 +403,12 @@ function r6(){
      </tr>`;
  }).join('');
 
- const Wd=560,H=200,L=44,B=24,T=10,pw=(Wd-L-8)/12,st=Array(n).fill(0).map((_,i)=>['BL','GT','B2B'].reduce((s,k)=>s+Math.max((v[CI[k][1]][i]||0),0),0)),mx2=Math.max(...a.kh,...st,...a.ck.slice(0,n),1)*1.1,y2=q=>H-B-q/mx2*(H-B-T),x2=i=>L+pw*i+pw/2,cl={BL:'#1f5fbf',GT:'#2e9e5b',B2B:'#e0a12b'};
- let s2=`<svg viewBox="0 0 ${Wd} ${H}">`;for(let i=0;i<=4;i++){const q_=mx2/1.1*i/4;s2+=`<line x1="${L}" x2="${Wd-8}" y1="${y2(q_)}" y2="${y2(q_)}" stroke="var(--bd)"/><text x="${L-4}" y="${y2(q_)+3}" text-anchor="end">${f(q_/1000)}k</text>`}
- for(let i=0;i<12;i++){s2+=`<text x="${x2(i)}" y="${H-8}" text-anchor="middle">T${i+1}</text>`;if(i<n){let b=0;for(const k of['BL','GT','B2B']){const q_=Math.max((v[CI[k][1]][i]||0),0);s2+=`<rect x="${x2(i)-pw*.3}" y="${y2(b+q_)}" width="${pw*.6}" height="${y2(b)-y2(b+q_)}" fill="${cl[k]}"/>`;b+=q_}}}
- s2+=`<polyline fill="none" stroke="var(--r)" stroke-width="2" points="${a.kh.map((q_,i)=>x2(i)+','+y2(q_)).join(' ')}"/><polyline fill="none" stroke="var(--mu)" stroke-width="2" stroke-dasharray="4 3" points="${a.ck.slice(0,n).map((q_,i)=>x2(i)+','+y2(q_)).join(' ')}"/></svg>`;
+ const Wd=560,H=200,L=44,B=24,T=10,pw=(Wd-L-8)/12,st=Array(n).fill(0).map((_,i)=>['BL','GT','B2B'].reduce((s,k)=>s+Math.max((v[CI[k][1]][i]||0),0),0)),mx2=Math.max(...a.kh,...st,...a.ck.slice(0,n),1)*1.1,y2=q_v=>H-B-q_v/mx2*(H-B-T),x2=i=>L+pw*i+pw/2,cl={BL:'#1f5fbf',GT:'#2e9e5b',B2B:'#e0a12b'};
+ let s2=`<svg viewBox="0 0 ${Wd} ${H}">`;for(let i=0;i<=4;i++){const q_v=mx2/1.1*i/4;s2+=`<line x1="${L}" x2="${Wd-8}" y1="${y2(q_v)}" y2="${y2(q_v)}" stroke="var(--bd)"/><text x="${L-4}" y="${y2(q_v)+3}" text-anchor="end">${f(q_v/1000)}k</text>`}
+ for(let i=0;i<12;i++){s2+=`<text x="${x2(i)}" y="${H-8}" text-anchor="middle">T${i+1}</text>`;if(i<n){let b=0;for(const k of['BL','GT','B2B']){const q_v=Math.max((v[CI[k][1]][i]||0),0);s2+=`<rect x="${x2(i)-pw*.3}" y="${y2(b+q_v)}" width="${pw*.6}" height="${y2(b)-y2(b+q_v)}" fill="${cl[k]}"/>`;b+=q_v}}}
+ s2+=`<polyline fill="none" stroke="var(--r)" stroke-width="2" points="${a.kh.map((q_v,i)=>x2(i)+','+y2(q_v)).join(' ')}"/><polyline fill="none" stroke="var(--mu)" stroke-width="2" stroke-dasharray="4 3" points="${a.ck.slice(0,n).map((q_v,i)=>x2(i)+','+y2(q_v)).join(' ')}"/></svg>`;
  
- $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button></h2><div class="kp">${K.map(([q_,r_])=>`<div class="k"><span>${q_}</span><b style="font-size:19px">${r_}</b></div>`).join('')}</div>
+ $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button></h2><div class="kp">${K.map(([q_v,r_v])=>`<div class="k"><span>${q_v}</span><b style="font-size:19px">${r_v}</b></div>`).join('')}</div>
  <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));">
     <div style="display:flex;flex-direction:column;gap:10px;">
         <div class="c"><h2>Kết quả theo quý</h2><div class="sc">${qtab(qrows(a,n))}</div></div>
@@ -716,7 +713,7 @@ function rrep() {
         <li><b>Kênh B2B:</b> Tiếp tục theo dõi tiến độ giải ngân hợp đồng để đảm bảo không bị rơi rớt doanh thu vào cuối năm.</li>
     </ul>`;
 
-    $('rp').innerHTML = h;
+    if($('rp')) $('rp').innerHTML = h;
 }
 
 async function loadTenderData() {
