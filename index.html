@@ -72,7 +72,6 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
     <span class="lg" id="us"></span>
 </div>
 <div class="c" style="margin-bottom:10px"><h2 id="uh"></h2><div id="dist"></div><div id="ub" class="ug"></div><div class="lg" id="ul"></div></div>
-<div class="grid"><div class="c"><h2>Kết quả theo từng quý</h2><div id="qc"></div></div><div class="c"><h2>Chi tiết theo quý và % hoàn thành theo kênh</h2><div class="sc" id="qt"></div></div></div>
 <div id="ud"></div></div>
 <div class="v2" id="p2"><div class="grid"><div class="c"><h2>Thực hiện theo tháng so với KH và cùng kỳ</h2><div id="g1"></div><div class="lg">Cột = thực hiện · đường vàng = KH · đường xám đứt = cùng kỳ năm trước. B2B dồn vào cuối quý.</div></div><div class="c"><h2>Lũy kế thực hiện so với KH lũy kế</h2><div id="g2"></div></div></div></div>
 <div class="v2" id="p3"><div class="grid"><div class="c"><h2>Xếp hạng % mục tiêu lũy kế</h2><div id="rk"></div><div class="lg">Vạch đứt = 100% mục tiêu 70% KH năm · xanh ≥100%, vàng ≥70%, đỏ &lt;70%</div></div><div class="c"><h2>10 đơn vị thiếu nhiều nhất</h2><div id="pa"></div></div><div class="c"><h2>Heatmap % KH năm theo kênh (top 12 đơn vị khoảng trống)</h2><div class="sc" id="hm"></div></div></div></div>
@@ -189,6 +188,11 @@ function r1(){
     const proj_season = (kY && cw < 1) ? p((th + kY*(1-cw)*(th/k_n))/kY) : (kY ? p(th/kY) : '–');
     const growth_ck = ck ? (th/ck-1>=0?'+':'') + p(th/ck-1) : '–';
 
+    const th_month = a.th[n-1] || 0;
+    const th_month_BL = agg(g, 'BL').th[n-1] || 0;
+    const th_month_GT = agg(g, 'GT').th[n-1] || 0;
+    const th_month_B2B = agg(g, 'B2B').th[n-1] || 0;
+
     const K=[
         ['KH năm',f(kY)],
         ['Thực hiện lũy kế T'+n,f(th)],
@@ -205,6 +209,7 @@ function r1(){
     
     $('ch').innerHTML=['BL','GT','B2B'].map(C=>{const b=agg(g,C),t=sm(b.th,n),kk=sm(b.kh,12); const m=kk*cw; return`<div class="row" style="grid-template-columns:60px 1fr 180px"><span class="n">${CH[C]}</span><div class="t p"><i style="width:${Math.min(kk?t/kk:0,1.5)/1.5*100}%;background:${col(m?t/m:0)}"></i></div><span class="v">${kk?p(t/kk):'–'} KH · mục tiêu ${m?p(t/m):'–'} · CK ${sm(b.ck,n)?p(t/sm(b.ck,n)-1):'–'}</span></div>`}).join('')+'<div class="lg">Thanh = % KH năm (tối đa 150%); màu theo % mục tiêu lũy kế.</div>';
     
+    // DASHBOARD RIÊNG CHO THÁNG HIỆN TẠI NẰM Ở CỘT BÊN PHẢI
     $('month-title').innerText = `Thực hiện riêng Tháng ${n} theo kênh`;
     $('ch-month').innerHTML=['BL','GT','B2B'].map(C=>{
         const b=agg(g,C), t_m=b.th[n-1]||0, kk=sm(b.kh,12);
@@ -261,16 +266,6 @@ function r4(){
  $('tg').innerHTML='<table><tr><th>Nhóm</th><th>Thẻ</th><th>% thực hiện</th></tr>'+Object.keys(M_data).map(G=>{const x=sm(thArr(G),n),y=sm(agg(G,'T').th,n);return`<tr><td>${G}</td><td>${f(x)}</td><td>${y?p(x/y):'–'}</td></tr>`}).join('')+'</table>'
 }
 
-const REP={"T":{"title":"BÁO CÁO ĐÁNH GIÁ KẾT QUẢ KINH DOANH DỊCH VỤ PHÂN PHỐI BÁN LẺ","sub":"Mạng lưới Tổng công ty Bưu điện Việt Nam · Kỳ báo cáo: lũy kế T1–T9/2026 · Định hướng Quý IV/2026","meta":"Nguồn số liệu: Thực hiện lấy từ nguồn BCOL và PRS."},"B":[{"t":"h","x":"I. Đánh giá chung"},{"t":"p","x":"Sau 9 tháng, toàn mạng thực hiện **3.937.961**, đạt **86,4%** kế hoạch năm (4.556.900) và **123,5%** so với kế hoạch lũy kế T1–T9 (3.189.828), tăng **119,3%** so với cùng kỳ 2025. thực hiện thực hiện bình quân 437.551/tháng cao hơn nhiều so với thực hiện cần thiết để hoàn thành kế hoạch năm (206.313/tháng, hệ số tăng tốc 0,47). Theo đó, toàn mạng nhiều khả năng hoàn thành và vượt kế hoạch năm, dự kiến ở mức 115% đến 123%."},{"t":"p","x":"Tuy nhiên, kết quả tổng thể do một kênh gánh: **B2B chiếm 74,0% doanh thu** trong khi chỉ chiếm 48,2% kế hoạch, còn Bán lẻ và GT mới đạt 54,2% và 15,5% kế hoạch năm. Nhận định chung: mạng lưới đang hoàn thành mục tiêu về quy mô nhưng **chưa hoàn thành mục tiêu về cơ cấu**, tức mục tiêu phân phối bán lẻ đúng nghĩa."},{"t":"tbl","w":[1500,1300,1500,1500,1100,1000,1738],"head":["Kênh","KH năm","KH lũy kế T1–9","Thực hiện T1–9","% KH năm","% mục tiêu","So cùng kỳ"],"rows":[["Bán lẻ","1.699.594","1.189.716","921.741","54,2%","77,5%","+75,2%"],["GT","660.700","462.490","102.716","15,5%","22,2%","+29,8%"],["B2B","2.196.606","1.537.622","2.913.504","132,6%","189,5%","+144,8%"],["Tổng","4.556.900","3.189.828","3.937.961","86,4%","123,5%","+119,3%"]],"al":["l","r","r","r","r","r","r"]},{"t":"h","x":"II. Đánh giá theo kênh"},{"t":"ul","x":[["Bán lẻ (cần quan tâm): ","đạt 54,2% kế hoạch năm, cải thiện theo quý (70% → 79% → 82% kế hoạch quý). Có 22/50 đơn vị dưới 50% kế hoạch bán lẻ. Để đạt kế hoạch năm cần 259.284/tháng, gấp 2,5 lần thực hiện hiện tại (102.416); dự kiến theo thực hiện hiện tại chỉ khoảng 72%."],["GT (rủi ro cao nhất): ","đạt 15,5% kế hoạch, 41/50 đơn vị dưới 10% kế hoạch GT. Cần 185.995/tháng so với 11.413 hiện tại (gấp 16 lần), gần như không khả thi nếu giữ nguyên kế hoạch. Cần xác nhận định nghĩa và cách ghi nhận kênh này."],["B2B (vượt nhưng cần bền vững): ","đạt 132,6% kế hoạch năm, 46/50 đơn vị đạt từ 100% kế hoạch B2B. Doanh thu dồn vào cuối quý (tháng 3 đạt 219% kế hoạch tháng) nên biến động theo kỳ và phụ thuộc hợp đồng lớn."]]},{"t":"h","x":"III. Kết quả theo quý"},{"t":"p","x":"Thực hiện vượt kế hoạch cả ba quý nhờ B2B (212%, 180%, 181% kế hoạch quý). Bán lẻ cải thiện dần, GT vẫn ở mức thấp. **Quý IV có kế hoạch lớn nhất (1.367.072, chiếm 30% năm)**, trong đó B2B 658.984, Bán lẻ 509.878 và GT 198.210, nên rủi ro tập trung vào việc B2B có tiếp tục vượt kế hoạch hay không."},{"t":"tbl","w":[1100,1400,1400,1100,1200,1000,1438],"head":["Quý","KH quý","Thực hiện","% hoàn thành","Tăng so cùng kỳ","Bán lẻ","GT / B2B"],"rows":[["Quý 1","911.384","1.192.481","131%","+50%","70%","18% / 212%"],["Quý 2","1.139.222","1.362.284","120%","+159%","79%","21% / 180%"],["Quý 3","1.139.222","1.383.197","121%","+191%","82%","27% / 181%"],["Quý 4 (KH)","1.367.072","–","–","–","–","–"]],"al":["l","r","r","r","r","r","r"]},{"t":"h","x":"IV. Kết quả theo nhóm và theo đơn vị"},{"t":"tbl","w":[2600,1300,1400,1100,1000,1000,1238],"head":["Nhóm đơn vị","KH năm","Thực hiện","% KH năm","Bán lẻ","GT","B2B"],"rows":[["8 TT Hà Nội","311.240","558.920","179,6%","121,1%","0,3%","252,1%"],["10 TT TP.HCM","502.106","639.890","127,4%","97,6%","143,3%","134,7%"],["32 tỉnh/TP","2.831.954","2.673.986","94,4%","47,6%","8,1%","249,8%"],["PHBC+TCDN","911.600","65.165","7,1%","42,0%","–","1,0%"]],"al":["l","r","r","r","r","r","r"]},{"t":"ul","x":[["Mặt bằng: ","28/50 đơn vị đạt từ 100% kế hoạch năm, 46/50 đạt mục tiêu lũy kế. Dẫn đầu là Sơn La (425%, thực hiện gấp hơn 12 lần cùng kỳ, cần kiểm tra tính đột biến), TT Hà Đông (259%), TT Long Biên (224%), TT Phú Thọ (199%)."],["Đơn vị thấp: ","Đồng Tháp (44%), Thanh Hóa (50%), Đắk Lắk (66%), Nghệ An (69%). Mười đơn vị lớn nhất chiếm 80% khoảng trống dương của 50 đơn vị (449.632), riêng Thanh Hóa 90.868 và Nghệ An 50.026."],["Giảm so với cùng kỳ: ","TT Sài Gòn (−17,3%) và TT Hoàn Kiếm (−7,7%), cả hai đều đã vượt kế hoạch năm."],["Khối tỉnh/TP: ","mạnh về B2B (249,8%) nhưng yếu bán lẻ (47,6%) và GT (8,1%), trong khi các TT đô thị đạt 97,6% đến 121,1% kế hoạch bán lẻ."]]},{"t":"p","x":"**Sáu đơn vị có khoảng trống lớn nhất** (so với kế hoạch năm), cho thấy khoảng trống doanh thu chủ yếu nằm ở Bán lẻ và GT, còn B2B thường đã vượt:"},{"t":"tbl","w":[1600,1100,1100,900,1100,1100,1100,1538],"head":["Đơn vị","KH năm","Thực hiện","% KH","Gap tổng","Gap Bán lẻ","Gap GT","Gap B2B"],"rows":[["Thanh Hóa","181.600","90.732","50,0%","90.868","46.094","47.239","−2.466"],["Nghệ An","161.000","110.974","68,9%","50.026","67.700","34.081","−51.756"],["Đồng Tháp","68.800","30.373","44,1%","38.427","21.312","14.672","2.442"],["Gia Lai","116.500","86.835","74,5%","29.665","46.127","12.169","−28.631"],["Hưng Yên","114.278","85.083","74,5%","29.195","26.554","39.822","−37.181"],["Đắk Lắk","79.700","52.721","66,1%","26.979","24.991","9.955","−7.966"]],"al":["l","r","r","r","r","r","r","r"]},{"t":"note","x":"Gap âm ở cột B2B nghĩa là đơn vị đã vượt kế hoạch B2B."},{"t":"h","x":"V. Điểm nghẽn và nguyên nhân (giả thuyết cần xác nhận)"},{"t":"ul","x":[["1. Cơ cấu kế hoạch cho PHBC + TCDN: ","được giao 911.600 (20% kế hoạch năm, trong đó B2B 857.000) nhưng chỉ thực hiện 65.165 (B2B 1,0%). 50 đơn vị gộp đã đạt 106,2% kế hoạch, nên phần hụt toàn mạng nằm hoàn toàn ở dòng này. B2B “Khác” hụt khoảng 592.000 so với mục tiêu, nhỏ hơn nhiều so với B2B các đơn vị vượt mục tiêu (khoảng 1,97 triệu), nên lệch hạch toán nếu có chỉ giải thích được một phần."],["2. Năng lực bán lẻ khối tỉnh: ","khoảng cách lớn giữa tỉnh (47,6%) và đô thị (97,6% đến 121,1%) cho thấy vấn đề về mật độ điểm, nhân sự và danh mục hàng; cần số liệu vận hành để kiểm chứng."],["3. Kênh GT: ","sụt sâu ở hầu hết đơn vị, có thể do kế hoạch giao chưa sát hoặc cách phân loại doanh thu."],["4. Chất lượng số liệu kinh doanh thẻ: ","thẻ đạt 151.299 (3,8% thực hiện) nhưng biến động mạnh theo tháng, có 19 lần âm ở 17 đơn vị (tổng −67.646), lớn nhất ở Khánh Hòa, Gia Lai, Phú Thọ."]]},{"t":"h","x":"VI. Mô phỏng kịch bản Quý IV"},{"t":"p","x":"Để đánh giá mức an toàn của kế hoạch năm, tôi mô phỏng ba kịch bản đơn giản dựa trên thực hiện T1–T9. Đây là mô phỏng tham khảo, không phải dự báo chính thức."},{"t":"tbl","w":[1700,4600,1700,1638],"head":["Kịch bản","Giả định cho Quý IV","Thực hiện cả năm","% KH năm"],"rows":[["Cơ sở","Giữ thực hiện bình quân 9 tháng (437.551/tháng)","5.250.615","115,2%"],["Thận trọng","B2B chỉ bằng kế hoạch Quý IV (658.984); Bán lẻ và GT giữ mức Quý 3","4.987.654","109,5%"],["Rủi ro","B2B giảm còn 50% mức Quý 3; Bán lẻ và GT giữ mức Quý 3","4.824.914","105,9%"]],"al":["l","l","r","r"]},{"t":"p","x":"Toàn mạng vẫn vượt kế hoạch năm ở cả ba kịch bản, nhưng **riêng từng kênh thì không**: trong kịch bản thận trọng, Bán lẻ chỉ đạt khoảng 74,6% và GT khoảng 22,2% kế hoạch năm. Vì vậy mục tiêu quản trị Quý IV không nên chỉ là “vượt tổng”, mà là thu hẹp khoảng cách ở Bán lẻ và GT."},{"t":"ul","x":[["Rủi ro 1: ","phụ thuộc B2B (74,0% doanh thu) và dồn cuối quý; một số hợp đồng lớn trượt kỳ có thể làm lệch kết quả Quý IV."],["Rủi ro 2: ","kế hoạch GT và dòng “Khác” chưa sát thực tế, dễ làm méo bức tranh hiệu suất của từng đơn vị nếu không được điều chỉnh."],["Điều kiện thực hiện: ","cần số liệu theo tháng theo kênh và quy tắc hạch toán B2B, GT được xác nhận trước khi giao chỉ tiêu Quý IV."]]},{"t":"h","x":"VII. Kiến nghị hành động Quý IV"},{"t":"tbl","w":[600,4300,2100,1500,1138],"head":["#","Hành động","Đối tượng","Chỉ tiêu theo dõi","Thời hạn"],"rows":[["1","Chuẩn hóa kế hoạch và hạch toán dòng “Khác”: rà soát phân bổ KH B2B 857.000, đối soát với B2B các đơn vị","Ban kế hoạch, kế toán","Chênh lệch đối soát","2 tuần"],["2","Xác nhận định nghĩa và cách ghi nhận GT; nếu là kênh thật, điều chỉnh kế hoạch hoặc lập chương trình riêng cho 41 đơn vị dưới 10%","Ban dịch vụ","% KH GT","2 tuần"],["3","Chương trình bán lẻ khối tỉnh, ưu tiên Thanh Hóa, Nghệ An, Đồng Tháp, Gia Lai, Hưng Yên, Đắk Lắk; đề xuất nâng thực hiện bán lẻ toàn mạng từ khoảng 102.000 lên 150.000–200.000/tháng","Các tỉnh có khoảng trống lớn","Bán lẻ/tháng","Tháng 10"],["4","Giữ vững B2B Quý IV: khóa danh mục hợp đồng, theo dõi hằng tuần, kiểm tra tính bền vững của Sơn La","Giám đốc đơn vị","B2B theo tuần","Tuần 1"],["5","Chuẩn hóa ghi nhận kinh doanh thẻ, rà soát các khoản âm","Kế toán","Số thẻ âm","Tháng 10"],["6","Nhân rộng mô hình bán lẻ của TT Hà Nội và TT TP.HCM sang khối tỉnh","Ban dịch vụ","Tăng trưởng bán lẻ","Quý IV"]],"al":["c","l","l","l","l"]},{"t":"h","x":"VIII. Kết luận"},{"t":"p","x":"Kết quả 9 tháng khả quan về quy mô nhưng chất lượng tăng trưởng chưa đồng đều. Quý IV cần tập trung theo thứ tự: (i) làm sạch kế hoạch và hạch toán để đo lường đúng; (ii) kéo Bán lẻ và GT, nhất là khối tỉnh; (iii) giữ vững B2B để không đánh mất thành quả hiện có."},{"t":"note","x":"Lưu ý: dự kiến 115% dùng thực hiện bình quân 9 tháng, 123% theo mùa vụ kế hoạch; nguyên nhân nêu trên là giả thuyết rút từ số liệu, cần đơn vị và kế toán xác nhận trước khi ban hành chính thức."}]};
-function rrep(){const inl=x=>x.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');let h=`<h1 class="rt">${REP.T.title}</h1><div class="rs">${REP.T.sub}</div><div class="rm">${REP.T.meta}</div>`;
- REP.B.forEach(b=>{if(b.t=='h')h+=`<h3>${b.x}</h3>`;else if(b.t=='p')h+=`<p>${inl(b.x)}</p>`;else if(b.t=='note')h+=`<p class="rn">${b.x}</p>`;else if(b.t=='ul')h+='<ul>'+b.x.map(([l,x])=>`<li><b>${l}</b>${x}</li>`).join('')+'</ul>';
- else if(b.t=='tbl')h+='<div class="sc"><table><tr>'+b.head.map((x,i)=>`<th${b.al[i]=='l'?'':' style="text-align:'+(b.al[i]=='r'?'right':'center')+'"'}>${x}</th>`).join('')+'</tr>'+b.rows.map(r=>'<tr>'+r.map((x,i)=>`<td${b.al[i]=='l'?'':' style="text-align:'+(b.al[i]=='r'?'right':'center')+'"'}>${x}</td>`).join('')+'</tr>').join('')+'</table></div>'});
- $('rp').innerHTML=h+'<div class="rn" style="margin-top:12px"></div>'}
-
-function ua(v,c){const ch=c=='T'?['BL','GT','B2B']:[c],kh=ch.reduce((s,k)=>s+v[CI[k][0]],0);return{khY:kh,kh:W.map(w=>kh*w),th:Array(12).fill(0).map((_,i)=>ch.reduce((s,k)=>s+(v[CI[k][1]][i]||0),0)),ck:c=='T'?v[8]:null}}
-const qmon=(qi,n)=>Math.max(0,Math.min(3*qi+3,n)-3*qi);
-function qrows(a,n){return[0,1,2,3].map(qi=>{const mm=qmon(qi,n),khf=sm(a.kh.slice(3*qi,3*qi+3),3),khi=sm(a.kh.slice(3*qi,3*qi+mm),mm),th=sm(a.th.slice(3*qi,3*qi+mm),mm),ck=a.ck?sm(a.ck.slice(3*qi,3*qi+mm),mm):0;return{qi,mm,khf,khi,th,ck}})}
-const gr=(x,y)=>y>1000?(x/y-1>=0?'+':'')+p(x/y-1):'–';
 function qtab(Q){const row=o=>`<tr><td>Quý ${o.qi+1}${o.mm&&o.mm<3?'*':''}</td><td>${f(o.khf)}</td><td>${o.mm?f(o.th):'–'}</td>${o.mm&&o.khi?`<td class="h" style="background:${col(o.th/o.khi)}">${p(o.th/o.khi)}</td>`:'<td>–</td>'}<td>${o.ck>1000?f(o.ck):'–'}</td><td>${gr(o.th,o.ck)}</td></tr>`,T=Q.filter(o=>o.mm),kh=T.reduce((s,o)=>s+o.khi,0),th=T.reduce((s,o)=>s+o.th,0),ck=T.reduce((s,o)=>s+o.ck,0);
  return`<table><tr><th>Quý</th><th>KH quý</th><th>Thực hiện</th><th>% hoàn thành</th><th>Cùng kỳ</th><th>Tăng trưởng</th></tr>${Q.map(row).join('')}<tr><td><b>Lũy kế</b></td><td>${f(kh)}</td><td>${f(th)}</td><td>${kh?p(th/kh):'–'}</td><td>${ck>1000?f(ck):'–'}</td><td>${gr(th,ck)}</td></tr></table><div class="lg">% hoàn thành = thực hiện / KH của quý (đến tháng đã chọn). * = quý chưa đủ 3 tháng.</div>`}
 function rq(g,c,n,cw){
@@ -429,7 +424,7 @@ function all(){
     try{ r3(); }catch(e){console.error(e);}
     try{ r4(); }catch(e){console.error(e);}
     try{ r6(); }catch(e){console.error(e);}
-    try{ if(Tender_Data.length > 0) renderTenderTab(); }catch(e){console.error(e);}
+    try{ rrep(); }catch(e){console.error(e);}
 }
 
 // ==============================================
@@ -604,16 +599,95 @@ async function loadGoogleSheetData() {
 
             $('page-sub').innerText = `Dữ liệu thực hiện cập nhật tự động đến T${max_month_th}/${latest_year} · Đơn vị tính: triệu đồng · Được thiết kế bởi ThanhDD · Phòng TCBL`;
             $('loading').style.display = 'none';
-            rrep();
+            all(); // Render all dashboards once loaded
             $('fu').innerHTML = '<option value="">— Tất cả đơn vị —</option>';
             V_data.forEach(v=>$('fu').add(new Option(v[0],v[0])));
-            all();
         } else {
              $('loading').innerHTML = `<b>LỖI DỮ LIỆU:</b><br><br>Không tìm thấy dữ liệu hợp lệ trong Sheet Doanh thu.`;
         }
     } catch (error) {
         console.error("Lỗi khi tải dữ liệu từ Google Sheet Doanh thu:", error);
     }
+}
+
+function rrep() {
+    const {g, c, n} = S(); 
+    
+    // 1. TÍNH TOÁN CÁC SỐ LIỆU TỔNG QUAN TỪ DỮ LIỆU THỰC
+    let total_KH = 0, total_TH = 0, total_CK = 0;
+    let bl_KH = 0, bl_TH = 0, gt_KH = 0, gt_TH = 0, b2b_KH = 0, b2b_TH = 0;
+    
+    // Tính tổng toàn mạng từ M_data
+    for (const G in M_data) {
+        if(g && G != g) continue;
+        bl_KH += sm(M_data[G].BL.kh, 12); bl_TH += sm(M_data[G].BL.th, n);
+        gt_KH += sm(M_data[G].GT.kh, 12); gt_TH += sm(M_data[G].GT.th, n);
+        b2b_KH += sm(M_data[G].B2B.kh, 12); b2b_TH += sm(M_data[G].B2B.th, n);
+        total_CK += sm(M_data[G].BL.ck, n) + sm(M_data[G].GT.ck, n) + sm(M_data[G].B2B.ck, n);
+    }
+    total_KH = bl_KH + gt_KH + b2b_KH;
+    total_TH = bl_TH + gt_TH + b2b_TH;
+    
+    const cw = sm(W, n); // Trọng số thời gian
+    const muctieu_LK = total_KH * cw;
+    
+    const pct_nam = total_KH ? (total_TH / total_KH * 100) : 0;
+    const pct_mt = muctieu_LK ? (total_TH / muctieu_LK * 100) : 0;
+    const tang_truong = total_CK ? (total_TH / total_CK * 100) : 0;
+    
+    // Tìm các đơn vị có Gap lớn nhất
+    const rs = U_data.filter(u=>(g?u[1]==g:u[1]!='Khác')).map(u => {
+        const kh = u[2]+u[3]+u[4];
+        const th = u[5]+u[6]+u[7];
+        return { n: u[0], gap: Math.max(kh - th, 0) };
+    }).sort((a, b) => b.gap - a.gap);
+    const topGaps = rs.slice(0, 5).filter(o => o.gap > 0);
+
+    // 2. SINH VĂN BẢN ĐÁNH GIÁ TỰ ĐỘNG (Dựa trên if/else)
+    let nhanXetB2B = "";
+    if (total_TH > 0 && (b2b_TH / total_TH) > 0.6) {
+        nhanXetB2B = `Tuy nhiên, kết quả tổng thể đang phụ thuộc quá nhiều vào một kênh: <b>B2B chiếm tới ${p(b2b_TH/total_TH)} doanh thu</b>, trong khi Bán lẻ và GT vẫn đang chậm tiến độ. Mạng lưới chưa hoàn thành mục tiêu về cơ cấu bán lẻ đúng nghĩa.`;
+    } else {
+        nhanXetB2B = `Cơ cấu doanh thu các kênh đang duy trì ở mức tương đối ổn định.`;
+    }
+
+    let nhanXetGap = "";
+    if (topGaps.length > 0) {
+        nhanXetGap = `Các đơn vị đang có khoảng trống (Gap) hụt kế hoạch lớn nhất cần tập trung xử lý là: ` + 
+                     topGaps.map(x => `<b>${x.n}</b> (hụt ${f(x.gap)})`).join(', ') + `.`;
+    } else {
+        nhanXetGap = `Đa số các đơn vị đều theo kịp hoặc vượt tiến độ kế hoạch đặt ra.`;
+    }
+
+    // 3. XÂY DỰNG GIAO DIỆN HTML CHO BÁO CÁO
+    let h = `<h1 class="rt">BÁO CÁO ĐÁNH GIÁ TỰ ĐỘNG (THÁNG ${n})</h1>`;
+    h += `<div class="rs">Mạng lưới Tổng công ty Bưu điện Việt Nam · Kỳ báo cáo: lũy kế T1–T${n}/${latest_year}</div>`;
+    h += `<div class="rm">Nội dung báo cáo được hệ thống tự động phân tích và tổng hợp từ số liệu thực tế của các đơn vị.</div>`;
+    
+    h += `<h3>I. Đánh giá chung</h3>`;
+    h += `<p>Sau ${n} tháng, toàn mạng thực hiện đạt <b>${f(total_TH)}</b>, tương đương <b>${pct_nam.toFixed(1)}%</b> kế hoạch năm (${f(total_KH)}). So với mục tiêu luỹ kế đến thời điểm hiện tại, toàn mạng đạt <b>${pct_mt.toFixed(1)}%</b> và bằng <b>${tang_truong.toFixed(1)}%</b> so với cùng kỳ năm trước.</p>`;
+    h += `<p>${nhanXetB2B}</p>`;
+    
+    // Tạo bảng chi tiết tự động
+    h += `<div class="sc"><table style="margin-top:10px">
+        <tr><th style="text-align:left">Kênh</th><th>KH Năm</th><th>Thực hiện T1-${n}</th><th>% KH Năm</th><th>% Mục tiêu</th></tr>
+        <tr><td style="text-align:left">Bán lẻ</td><td>${f(bl_KH)}</td><td>${f(bl_TH)}</td><td>${bl_KH?p(bl_TH/bl_KH):'-'}</td><td class="h" style="background:${bl_KH?col(bl_TH/(bl_KH*cw)):'transparent'}">${bl_KH?p(bl_TH/(bl_KH*cw)):'-'}</td></tr>
+        <tr><td style="text-align:left">GT</td><td>${f(gt_KH)}</td><td>${f(gt_TH)}</td><td>${gt_KH?p(gt_TH/gt_KH):'-'}</td><td class="h" style="background:${gt_KH?col(gt_TH/(gt_KH*cw)):'transparent'}">${gt_KH?p(gt_TH/(gt_KH*cw)):'-'}</td></tr>
+        <tr><td style="text-align:left">B2B</td><td>${f(b2b_KH)}</td><td>${f(b2b_TH)}</td><td>${b2b_KH?p(b2b_TH/b2b_KH):'-'}</td><td class="h" style="background:${b2b_KH?col(b2b_TH/(b2b_KH*cw)):'transparent'}">${b2b_KH?p(b2b_TH/(b2b_KH*cw)):'-'}</td></tr>
+        <tr><td style="text-align:left"><b>Tổng</b></td><td><b>${f(total_KH)}</b></td><td><b>${f(total_TH)}</b></td><td><b>${total_KH?p(total_TH/total_KH):'-'}</b></td><td class="h" style="background:${total_KH?col(total_TH/muctieu_LK):'transparent'}"><b>${total_KH?p(total_TH/muctieu_LK):'-'}</b></td></tr>
+    </table></div>`;
+
+    h += `<h3>II. Cảnh báo đơn vị</h3>`;
+    h += `<p>${nhanXetGap}</p>`;
+    
+    h += `<h3>III. Khuyến nghị hành động</h3>`;
+    h += `<ul>
+        <li><b>Kênh Bán Lẻ:</b> Rà soát lại năng lực bán lẻ tại các đơn vị có Gap lớn, ưu tiên tăng cường danh mục hàng và nhân sự.</li>
+        <li><b>Kênh GT:</b> Xác nhận lại định nghĩa và cách ghi nhận kênh GT tại các đơn vị đang có doanh thu quá thấp.</li>
+        <li><b>Kênh B2B:</b> Tiếp tục theo dõi tiến độ giải ngân hợp đồng để đảm bảo không bị rơi rớt doanh thu vào cuối năm.</li>
+    </ul>`;
+
+    $('rp').innerHTML = h;
 }
 
 async function loadTenderData() {
@@ -748,10 +822,8 @@ function drawTenderInvestors() {
 window.renderTenderTab = function() {
     if (!Tender_Data.length) return;
     
-    const selGroup = $('fg').value;
-    const selUnit = $('fu').value;
-    const fY = $('td-year') ?$('td-year').value : 'all';
-    const fM = $('td-month') ?$('td-month').value : 'all';
+    const fY = $('td-year') ? $('td-year').value : 'all';
+    const fM = $('td-month') ? $('td-month').value : 'all';
 
     let won = 0, lost = 0, online = 0, totalVal = 0;
     let khuVucMap = {}, namMap = {}, thangNamMap = {};
@@ -771,14 +843,6 @@ window.renderTenderTab = function() {
         let y = yStr.length >= 4 ? yStr.substring(0,4) : '';
 
         let dv = d.donVi;
-        let nhom_up = dv.toUpperCase();
-        if (nhom_up.includes("TCDN") || nhom_up.includes("TCND") || nhom_up.includes("PHBC")) dv = "(PHBC+TCDN)";
-        
-        if (selUnit && selUnit !== "(PHBC+TCDN)" && dv !== selUnit) return; 
-        if (selGroup && selGroup !== "Tất cả") {
-             let foundU = U_data.find(x => x[0] === dv);
-             if (foundU && foundU[1] !== selGroup) return;
-        }
 
         if (isWon && y) {
             if (!thangNamMap[y]) thangNamMap[y] = Array(12).fill(0);
