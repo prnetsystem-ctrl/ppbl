@@ -191,6 +191,30 @@ function agg(g,c){const o={kh:[0,0,0,0,0,0,0,0,0,0,0,0],th:[0,0,0,0,0,0,0,0,0,0,
 const sm=(a,n)=>a.slice(0,n).reduce((x,y)=>x+y,0);
 const thArr=g=>{const o=[0,0,0,0,0,0,0,0,0,0,0,0];for(const G in M_data){if(g&&G!=g)continue;M_data[G].the.forEach((v,i)=>{o[i]+=v})}return o},thSum=(g,n)=>sm(thArr(g),n);
 
+// ==============================================
+// BỔ SUNG CÁC HÀM TIỆN ÍCH BỊ THIẾU
+// ==============================================
+const gr = (t, c) => c > 0 ? (t/c - 1 >= 0 ? '+' : '') + p(t/c - 1) : '–';
+const qmon = (qi, n) => Math.max(0, Math.min(3, n - 3*qi));
+const ua = (v, C) => {
+    if(C==='BL') return {khY: v[2], th: v[5], ck: Array(12).fill(0)};
+    if(C==='GT') return {khY: v[3], th: v[6], ck: Array(12).fill(0)};
+    if(C==='B2B') return {khY: v[4], th: v[7], ck: Array(12).fill(0)};
+    return {
+        khY: v[2] + v[3] + v[4], 
+        th: v[5].map((x, i) => x + v[6][i] + v[7][i]), 
+        ck: v[8]
+    };
+};
+const qrows = (A, n) => [0, 1, 2, 3].map(qi => {
+    let mm = qmon(qi, n);
+    let khf = A.kh ? sm(A.kh.slice(3*qi, 3*qi+3), 3) : (A.khY ? A.khY * sm(W.slice(3*qi, 3*qi+3), 3) : 0);
+    let khi = A.kh ? sm(A.kh.slice(3*qi, 3*qi+mm), mm) : (A.khY ? A.khY * sm(W.slice(3*qi, 3*qi+mm), mm) : 0);
+    let th = A.th ? sm(A.th.slice(3*qi, 3*qi+mm), mm) : 0;
+    let ck = A.ck ? sm(A.ck.slice(3*qi, 3*qi+mm), mm) : 0;
+    return {qi, mm, khf, khi, th, ck};
+});
+
 function r1(){
     const{g,c,n}=S(),a=agg(g,c),kY=sm(a.kh,12),th=sm(a.th,n),ck=sm(a.ck,n),gap=Math.max(kY-th,0);
     const cw = sm(W, n); const k_n = kY * cw; 
