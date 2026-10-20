@@ -72,6 +72,7 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
     <span class="lg" id="us"></span>
 </div>
 <div class="c" style="margin-bottom:10px"><h2 id="uh"></h2><div id="dist"></div><div id="ub" class="ug"></div><div class="lg" id="ul"></div></div>
+<div class="grid"><div class="c"><h2>Kết quả theo từng quý</h2><div id="qc"></div></div><div class="c"><h2>Chi tiết theo quý và % hoàn thành theo kênh</h2><div class="sc" id="qt"></div></div></div>
 <div id="ud"></div></div>
 <div class="v2" id="p2"><div class="grid"><div class="c"><h2>Thực hiện theo tháng so với KH và cùng kỳ</h2><div id="g1"></div><div class="lg">Cột = thực hiện · đường vàng = KH · đường xám đứt = cùng kỳ năm trước. B2B dồn vào cuối quý.</div></div><div class="c"><h2>Lũy kế thực hiện so với KH lũy kế</h2><div id="g2"></div></div></div></div>
 <div class="v2" id="p3"><div class="grid"><div class="c"><h2>Xếp hạng % mục tiêu lũy kế</h2><div id="rk"></div><div class="lg">Vạch đứt = 100% mục tiêu 70% KH năm · xanh ≥100%, vàng ≥70%, đỏ &lt;70%</div></div><div class="c"><h2>10 đơn vị thiếu nhiều nhất</h2><div id="pa"></div></div><div class="c"><h2>Heatmap % KH năm theo kênh (top 12 đơn vị khoảng trống)</h2><div class="sc" id="hm"></div></div></div></div>
@@ -134,7 +135,6 @@ function getKhuVuc(ten) {
     return "Khác";
 }
 
-// Khởi tạo an toàn mảng 12 tháng bằng 0
 function createEmptyGroup() {
     return {
         BL: { kh: [0,0,0,0,0,0,0,0,0,0,0,0], th: [0,0,0,0,0,0,0,0,0,0,0,0], ck: [0,0,0,0,0,0,0,0,0,0,0,0] },
@@ -177,6 +177,7 @@ const parseVNNumber = (str) => {
 function agg(g,c){const o={kh:[0,0,0,0,0,0,0,0,0,0,0,0],th:[0,0,0,0,0,0,0,0,0,0,0,0],ck:[0,0,0,0,0,0,0,0,0,0,0,0]};
  for(const G in M_data){if(g&&G!=g)continue;for(const C of["BL","GT","B2B"]){if(c!='T'&&C!=c)continue;const m=M_data[G][C];m.kh.forEach((v,i)=>o.kh[i]+=v);m.th.forEach((v,i)=>{o.th[i]+=v});m.ck.forEach((v,i)=>{o.ck[i]+=v})}}return o}
 const sm=(a,n)=>a.slice(0,n).reduce((x,y)=>x+y,0);
+const thArr=g=>{const o=[0,0,0,0,0,0,0,0,0,0,0,0];for(const G in M_data){if(g&&G!=g)continue;M_data[G].the.forEach((v,i)=>{o[i]+=v})}return o},thSum=(g,n)=>sm(thArr(g),n);
 
 function r1(){
     const{g,c,n}=S(),a=agg(g,c),kY=sm(a.kh,12),th=sm(a.th,n),ck=sm(a.ck,n),gap=Math.max(kY-th,0);
@@ -188,18 +189,12 @@ function r1(){
     const proj_season = (kY && cw < 1) ? p((th + kY*(1-cw)*(th/k_n))/kY) : (kY ? p(th/kY) : '–');
     const growth_ck = ck ? (th/ck-1>=0?'+':'') + p(th/ck-1) : '–';
 
-    const th_month = a.th[n-1] || 0;
-    const th_month_BL = agg(g, 'BL').th[n-1] || 0;
-    const th_month_GT = agg(g, 'GT').th[n-1] || 0;
-    const th_month_B2B = agg(g, 'B2B').th[n-1] || 0;
-
     const K=[
         ['KH năm',f(kY)],
         ['Thực hiện lũy kế T'+n,f(th)],
         ['% KH năm',kY?p(th/kY):'–'],
         ['% mục tiêu lũy kế',pct_target_cum],
         ['Khoảng trống còn lại',f(gap)],
-        // Căn chỉnh cho chữ nhỏ lại chút trên cùng 1 dòng
         ['thực hiện cần / hiện tại', `<span style="font-size:15px; letter-spacing:-0.2px">${f(need)} / ${f(pace)}</span>`],
         ['Hệ số tăng tốc',isFinite(acc)?acc.toFixed(2)+'x':'–'],
         ['dự kiến (THBQ)',proj_avg],
@@ -210,7 +205,6 @@ function r1(){
     
     $('ch').innerHTML=['BL','GT','B2B'].map(C=>{const b=agg(g,C),t=sm(b.th,n),kk=sm(b.kh,12); const m=kk*cw; return`<div class="row" style="grid-template-columns:60px 1fr 180px"><span class="n">${CH[C]}</span><div class="t p"><i style="width:${Math.min(kk?t/kk:0,1.5)/1.5*100}%;background:${col(m?t/m:0)}"></i></div><span class="v">${kk?p(t/kk):'–'} KH · mục tiêu ${m?p(t/m):'–'} · CK ${sm(b.ck,n)?p(t/sm(b.ck,n)-1):'–'}</span></div>`}).join('')+'<div class="lg">Thanh = % KH năm (tối đa 150%); màu theo % mục tiêu lũy kế.</div>';
     
-    // DASHBOARD RIÊNG CHO THÁNG HIỆN TẠI NẰM Ở CỘT BÊN PHẢI
     $('month-title').innerText = `Thực hiện riêng Tháng ${n} theo kênh`;
     $('ch-month').innerHTML=['BL','GT','B2B'].map(C=>{
         const b=agg(g,C), t_m=b.th[n-1]||0, kk=sm(b.kh,12);
@@ -252,14 +246,15 @@ function r3(){const{g,c}=S(),idx={BL:[2,5],GT:[3,6],B2B:[4,7]};
  $('hm').innerHTML='<table><tr><th>Đơn vị</th><th>Bán lẻ</th><th>GT</th><th>B2B</th></tr>'+[...rs].sort((a,b)=>b.gap-a.gap).slice(0,12).map(o=>`<tr><td>${o.n}</td>${cell(o.u,'BL')}${cell(o.u,'GT')}${cell(o.u,'B2B')}</tr>`).join('')+'</table>'}
 
 function r4(){
- const a=thArr(S().g),T=agg(S().g,'T'),n=S().n,t=sm(a,n),tt=sm(T.th,n),Wd=560,H=200,L=44,B=24,Tp=14,pw=(Wd-L-8)/12,mx=Math.max(...a.slice(0,n).map(Math.abs),1)*1.15,y0=(H-B+Tp)/2,sc=(H-B-Tp)/2/mx,x=i=>L+pw*i+pw/2;
- const rs=U_data.filter(u=>!S().g||u[1]==S().g),tot=u=>u[5]+u[6]+u[7],pos=rs.filter(u=>u[9]>0),neg=a.slice(0,n).filter(v=>v<0).length;
+ const {g,c,n} = S();
+ const a=thArr(g),T=agg(g,'T'),t=sm(a,n),tt=sm(T.th,n),Wd=560,H=200,L=44,B=24,Tp=14,pw=(Wd-L-8)/12,mx=Math.max(...a.slice(0,n).map(Math.abs),1)*1.15,y0=(H-B+Tp)/2,sc=(H-B-Tp)/2/mx,x=i=>L+pw*i+pw/2;
+ const rs=U_data.filter(u=>!g||u[1]==g),tot=u=>u[5]+u[6]+u[7],pos=rs.filter(u=>u[9]>0),neg=a.slice(0,n).filter(v=>v<0).length;
  const top=[...rs].sort((x,y)=>y[9]-x[9]).slice(0,10),mxu=top[0]?top[0][9]:1;
- $('k4').innerHTML=[['Thẻ lũy kế',f(t)],['% trên tổng thực hiện',tt?p(t/tt):'–'],['Thẻ tháng '+n,f(a[n-1])],['Tháng thẻ âm',neg+' / '+n],['Đơn vị có phát sinh thẻ',pos.length+' / '+rs.length],['Đơn vị có tháng âm',new Set(N_data.filter(r=>(!S().g||r[1]==S().g)&&r[2]<=n).map(r=>r[0])).size+' đơn vị'],['Đơn vị đứng đầu',top[0]&&top[0][9]>0?p(top[0][9]/rs.reduce((s,u)=>s+u[9],0))+' tổng thẻ':'–']].map(([x,y])=>`<div class="k"><span>${x}</span><b style="font-size:19px">${y}</b></div>`).join('');
+ $('k4').innerHTML=[['Thẻ lũy kế',f(t)],['% trên tổng thực hiện',tt?p(t/tt):'–'],['Thẻ tháng '+n,f(a[n-1])],['Tháng thẻ âm',neg+' / '+n],['Đơn vị có phát sinh thẻ',pos.length+' / '+rs.length],['Đơn vị có tháng âm',new Set(N_data.filter(r=>(!g||r[1]==g)&&r[2]<=n).map(r=>r[0])).size+' đơn vị'],['Đơn vị đứng đầu',top[0]&&top[0][9]>0?p(top[0][9]/rs.reduce((s,u)=>s+u[9],0))+' tổng thẻ':'–']].map(([x,y])=>`<div class="k"><span>${x}</span><b style="font-size:19px">${y}</b></div>`).join('');
  let s=`<svg viewBox="0 0 ${Wd} ${H}"><line x1="${L}" x2="${Wd-8}" y1="${y0}" y2="${y0}" stroke="var(--mu)"/>`;
  for(let i=0;i<12;i++){s+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">T${i+1}</text>`;if(i<n){const v=a[i],h=Math.abs(v)*sc;s+=`<rect x="${x(i)-pw*.3}" y="${v>=0?y0-h:y0}" width="${pw*.6}" height="${h}" fill="${v>=0?'var(--ac)':'var(--r)'}"/><text x="${x(i)}" y="${v>=0?y0-h-3:y0+h+10}" text-anchor="middle">${(v/1000).toFixed(1)}k</text>`}}
  $('g4').innerHTML=s+'</svg>';
- const by={};N_data.filter(r=>(!S().g||r[1]==S().g)&&r[2]<=n).forEach(r=>{(by[r[0]]=by[r[0]]||{u:r[0],g:r[1],m:[],s:0}).m.push(r),by[r[0]].s+=r[3]});
+ const by={};N_data.filter(r=>(!g||r[1]==g)&&r[2]<=n).forEach(r=>{(by[r[0]]=by[r[0]]||{u:r[0],g:r[1],m:[],s:0}).m.push(r),by[r[0]].s+=r[3]});
  const nr=Object.values(by).sort((a,b)=>a.s-b.s),yt=Object.fromEntries(U_data.map(u=>[u[0],u[9]])),ng=nr.reduce((s,o)=>s+o.s,0);
  $('ng').innerHTML=nr.length?`<table><tr><th>Đơn vị</th><th>Nhóm</th><th>Số tháng âm</th><th>Chi tiết (tháng: giá trị)</th><th>Tổng âm</th><th>Thẻ lũy kế T1–${n}</th><th>% thẻ dương bị trừ</th><th>Đánh giá</th></tr>`+nr.map(o=>{const y=yt[o.u]||0,gr=y-o.s,pc=y>=0&&gr>0?-o.s/gr:null,lv=y<0?'Lũy kế âm':-o.s<100?'Nhỏ':(-o.s>=1000&&pc>.3)?'Âm lớn':'Cần xem';return`<tr><td>${o.u}</td><td>${o.g}</td><td>${o.m.length}</td><td style="text-align:left">${o.m.map(r=>'T'+r[2]+': '+f(r[3])).join(' · ')}</td><td class="fl">${f(o.s)}</td><td>${f(y)}</td><td>${pc==null?'–':p(pc)}</td><td class="${lv=='Nhỏ'?'':lv=='Cần xem'?'':'fl'}">${lv}</td></tr>`}).join('')+`<tr><td><b>Tổng</b></td><td></td><td>${nr.reduce((s,o)=>s+o.m.length,0)}</td><td></td><td class="fl"><b>${f(ng)}</b></td><td></td><td></td><td></td></tr></table><div class="lg">Thẻ âm có thể là điều chỉnh, hoàn trừ hoặc ghi nhận sang kênh khác (B2B);  “% thẻ dương bị trừ” = tổng âm / (thẻ lũy kế + tổng âm). Đánh giá: “Lũy kế âm” khi thẻ lũy kế âm; “Âm lớn” khi tổng âm từ 1.000 trở lên và trên 30% thẻ dương; “Nhỏ” khi dưới 100 (nhiều khả năng do làm tròn); còn lại “Cần xem”.</div>`:'<span class="ok">Không có đơn vị âm thẻ trong kỳ đã chọn</span>';
  $('tk').innerHTML=top.map(u=>`<div class="row" style="grid-template-columns:105px 1fr 100px"><span class="n">${u[0]}</span><div class="t p"><i style="width:${Math.max(u[9],0)/mxu*100}%;background:var(--ac)"></i></div><span class="v">${f(u[9])} · ${tot(u)?p(u[9]/tot(u)):'–'}</span></div>`).join('')+'<div class="lg">Số phải = thẻ và % thẻ trên thực hiện của đơn vị.</div>';
