@@ -57,11 +57,11 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
 <div class="v2 on" id="p1">
     <div class="kp" id="k1"></div>
     <div class="grid">
+        <div class="c" style="align-self: start;"><h2>Kết quả theo kênh (Lũy kế)</h2><div id="ch"></div></div>
         <div style="display:flex;flex-direction:column;gap:10px;">
-            <div class="c"><h2>Kết quả theo kênh (Lũy kế)</h2><div id="ch"></div></div>
+            <div class="c"><h2>Cơ cấu kênh: KH và thực hiện lũy kế</h2><div id="mx"></div></div>
             <div class="c"><h2 id="month-title">Thực hiện riêng Tháng</h2><div id="ch-month"></div></div>
         </div>
-        <div class="c"><h2>Cơ cấu kênh: KH và thực hiện lũy kế</h2><div id="mx"></div></div>
     </div>
 </div>
 <div class="v2" id="pu">
@@ -72,7 +72,6 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
     <span class="lg" id="us"></span>
 </div>
 <div class="c" style="margin-bottom:10px"><h2 id="uh"></h2><div id="dist"></div><div id="ub" class="ug"></div><div class="lg" id="ul"></div></div>
-<div class="grid"><div class="c"><h2>Kết quả theo từng quý</h2><div id="qc"></div></div><div class="c"><h2>Chi tiết theo quý và % hoàn thành theo kênh</h2><div class="sc" id="qt"></div></div></div>
 <div id="ud"></div></div>
 <div class="v2" id="p2"><div class="grid"><div class="c"><h2>Thực hiện theo tháng so với KH và cùng kỳ</h2><div id="g1"></div><div class="lg">Cột = thực hiện · đường vàng = KH · đường xám đứt = cùng kỳ năm trước. B2B dồn vào cuối quý.</div></div><div class="c"><h2>Lũy kế thực hiện so với KH lũy kế</h2><div id="g2"></div></div></div></div>
 <div class="v2" id="p3"><div class="grid"><div class="c"><h2>Xếp hạng % mục tiêu lũy kế</h2><div id="rk"></div><div class="lg">Vạch đứt = 100% mục tiêu 70% KH năm · xanh ≥100%, vàng ≥70%, đỏ &lt;70%</div></div><div class="c"><h2>10 đơn vị thiếu nhiều nhất</h2><div id="pa"></div></div><div class="c"><h2>Heatmap % KH năm theo kênh (top 12 đơn vị khoảng trống)</h2><div class="sc" id="hm"></div></div></div></div>
@@ -201,6 +200,7 @@ function r1(){
         ['% KH năm',kY?p(th/kY):'–'],
         ['% mục tiêu lũy kế',pct_target_cum],
         ['Khoảng trống còn lại',f(gap)],
+        // Điều chỉnh cỡ chữ ở đây để tránh bị xuống dòng
         ['thực hiện cần / hiện tại', `<span style="font-size:15px; letter-spacing:-0.2px">${f(need)} / ${f(pace)}</span>`],
         ['Hệ số tăng tốc',isFinite(acc)?acc.toFixed(2)+'x':'–'],
         ['dự kiến (THBQ)',proj_avg],
@@ -296,26 +296,28 @@ function r6(){
  
  const rows = (!isMonth && q && !mm) ? [] : V_data.filter(v=>g?v[1]==g:v[1]!='Khác').map(v=>{
      const a=ua(v,c), kY=a.khY;
-     let p_=null, kq=0, tq=0;
-
+     const aBL=ua(v,'BL'), aGT=ua(v,'GT'), aB2B=ua(v,'B2B');
+     let p_=null, kq=0, tq=0, tBL=0, tGT=0, tB2B=0;
      if(isMonth){
          kq = kY * W[m_sel-1];
          tq = a.th[m_sel-1];
+         tBL = aBL.th[m_sel-1]||0; tGT = aGT.th[m_sel-1]||0; tB2B = aB2B.th[m_sel-1]||0;
          p_ = kq ? tq/kq : null;
      } else if(q){
          kq = kY * sm(W.slice(3*qi,3*qi+mm),mm);
          tq = sm(a.th.slice(3*qi,3*qi+mm),mm);
+         tBL = sm(aBL.th.slice(3*qi,3*qi+mm),mm); tGT = sm(aGT.th.slice(3*qi,3*qi+mm),mm); tB2B = sm(aB2B.th.slice(3*qi,3*qi+mm),mm);
          p_ = kq ? tq/kq : null;
      } else {
          kq = kY;
          tq = sm(a.th,n);
+         tBL = sm(aBL.th,n); tGT = sm(aGT.th,n); tB2B = sm(aB2B.th,n);
          p_ = kY ? tq/kY : null;
      }
-     
      let m_val = (isMonth || q) ? p_ : (cw&&kY?sm(a.th,n)/(kY*cw):-1);
      let p_text = (isMonth||q) ? (kq ? p(tq/kq) : '–') : (kY ? p(tq/kY) : '–');
      
-     return {n:v[0], kh:kY, th_val:tq, p:p_, p_text:p_text, m:m_val};
+     return {n:v[0],kh:kY,th_val:tq, th_bl:tBL, th_gt:tGT, th_b2b:tB2B, p:p_, p_text:p_text, m:m_val};
  }).filter(o=>o.kh>0&&o.p!=null).sort((x,y)=>y.p-x.p);
  
  const nG=rows.filter(o=>o.m>=1).length,nA=rows.filter(o=>o.m>=.7&&o.m<1).length,nR=rows.length-nG-nA,pc=x=>rows.length?x/rows.length*100:0;
@@ -371,7 +373,6 @@ function r6(){
      K.push(['dự kiến (thực hiện bình quân)',khY?p((th+pace*(12-n))/khY):'–']);
      K.push(['Tăng trưởng cùng kỳ lũy kế',ck>1000?(th/ck-1>=0?'+':'')+p(th/ck-1):'–']);
  }
- K.push(['Kinh doanh thẻ',f(tc)+(th?' ('+p(tc/th)+')':'')]);
 
  const thTitle = (isMonth||q) ? `KH ${lblSel}` : `KH năm`;
  const thTh = (isMonth||q) ? `TH ${lblSel}` : `Thực hiện`;
@@ -400,7 +401,7 @@ function r6(){
  for(let i=0;i<12;i++){s2+=`<text x="${x2(i)}" y="${H-8}" text-anchor="middle">T${i+1}</text>`;if(i<n){let b=0;for(const k of['BL','GT','B2B']){const q_=Math.max((v[CI[k][1]][i]||0),0);s2+=`<rect x="${x2(i)-pw*.3}" y="${y2(b+q_)}" width="${pw*.6}" height="${y2(b)-y2(b+q_)}" fill="${cl[k]}"/>`;b+=q_}}}
  s2+=`<polyline fill="none" stroke="var(--r)" stroke-width="2" points="${a.kh.map((q_,i)=>x2(i)+','+y2(q_)).join(' ')}"/><polyline fill="none" stroke="var(--mu)" stroke-width="2" stroke-dasharray="4 3" points="${a.ck.slice(0,n).map((q_,i)=>x2(i)+','+y2(q_)).join(' ')}"/></svg>`;
  
- $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button></h2><div class="kp">${K.map(([q_,r_])=>`<div class="k"><span>${q_}</span><b style="font-size:19px">${r_}</b></div>`).join('')}</div><div class="grid"><div style="display:flex;flex-direction:column;gap:10px;"><div class="c"><h2>Kết quả theo kênh (Lũy kế)</h2><div class="sc"><table><tr><th>Kênh</th><th>${thTitle}</th><th>${thTh}</th><th>${thPct}</th><th>${thCol4}</th><th>Gap</th></tr>${tb}</table></div></div><div class="c"><h2 id="month-unit-title">Thực hiện riêng Tháng ${active_m} theo kênh</h2><div id="ch-month-unit"></div></div></div><div class="c"><h2>Kết quả theo quý</h2><div class="sc">${qtab(qrows(a,n))}</div></div><div class="c"><h2>Thực hiện theo tháng</h2>${s2}<div class="lg">Cột chồng: <span style="color:${cl.BL}">■</span> Bán lẻ <span style="color:${cl.GT}">■</span> GT <span style="color:${cl.B2B}">■</span> B2B · đường đỏ = KH tháng · đường xám đứt = cùng kỳ năm trước</div></div></div></div>`
+ $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button></h2><div class="kp">${K.map(([q_,r_])=>`<div class="k"><span>${q_}</span><b style="font-size:19px">${r_}</b></div>`).join('')}</div><div class="grid"><div style="display:flex;flex-direction:column;gap:10px;"><div class="c"><h2>Kết quả theo quý</h2><div class="sc">${qtab(qrows(a,n))}</div></div><div class="c"><h2>Kết quả theo kênh (Lũy kế)</h2><div class="sc"><table><tr><th>Kênh</th><th>${thTitle}</th><th>${thTh}</th><th>${thPct}</th><th>${thCol4}</th><th>Gap</th></tr>${tb}</table></div></div></div><div style="display:flex;flex-direction:column;gap:10px;"><div class="c"><h2>Thực hiện theo tháng</h2>${s2}<div class="lg">Cột chồng: <span style="color:${cl.BL}">■</span> Bán lẻ <span style="color:${cl.GT}">■</span> GT <span style="color:${cl.B2B}">■</span> B2B · đường đỏ = KH tháng · đường xám đứt = cùng kỳ năm trước</div></div><div class="c"><h2 id="month-unit-title">Thực hiện riêng Tháng ${active_m} theo kênh</h2><div id="ch-month-unit"></div></div></div></div></div>`
 
     // RENDER BIỂU ĐỒ THÁNG CHI TIẾT ĐƠN VỊ
     const u_th_m = a.th[active_m-1]||0;
