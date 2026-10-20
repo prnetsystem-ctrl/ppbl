@@ -178,13 +178,15 @@ const CH={BL:'Bán lẻ',GT:'GT',B2B:'B2B'},col=x=>x>=1?'var(--g)':x>=.7?'var(--
 const W=[.08,.05,.07,.08,.08,.09,.08,.08,.09,.07,.08,.15],CI={BL:[2,5],GT:[3,6],B2B:[4,7]};
 const S=()=>({g:$('fg').value,c:$('fc').value,n:+$('fn').value});
 
+
 const parseVNNumber = (str) => {
     if (str === undefined || str === null) return 0;
     let s = str.toString().trim();
     if (s === '-' || s === '') return 0;
-    s = s.replace(/\./g, '').replace(/,/g, '.replace(/[^\d.-]/g, '');
+    s = s.replace(/\./g, '').replace(/,/g, '.').replace(/[^\d.-]/g, '');
     return parseFloat(s) || 0;
 };
+    
 
 function agg(g,c){const o={kh:[0,0,0,0,0,0,0,0,0,0,0,0],th:[0,0,0,0,0,0,0,0,0,0,0,0],ck:[0,0,0,0,0,0,0,0,0,0,0,0]};
  for(const G in M_data){if(g&&G!=g)continue;for(const C of["BL","GT","B2B"]){if(c!='T'&&C!=c)continue;const m=M_data[G][C];m.kh.forEach((v,i)=>o.kh[i]+=v);m.th.forEach((v,i)=>{o.th[i]+=v});m.ck.forEach((v,i)=>{o.ck[i]+=v})}}return o}
