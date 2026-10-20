@@ -54,6 +54,7 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
 <label>Kênh <select id="fc"><option value="T">Tổng</option><option value="BL">Bán lẻ</option><option value="GT">GT</option><option value="B2B">B2B</option></select></label>
 <label>Lũy kế đến tháng <select id="fn"></select></label><span class="lg" id="fh"></span></div>
 
+<!-- TAB 1: TỔNG QUAN -->
 <div class="v2 on" id="p1">
     <div class="kp" id="k1"></div>
     <div class="grid">
@@ -64,15 +65,28 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
         <div class="c" style="align-self: start;"><h2 id="month-title">Thực hiện riêng Tháng</h2><div id="ch-month"></div></div>
     </div>
 </div>
+
+<!-- TAB 2: KẾT QUẢ ĐƠN VỊ -->
 <div class="v2" id="pu">
-<div class="bar" style="margin-bottom:10px">
-    <label>Chọn đơn vị <select id="fu"><option value="">— Tất cả đơn vị —</option></select></label>
-    <label>Kỳ đánh giá <select id="fq"><option value="0">Lũy kế (so với KH năm)</option><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select></label>
-    <label>Tháng <select id="fm"><option value="0">— Không chọn —</option></select></label>
-    <span class="lg" id="us"></span>
+    <div class="bar" style="margin-bottom:10px">
+        <label>Chọn đơn vị <select id="fu"><option value="">— Tất cả đơn vị —</option></select></label>
+        <label>Kỳ đánh giá <select id="fq"><option value="0">Lũy kế (so với KH năm)</option><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select></label>
+        <label>Tháng <select id="fm"><option value="0">— Không chọn —</option></select></label>
+        <span class="lg" id="us"></span>
+    </div>
+    
+    <div class="c" style="margin-bottom:10px"><h2 id="uh"></h2><div id="dist"></div><div id="ub" class="ug"></div><div class="lg" id="ul"></div></div>
+    
+    <!-- DASHBOARD MẶC ĐỊNH (KHI CHƯA CHỌN ĐƠN VỊ) -->
+    <div class="grid" id="global-q-dash">
+        <div class="c"><h2>Kết quả theo từng quý</h2><div id="qc"></div></div>
+        <div class="c"><h2>Chi tiết theo quý và % hoàn thành theo kênh</h2><div class="sc" id="qt"></div></div>
+    </div>
+    
+    <!-- DASHBOARD CHI TIẾT (KHI ĐÃ CHỌN ĐƠN VỊ) -->
+    <div id="ud"></div>
 </div>
-<div class="c" style="margin-bottom:10px"><h2 id="uh"></h2><div id="dist"></div><div id="ub" class="ug"></div><div class="lg" id="ul"></div></div>
-<div id="ud"></div></div>
+
 <div class="v2" id="p2"><div class="grid"><div class="c"><h2>Thực hiện theo tháng so với KH và cùng kỳ</h2><div id="g1"></div><div class="lg">Cột = thực hiện · đường vàng = KH · đường xám đứt = cùng kỳ năm trước. B2B dồn vào cuối quý.</div></div><div class="c"><h2>Lũy kế thực hiện so với KH lũy kế</h2><div id="g2"></div></div></div></div>
 <div class="v2" id="p3"><div class="grid"><div class="c"><h2>Xếp hạng % mục tiêu lũy kế</h2><div id="rk"></div><div class="lg">Vạch đứt = 100% mục tiêu 70% KH năm · xanh ≥100%, vàng ≥70%, đỏ &lt;70%</div></div><div class="c"><h2>10 đơn vị thiếu nhiều nhất</h2><div id="pa"></div></div><div class="c"><h2>Heatmap % KH năm theo kênh (top 12 đơn vị khoảng trống)</h2><div class="sc" id="hm"></div></div></div></div>
 <div class="v2" id="p4"><div class="kp" id="k4"></div><div class="grid"><div class="c"><h2>Kinh doanh thẻ theo tháng</h2><div id="g4"></div><div class="lg">Cột đỏ = tháng thẻ âm (cần rà soát điều chỉnh/hoàn trừ). Thẻ nằm trong tổng thực hiện, chưa có KH riêng.</div></div><div class="c"><h2>Đơn vị có thẻ cao nhất</h2><div id="tk"></div></div><div class="c"><h2>Theo nhóm đơn vị</h2><div id="tg"></div></div><div class="c" style="grid-column:1/-1"><h2>Đơn vị bị âm thẻ (theo tháng đã chọn)</h2><div class="sc" id="ng"></div></div></div></div>
@@ -268,6 +282,7 @@ function r4(){
 
 function qtab(Q){const row=o=>`<tr><td>Quý ${o.qi+1}${o.mm&&o.mm<3?'*':''}</td><td>${f(o.khf)}</td><td>${o.mm?f(o.th):'–'}</td>${o.mm&&o.khi?`<td class="h" style="background:${col(o.th/o.khi)}">${p(o.th/o.khi)}</td>`:'<td>–</td>'}<td>${o.ck>1000?f(o.ck):'–'}</td><td>${gr(o.th,o.ck)}</td></tr>`,T=Q.filter(o=>o.mm),kh=T.reduce((s,o)=>s+o.khi,0),th=T.reduce((s,o)=>s+o.th,0),ck=T.reduce((s,o)=>s+o.ck,0);
  return`<table><tr><th>Quý</th><th>KH quý</th><th>Thực hiện</th><th>% hoàn thành</th><th>Cùng kỳ</th><th>Tăng trưởng</th></tr>${Q.map(row).join('')}<tr><td><b>Lũy kế</b></td><td>${f(kh)}</td><td>${f(th)}</td><td>${kh?p(th/kh):'–'}</td><td>${ck>1000?f(ck):'–'}</td><td>${gr(th,ck)}</td></tr></table><div class="lg">% hoàn thành = thực hiện / KH của quý (đến tháng đã chọn). * = quý chưa đủ 3 tháng.</div>`}
+
 function rq(g,c,n,cw){
  const A=agg(g,c),Q=qrows(A,n),Wd=420,H=190,L=40,B=26,T=16,gw=(Wd-L-6)/4,bw=gw*.2,mx=Math.max(...Q.map(o=>Math.max(o.khf,o.th,o.ck)),1)*1.12,y=v=>H-B-v/mx*(H-B-T);
  let s=`<svg viewBox="0 0 ${Wd} ${H}">`;for(let i=0;i<=3;i++){const v=mx/1.12*i/3;s+=`<line x1="${L}" x2="${Wd-6}" y1="${y(v)}" y2="${y(v)}" stroke="var(--bd)"/><text x="${L-4}" y="${y(v)+3}" text-anchor="end">${f(v/1000)}k</text>`}
@@ -318,12 +333,16 @@ function r6(){
  $('ub').innerHTML=rows.length?rows.map(o=>`<div class="row ur${o.n==sel?' sel':''}" data-u="${o.n}" style="grid-template-columns:135px 1fr 50px;cursor:pointer"><span class="n" title="${o.n}">${o.n}</span><div class="t"><i style="width:${Math.min(o.p,2)*50}%;background:${col(o.m)}"></i>${(isMonth||q)?'':`<b class="mk" style="left:${cw*50}%"></b>`}</div><span class="v">${o.p_text}</span></div>`).join(''):'<div class="lg">Chưa có thực hiện trong kỳ đã chọn.</div>';
  
  $('ul').innerHTML='Thanh = '+(isMonth?`% hoàn thành KH Tháng ${m_sel}`: (q?`% hoàn thành KH Quý ${q}`:'% KH năm'))+' (tối đa 200%) · vạch đứt giữa = 100%'+((isMonth||q)?'':' · vạch đậm = mục tiêu lũy kế đến tháng đã chọn')+' · màu: xanh ≥100% '+((isMonth||q)?'KH kỳ':'mục tiêu')+', vàng ≥70%, đỏ &lt;70% · bấm vào một dòng để xem chi tiết. Bộ lọc nhóm, kênh, tháng ở trên đều áp dụng.';
- rq(g,c,n,cw);
+ 
+ rq(g,c,n,cw); // LUÔN GỌI HÀM NÀY ĐỂ CẬP NHẬT BIỂU ĐỒ GLOBAL QUÝ TRƯỚC
  
  if(!sel){
+    $('global-q-dash').style.display = 'grid'; // Hiển thị biểu đồ quý chung khi chưa chọn đơn vị
     $('ud').innerHTML=`<div class="c" style="margin-top:10px;text-align:center;padding:30px;"><span class="lg">Hãy bấm chọn một đơn vị ở bảng trên để xem chi tiết các chỉ số của đơn vị đó.</span></div>`;
     return;
  }
+ 
+ $('global-q-dash').style.display = 'none'; // Ẩn biểu đồ quý chung để hiển thị chi tiết của 1 đơn vị
  
  const v=V_data.find(x=>x[0]==sel);
  if(!v) return;
@@ -392,7 +411,17 @@ function r6(){
  for(let i=0;i<12;i++){s2+=`<text x="${x2(i)}" y="${H-8}" text-anchor="middle">T${i+1}</text>`;if(i<n){let b=0;for(const k of['BL','GT','B2B']){const q_=Math.max((v[CI[k][1]][i]||0),0);s2+=`<rect x="${x2(i)-pw*.3}" y="${y2(b+q_)}" width="${pw*.6}" height="${y2(b)-y2(b+q_)}" fill="${cl[k]}"/>`;b+=q_}}}
  s2+=`<polyline fill="none" stroke="var(--r)" stroke-width="2" points="${a.kh.map((q_,i)=>x2(i)+','+y2(q_)).join(' ')}"/><polyline fill="none" stroke="var(--mu)" stroke-width="2" stroke-dasharray="4 3" points="${a.ck.slice(0,n).map((q_,i)=>x2(i)+','+y2(q_)).join(' ')}"/></svg>`;
  
- $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button></h2><div class="kp">${K.map(([q_,r_])=>`<div class="k"><span>${q_}</span><b style="font-size:19px">${r_}</b></div>`).join('')}</div><div class="grid"><div style="display:flex;flex-direction:column;gap:10px;"><div class="c"><h2>Kết quả theo quý</h2><div class="sc">${qtab(qrows(a,n))}</div></div><div class="c"><h2>Kết quả theo kênh (Lũy kế)</h2><div class="sc"><table><tr><th>Kênh</th><th>${thTitle}</th><th>${thTh}</th><th>${thPct}</th><th>${thCol4}</th><th>Gap</th></tr>${tb}</table></div></div></div><div style="display:flex;flex-direction:column;gap:10px;"><div class="c"><h2>Thực hiện theo tháng</h2>${s2}<div class="lg">Cột chồng: <span style="color:${cl.BL}">■</span> Bán lẻ <span style="color:${cl.GT}">■</span> GT <span style="color:${cl.B2B}">■</span> B2B · đường đỏ = KH tháng · đường xám đứt = cùng kỳ năm trước</div></div><div class="c"><h2 id="month-unit-title">Thực hiện riêng Tháng ${active_m} theo kênh</h2><div id="ch-month-unit"></div></div></div></div></div>`
+ $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button></h2><div class="kp">${K.map(([q_,r_])=>`<div class="k"><span>${q_}</span><b style="font-size:19px">${r_}</b></div>`).join('')}</div>
+ <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="c"><h2>Kết quả theo quý</h2><div class="sc">${qtab(qrows(a,n))}</div></div>
+        <div class="c"><h2>Kết quả theo kênh (Lũy kế)</h2><div class="sc"><table><tr><th>Kênh</th><th>${thTitle}</th><th>${thTh}</th><th>${thPct}</th><th>${thCol4}</th><th>Gap</th></tr>${tb}</table></div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="c"><h2>Thực hiện theo tháng</h2>${s2}<div class="lg">Cột chồng: <span style="color:${cl.BL}">■</span> Bán lẻ <span style="color:${cl.GT}">■</span> GT <span style="color:${cl.B2B}">■</span> B2B · đường đỏ = KH tháng · đường xám đứt = cùng kỳ năm trước</div></div>
+        <div class="c"><h2 id="month-unit-title">Thực hiện riêng Tháng ${active_m} theo kênh</h2><div id="ch-month-unit"></div></div>
+    </div>
+ </div></div>`
 
     // RENDER BIỂU ĐỒ THÁNG CHI TIẾT ĐƠN VỊ
     const u_th_m = a.th[active_m-1]||0;
@@ -599,9 +628,9 @@ async function loadGoogleSheetData() {
 
             $('page-sub').innerText = `Dữ liệu thực hiện cập nhật tự động đến T${max_month_th}/${latest_year} · Đơn vị tính: triệu đồng · Được thiết kế bởi ThanhDD · Phòng TCBL`;
             $('loading').style.display = 'none';
-            all(); // Render all dashboards once loaded
             $('fu').innerHTML = '<option value="">— Tất cả đơn vị —</option>';
             V_data.forEach(v=>$('fu').add(new Option(v[0],v[0])));
+            all(); // Gọi tất cả các hàm render 1 lần
         } else {
              $('loading').innerHTML = `<b>LỖI DỮ LIỆU:</b><br><br>Không tìm thấy dữ liệu hợp lệ trong Sheet Doanh thu.`;
         }
@@ -611,7 +640,7 @@ async function loadGoogleSheetData() {
 }
 
 function rrep() {
-    const {g, c, n} = S(); 
+    const {g, n} = S(); 
     
     // 1. TÍNH TOÁN CÁC SỐ LIỆU TỔNG QUAN TỪ DỮ LIỆU THỰC
     let total_KH = 0, total_TH = 0, total_CK = 0;
