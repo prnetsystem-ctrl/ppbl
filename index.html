@@ -28,7 +28,7 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
 </style></head><body>
 <div id="loading">Đang tải dữ liệu từ Google Sheet...</div>
 <h1>Kết quả kinh doanh dịch vụ Phân phối bán lẻ trên mạng lưới Bưu điện Việt Nam</h1>
-<div class="sub" id="page-sub">Dữ liệu thực hiện cập nhật tự động · Đơn vị tính: triệu đồng · Được thiết kế bởi  - Phòng TCBL </div>
+<div class="sub" id="page-sub">Dữ liệu thực hiện cập nhật tự động · Đơn vị tính: triệu đồng · Được thiết kế bởi ThanhDD - Phòng TCBL </div>
 <div class="tabs">
     <button data-t="1" class="on">1. Tổng quan</button>
     <button data-t="u">2. Kết quả đơn vị</button>
@@ -192,24 +192,31 @@ const sm=(a,n)=>a.slice(0,n).reduce((x,y)=>x+y,0);
 const thArr=g=>{const o=[0,0,0,0,0,0,0,0,0,0,0,0];for(const G in M_data){if(g&&G!=g)continue;M_data[G].the.forEach((v,i)=>{o[i]+=v})}return o},thSum=(g,n)=>sm(thArr(g),n);
 
 // ==============================================
-// BỔ SUNG CÁC HÀM TIỆN ÍCH BỊ THIẾU
+// BỔ SUNG CÁC HÀM TIỆN ÍCH BỊ THIẾU (ĐÃ FIX LỖI CHI TIẾT ĐƠN VỊ)
 // ==============================================
 const gr = (t, c) => c > 0 ? (t/c - 1 >= 0 ? '+' : '') + p(t/c - 1) : '–';
 const qmon = (qi, n) => Math.max(0, Math.min(3, n - 3*qi));
 const ua = (v, C) => {
-    if(C==='BL') return {khY: v[2], th: v[5], ck: Array(12).fill(0)};
-    if(C==='GT') return {khY: v[3], th: v[6], ck: Array(12).fill(0)};
-    if(C==='B2B') return {khY: v[4], th: v[7], ck: Array(12).fill(0)};
+    let khY = 0, th = [], ck = [];
+    if(C==='BL') { khY = v[2]; th = v[5]; ck = Array(12).fill(0); }
+    else if(C==='GT') { khY = v[3]; th = v[6]; ck = Array(12).fill(0); }
+    else if(C==='B2B') { khY = v[4]; th = v[7]; ck = Array(12).fill(0); }
+    else {
+        khY = v[2] + v[3] + v[4]; 
+        th = v[5].map((x, i) => x + v[6][i] + v[7][i]); 
+        ck = v[8];
+    }
     return {
-        khY: v[2] + v[3] + v[4], 
-        th: v[5].map((x, i) => x + v[6][i] + v[7][i]), 
-        ck: v[8]
+        khY: khY, 
+        kh: W.map(w => khY * w), // Bổ sung mảng Kế hoạch theo từng tháng để vẽ biểu đồ
+        th: th, 
+        ck: ck
     };
 };
 const qrows = (A, n) => [0, 1, 2, 3].map(qi => {
     let mm = qmon(qi, n);
-    let khf = A.kh ? sm(A.kh.slice(3*qi, 3*qi+3), 3) : (A.khY ? A.khY * sm(W.slice(3*qi, 3*qi+3), 3) : 0);
-    let khi = A.kh ? sm(A.kh.slice(3*qi, 3*qi+mm), mm) : (A.khY ? A.khY * sm(W.slice(3*qi, 3*qi+mm), mm) : 0);
+    let khf = A.kh ? sm(A.kh.slice(3*qi, 3*qi+3), 3) : 0;
+    let khi = A.kh ? sm(A.kh.slice(3*qi, 3*qi+mm), mm) : 0;
     let th = A.th ? sm(A.th.slice(3*qi, 3*qi+mm), mm) : 0;
     let ck = A.ck ? sm(A.ck.slice(3*qi, 3*qi+mm), mm) : 0;
     return {qi, mm, khf, khi, th, ck};
@@ -647,7 +654,7 @@ async function loadGoogleSheetData() {
             fmDropdown.innerHTML = '<option value="0">— Không chọn —</option>';
             for(let j=1; j<=max_month_th; j++) fmDropdown.add(new Option('Tháng '+j, j));
 
-            $('page-sub').innerText = `Dữ liệu thực hiện cập nhật tự động đến T${max_month_th}/${latest_year} · Đơn vị tính: triệu đồng · Được thiết kế bởi ThanhDD · Phòng TCBL`;
+            $('page-sub').innerText = `Dữ liệu thực hiện cập nhật tự động đến T${max_month_th}/${latest_year} · Đơn vị tính: triệu đồng · Được thiết kế bởi ThanhDD - Phòng TCBL`;
             $('loading').style.display = 'none';
             $('fu').innerHTML = '<option value="">— Tất cả đơn vị —</option>';
             V_data.forEach(v=>$('fu').add(new Option(v[0],v[0])));
