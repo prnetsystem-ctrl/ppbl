@@ -242,7 +242,15 @@ function r1(){
     ];
     $('k1').innerHTML=K.map(([x,y])=>`<div class="k"><span>${x}</span><b>${y}</b></div>`).join('');
     
-    $('ch').innerHTML=['BL','GT','B2B'].map(C=>{const b=agg(g,C),t=sm(b.th,n),kk=sm(b.kh,12); const m=kk*cw; return`<div class="row" style="grid-template-columns:60px 1fr 180px"><span class="n">${CH[C]}</span><div class="t p"><i style="width:${Math.min(kk?t/kk:0,1.5)/1.5*100}%;background:${col(m?t/m:0)}"></i></div><span class="v">${kk?p(t/kk):'–'} KH · mục tiêu ${m?p(t/m):'–'} · CK ${sm(b.ck,n)?p(t/sm(b.ck,n)-1):'–'}</span></div>`}).join('')+'<div class="lg">Thanh = % KH năm (tối đa 150%); màu theo % mục tiêu lũy kế.</div>';
+    $('ch').innerHTML=['BL','GT','B2B'].map(C=>{
+        const b=agg(g,C),t=sm(b.th,n),kk=sm(b.kh,12); 
+        const m=kk*cw; 
+        return`<div class="row" style="grid-template-columns:60px 1fr 180px">
+            <span class="n">${CH[C]}</span>
+            <div class="t p"><i style="width:${Math.min(kk?t/kk:0,1.5)/1.5*100}%;background:${col(m?t/m:0)}"></i></div>
+            <span class="v" style="color:var(--tx);text-align:right"><b>${f(t)}</b> <span style="color:var(--mu);font-size:11px">/ ${f(kk)} (${kk?p(t/kk):'–'}) · CK ${sm(b.ck,n)?gr(t,sm(b.ck,n)):'–'}</span></span>
+        </div>`
+    }).join('')+'<div class="lg">Thanh = % KH năm (tối đa 150%); màu theo % mục tiêu lũy kế.</div>';
     
     $('month-title').innerText = `Thực hiện riêng Tháng ${n} theo kênh`;
     $('ch-month').innerHTML=['BL','GT','B2B'].map(C=>{
@@ -357,32 +365,41 @@ function r6(){
  
  $('ul').innerHTML='Thanh = '+(isMonth?`% hoàn thành KH Tháng ${m_sel}`: (q?`% hoàn thành KH Quý ${q}`:'% KH năm'))+' (tối đa 200%) · vạch đứt giữa = 100%'+((isMonth||q)?'':' · vạch đậm = mục tiêu lũy kế đến tháng đã chọn')+' · màu: xanh ≥100% '+((isMonth||q)?'KH kỳ':'mục tiêu')+', vàng ≥70%, đỏ &lt;70% · bấm vào một dòng để xem chi tiết. Bộ lọc nhóm, kênh, tháng ở trên đều áp dụng.';
  
- if(!sel){
-    if($('global-q-dash')) $('global-q-dash').style.display = 'grid';
-    $('ud').innerHTML=`<div class="c" style="margin-top:10px;text-align:center;padding:30px;"><span class="lg">Hãy bấm chọn một đơn vị ở bảng trên để xem chi tiết các chỉ số của đơn vị đó.</span></div>`;
-    rq(g,c,n,cw); // Phục hồi hiển thị biểu đồ Quý cho mạng lưới
-    return;
+ // PHẦN RENDER CHI TIẾT ĐƠN VỊ / MẠNG LƯỚI
+ let isGlobal = !sel;
+ let v = null;
+ if (!isGlobal) {
+     v = V_data.find(x=>x[0]==sel);
+     if(!v) return;
  }
+
+ const ua_net = (group, C) => {
+     const b = agg(group, C);
+     return { khY: sm(b.kh, 12), kh: b.kh, th: b.th, ck: b.ck };
+ };
+
+ const a = isGlobal ? ua_net(g, 'T') : ua(v, 'T');
+ const khY = a.khY, th = sm(a.th,n), gap = Math.max(khY-th,0), pace = th/n, need = n<12?gap/(12-n):0, ck = sm(a.ck,n);
  
- if($('global-q-dash')) $('global-q-dash').style.display = 'none';
- 
- const v=V_data.find(x=>x[0]==sel);
- if(!v) return;
- const a=ua(v,'T'),khY=a.khY,th=sm(a.th,n),gap=Math.max(khY-th,0),pace=th/n,need=n<12?gap/(12-n):0,ck=sm(a.ck,n),tc=sm(v[9],n);
- const rk=V_data.filter(x=>x[1]!='Khác').map(x=>{
-     const b=ua(x,'T');
-     let pm_v = -1;
-     if (isMonth) pm_v = (b.khY && W[m_sel-1]) ? b.th[m_sel-1]/(b.khY*W[m_sel-1]) : -1;
-     else if (q) pm_v = (b.khY && sm(W.slice(3*qi,3*qi+mm),mm)) ? sm(b.th.slice(3*qi,3*qi+mm),mm)/(b.khY*sm(W.slice(3*qi,3*qi+mm),mm)) : -1;
-     else pm_v = (b.khY&&cw) ? sm(b.th,n)/(b.khY*cw) : -1;
-     return{n:x[0],pm:pm_v};
- }).sort((x,y)=>y.pm-x.pm),pos=rk.findIndex(o=>o.n==sel)+1;
+ let pos = null;
+ let rk = [];
+ if (!isGlobal) {
+     rk=V_data.filter(x=>x[1]!='Khác').map(x=>{
+         const b=ua(x,'T');
+         let pm_v = -1;
+         if (isMonth) pm_v = (b.kh[m_sel-1]) ? b.th[m_sel-1]/(b.kh[m_sel-1]) : -1;
+         else if (q) pm_v = (sm(b.kh.slice(3*qi,3*qi+mm),mm)) ? sm(b.th.slice(3*qi,3*qi+mm),mm)/(sm(b.kh.slice(3*qi,3*qi+mm),mm)) : -1;
+         else pm_v = (b.khY&&cw) ? sm(b.th,n)/(b.khY*cw) : -1;
+         return{n:x[0],pm:pm_v};
+     }).sort((x,y)=>y.pm-x.pm);
+     pos = rk.findIndex(o=>o.n==sel)+1;
+ }
 
  let selKq=0, selTq=0, selCk=0, lblSel="";
  if (isMonth) {
-     selKq = khY * W[m_sel-1]; selTq = a.th[m_sel-1]; selCk = a.ck[m_sel-1]; lblSel = `Tháng ${m_sel}`;
+     selKq = a.kh[m_sel-1]; selTq = a.th[m_sel-1]; selCk = a.ck[m_sel-1]; lblSel = `Tháng ${m_sel}`;
  } else if (q) {
-     selKq = khY * sm(W.slice(3*qi,3*qi+mm), mm); selTq = sm(a.th.slice(3*qi,3*qi+mm), mm); selCk = sm(a.ck.slice(3*qi,3*qi+mm), mm); lblSel = `Quý ${q}`;
+     selKq = sm(a.kh.slice(3*qi,3*qi+mm), mm); selTq = sm(a.th.slice(3*qi,3*qi+mm), mm); selCk = sm(a.ck.slice(3*qi,3*qi+mm), mm); lblSel = `Quý ${q}`;
  }
 
  let K=[];
@@ -391,14 +408,14 @@ function r6(){
      K.push([`Thực hiện ${lblSel}`, f(selTq)]);
      K.push([`% KH ${lblSel}`, selKq ? p(selTq/selKq) : '–']);
      K.push([`Tăng trưởng CK ${lblSel}`, selCk > 0 ? (selTq/selCk-1>=0?'+':'') + p(selTq/selCk-1) : '–']);
-     K.push([`Xếp hạng (% KH kỳ)`, pos ? pos + ' / ' + rk.length : '–']);
+     if (!isGlobal) K.push([`Xếp hạng (% KH kỳ)`, pos ? pos + ' / ' + rk.length : '–']);
  }
  K.push(['KH năm',f(khY)]);
  K.push(['Thực hiện lũy kế T'+n,f(th)]);
  K.push(['% KH năm',khY?p(th/khY):'–']);
  if (!isMonth && !q) {
      K.push(['% mục tiêu lũy kế',(khY&&cw)?p(th/(khY*cw)):'–']);
-     K.push(['Xếp hạng theo % mục tiêu', pos ? pos + ' / ' + rk.length : '–']);
+     if (!isGlobal) K.push(['Xếp hạng theo % mục tiêu', pos ? pos + ' / ' + rk.length : '–']);
      K.push(['Gap còn lại',f(gap)]);
      K.push(['thực hiện cần / hiện tại', `<span style="font-size:15px; letter-spacing:-0.2px">${f(need)} / ${f(pace)}</span>`]);
      K.push(['Tăng trưởng cùng kỳ lũy kế',ck>1000?(th/ck-1>=0?'+':'')+p(th/ck-1):'–']);
@@ -410,12 +427,12 @@ function r6(){
  const thCol4 = (isMonth||q) ? `% KH năm` : `% mục tiêu`;
 
  const tb=['BL','GT','B2B'].map(C=>{
-     const u=ua(v,C);
+     const u = isGlobal ? ua_net(g, C) : ua(v,C);
      let k=0, t=0, gap_c=0, p_main='–', p_sub='–';
      if(isMonth){
-         k = u.khY * W[m_sel-1]; t = u.th[m_sel-1]; gap_c = Math.max(k-t, 0); p_main = k ? p(t/k) : '–'; p_sub = u.khY ? p(sm(u.th,n)/u.khY) : '–'; 
+         k = u.kh[m_sel-1]; t = u.th[m_sel-1]; gap_c = Math.max(k-t, 0); p_main = k ? p(t/k) : '–'; p_sub = u.khY ? p(sm(u.th,n)/u.khY) : '–'; 
      } else if(q){
-         k = u.khY * sm(W.slice(3*qi,3*qi+mm),mm); t = sm(u.th.slice(3*qi,3*qi+mm),mm); gap_c = Math.max(k-t, 0); p_main = k ? p(t/k) : '–'; p_sub = u.khY ? p(sm(u.th,n)/u.khY) : '–'; 
+         k = sm(u.kh.slice(3*qi,3*qi+mm),mm); t = sm(u.th.slice(3*qi,3*qi+mm),mm); gap_c = Math.max(k-t, 0); p_main = k ? p(t/k) : '–'; p_sub = u.khY ? p(sm(u.th,n)/u.khY) : '–'; 
      } else {
          k = u.khY; t = sm(u.th,n); gap_c = Math.max(k-t, 0); p_main = k ? p(t/k) : '–'; p_sub = (k&&cw) ? p(t/(k*cw)) : '–';
      }
@@ -426,39 +443,71 @@ function r6(){
      </tr>`;
  }).join('');
 
- const Wd=560,H=200,L=44,B=24,T=10,pw=(Wd-L-8)/12,st=Array(n).fill(0).map((_,i)=>['BL','GT','B2B'].reduce((s,k)=>s+Math.max((v[CI[k][1]][i]||0),0),0)),mx2=Math.max(...a.kh,...st,...a.ck.slice(0,n),1)*1.1,y2=q_v=>H-B-q_v/mx2*(H-B-T),x2=i=>L+pw*i+pw/2,cl={BL:'#1f5fbf',GT:'#2e9e5b',B2B:'#e0a12b'};
- let s2=`<svg viewBox="0 0 ${Wd} ${H}">`;for(let i=0;i<=4;i++){const q_v=mx2/1.1*i/4;s2+=`<line x1="${L}" x2="${Wd-8}" y1="${y2(q_v)}" y2="${y2(q_v)}" stroke="var(--bd)"/><text x="${L-4}" y="${y2(q_v)+3}" text-anchor="end">${f(q_v/1000)}k</text>`}
- for(let i=0;i<12;i++){s2+=`<text x="${x2(i)}" y="${H-8}" text-anchor="middle">T${i+1}</text>`;if(i<n){let b=0;for(const k of['BL','GT','B2B']){const q_v=Math.max((v[CI[k][1]][i]||0),0);s2+=`<rect x="${x2(i)-pw*.3}" y="${y2(b+q_v)}" width="${pw*.6}" height="${y2(b)-y2(b+q_v)}" fill="${cl[k]}"/>`;b+=q_v}}}
+ const Wd=560,H=200,L=44,B=24,T=10,pw=(Wd-L-8)/12;
+ const st=Array(n).fill(0).map((_,i)=>['BL','GT','B2B'].reduce((s,k)=>{
+     let u_C = isGlobal ? ua_net(g, k) : ua(v, k);
+     return s+Math.max((u_C.th[i]||0),0);
+ },0));
+ const mx2=Math.max(...a.kh,...st,...a.ck.slice(0,n),1)*1.1;
+ const y2=q_v=>H-B-q_v/mx2*(H-B-T),x2=i=>L+pw*i+pw/2,cl={BL:'#1f5fbf',GT:'#2e9e5b',B2B:'#e0a12b'};
+ 
+ let s2=`<svg viewBox="0 0 ${Wd} ${H}">`;
+ for(let i=0;i<=4;i++){
+     const q_v=mx2/1.1*i/4;
+     s2+=`<line x1="${L}" x2="${Wd-8}" y1="${y2(q_v)}" y2="${y2(q_v)}" stroke="var(--bd)"/><text x="${L-4}" y="${y2(q_v)+3}" text-anchor="end">${f(q_v/1000)}k</text>`
+ }
+ for(let i=0;i<12;i++){
+     s2+=`<text x="${x2(i)}" y="${H-8}" text-anchor="middle">T${i+1}</text>`;
+     if(i<n){
+         let b=0;
+         for(const k of['BL','GT','B2B']){
+             let u_C = isGlobal ? ua_net(g, k) : ua(v, k);
+             const q_v=Math.max((u_C.th[i]||0),0);
+             s2+=`<rect x="${x2(i)-pw*.3}" y="${y2(b+q_v)}" width="${pw*.6}" height="${y2(b)-y2(b+q_v)}" fill="${cl[k]}"/>`;
+             b+=q_v;
+         }
+     }
+ }
  s2+=`<polyline fill="none" stroke="var(--r)" stroke-width="2" points="${a.kh.map((q_v,i)=>x2(i)+','+y2(q_v)).join(' ')}"/><polyline fill="none" stroke="var(--mu)" stroke-width="2" stroke-dasharray="4 3" points="${a.ck.slice(0,n).map((q_v,i)=>x2(i)+','+y2(q_v)).join(' ')}"/></svg>`;
  
- $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button></h2><div class="kp">${K.map(([q_v,r_v])=>`<div class="k"><span>${q_v}</span><b style="font-size:19px">${r_v}</b></div>`).join('')}</div>
+ let headerTitle = isGlobal ? `Chi tiết mạng lưới: ${g ? 'Nhóm ' + g : 'Toàn mạng lưới'}` : `Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button>`;
+
+ $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>${headerTitle}</h2><div class="kp">${K.map(([q_v,r_v])=>`<div class="k"><span>${q_v}</span><b style="font-size:19px">${r_v}</b></div>`).join('')}</div>
  <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));">
     <div style="display:flex;flex-direction:column;gap:10px;">
-        <div class="c"><h2>Kết quả theo quý</h2><div class="sc">${qtab(qrows(a,n))}</div></div>
+        ${isGlobal ? '' : `<div class="c"><h2>Kết quả theo quý</h2><div class="sc">${qtab(qrows(a,n))}</div></div>`}
         <div class="c"><h2>Kết quả theo kênh (Lũy kế)</h2><div class="sc"><table><tr><th>Kênh</th><th>${thTitle}</th><th>${thTh}</th><th>${thPct}</th><th>${thCol4}</th><th>Gap</th></tr>${tb}</table></div></div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px;">
         <div class="c"><h2>Thực hiện theo tháng</h2>${s2}<div class="lg">Cột chồng: <span style="color:${cl.BL}">■</span> Bán lẻ <span style="color:${cl.GT}">■</span> GT <span style="color:${cl.B2B}">■</span> B2B · đường đỏ = KH tháng · đường xám đứt = cùng kỳ năm trước</div></div>
         <div class="c"><h2 id="month-unit-title">Thực hiện riêng Tháng ${active_m} theo kênh</h2><div id="ch-month-unit"></div></div>
     </div>
- </div></div>`
+ </div></div>`;
 
-    // RENDER BIỂU ĐỒ THÁNG CHI TIẾT ĐƠN VỊ
-    const u_th_m = a.th[active_m-1]||0;
-    const u_kh_m_T = khY*W[active_m-1];
-    $('ch-month-unit').innerHTML=['BL','GT','B2B'].map(C=>{
-        const uC=ua(v,C), t_m=uC.th[active_m-1]||0, kY_C=uC.khY;
-        const m_m=kY_C*W[active_m-1];
-        return `<div class="row" style="grid-template-columns:60px 1fr 140px">
-            <span class="n">${CH[C]}</span>
-            <div class="t p"><i style="width:${Math.min(m_m?t_m/m_m:0,1.5)/1.5*100}%;background:${col(m_m?t_m/m_m:0)}"></i></div>
-            <span class="v" style="color:var(--tx);text-align:right"><b>${f(t_m)}</b> <span style="color:var(--mu);font-size:11px">/ ${f(m_m)} (${m_m?p(t_m/m_m):'–'})</span></span>
-        </div>`;
-    }).join('') + `<div class="row" style="grid-template-columns:60px 1fr 140px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--bd)">
-        <span class="n"><b>Tổng</b></span>
-        <div class="t p"><i style="width:${Math.min(u_kh_m_T?u_th_m/u_kh_m_T:0,1.5)/1.5*100}%;background:${col(u_kh_m_T?u_th_m/u_kh_m_T:0)}"></i></div>
-        <span class="v" style="color:var(--tx);text-align:right"><b>${f(u_th_m)}</b> <span style="color:var(--mu);font-size:11px">/ ${f(u_kh_m_T)} (${u_kh_m_T?p(u_th_m/u_kh_m_T):'–'})</span></span>
-    </div>`;
+ // RENDER BIỂU ĐỒ THÁNG CHI TIẾT (RIÊNG THÁNG CHỌN)
+ const u_th_m = a.th[active_m-1]||0;
+ const u_kh_m_T = a.kh[active_m-1]||0;
+ $('ch-month-unit').innerHTML=['BL','GT','B2B'].map(C=>{
+     const uC= isGlobal ? ua_net(g, C) : ua(v,C);
+     const t_m=uC.th[active_m-1]||0;
+     const m_m=uC.kh[active_m-1]||0;
+     return `<div class="row" style="grid-template-columns:60px 1fr 140px">
+         <span class="n">${CH[C]}</span>
+         <div class="t p"><i style="width:${Math.min(m_m?t_m/m_m:0,1.5)/1.5*100}%;background:${col(m_m?t_m/m_m:0)}"></i></div>
+         <span class="v" style="color:var(--tx);text-align:right"><b>${f(t_m)}</b> <span style="color:var(--mu);font-size:11px">/ ${f(m_m)} (${m_m?p(t_m/m_m):'–'})</span></span>
+     </div>`;
+ }).join('') + `<div class="row" style="grid-template-columns:60px 1fr 140px;margin-top:6px;padding-top:6px;border-top:1px dashed var(--bd)">
+     <span class="n"><b>Tổng</b></span>
+     <div class="t p"><i style="width:${Math.min(u_kh_m_T?u_th_m/u_kh_m_T:0,1.5)/1.5*100}%;background:${col(u_kh_m_T?u_th_m/u_kh_m_T:0)}"></i></div>
+     <span class="v" style="color:var(--tx);text-align:right"><b>${f(u_th_m)}</b> <span style="color:var(--mu);font-size:11px">/ ${f(u_kh_m_T)} (${u_kh_m_T?p(u_th_m/u_kh_m_T):'–'})</span></span>
+ </div>`;
+
+ if(isGlobal) {
+     if($('global-q-dash')) $('global-q-dash').style.display = 'grid';
+     rq(g,c,n,cw); // Render lại biểu đồ Quý Global
+ } else {
+     if($('global-q-dash')) $('global-q-dash').style.display = 'none';
+ }
 
  } catch(e) { console.error("Lỗi r6", e); }
 }
@@ -488,6 +537,8 @@ $('fq').addEventListener('input', e => {
     all(); 
 });
 ['fg','fc','fn'].forEach(i=>$(i).addEventListener('input',all));
+
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x==b));document.querySelectorAll('.v2').forEach(x=>x.classList.toggle('on',x.id=='p'+b.dataset.t));$('fb').style.display=b.dataset.t=='5'||b.dataset.t=='6'?'none':'flex'}));
 
 // ==============================================
 // FETCH DOANH THU & ĐẤU THẦU ĐỘC LẬP
