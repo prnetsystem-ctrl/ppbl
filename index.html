@@ -178,7 +178,6 @@ const CH={BL:'Bán lẻ',GT:'GT',B2B:'B2B'},col=x=>x>=1?'var(--g)':x>=.7?'var(--
 const W=[.08,.05,.07,.08,.08,.09,.08,.08,.09,.07,.08,.15],CI={BL:[2,5],GT:[3,6],B2B:[4,7]};
 const S=()=>({g:$('fg').value,c:$('fc').value,n:+$('fn').value});
 
-
 const parseVNNumber = (str) => {
     if (str === undefined || str === null) return 0;
     let s = str.toString().trim();
@@ -186,7 +185,6 @@ const parseVNNumber = (str) => {
     s = s.replace(/\./g, '').replace(/,/g, '.').replace(/[^\d.-]/g, '');
     return parseFloat(s) || 0;
 };
-    
 
 function agg(g,c){const o={kh:[0,0,0,0,0,0,0,0,0,0,0,0],th:[0,0,0,0,0,0,0,0,0,0,0,0],ck:[0,0,0,0,0,0,0,0,0,0,0,0]};
  for(const G in M_data){if(g&&G!=g)continue;for(const C of["BL","GT","B2B"]){if(c!='T'&&C!=c)continue;const m=M_data[G][C];m.kh.forEach((v,i)=>o.kh[i]+=v);m.th.forEach((v,i)=>{o.th[i]+=v});m.ck.forEach((v,i)=>{o.ck[i]+=v})}}return o}
@@ -194,7 +192,7 @@ const sm=(a,n)=>a.slice(0,n).reduce((x,y)=>x+y,0);
 const thArr=g=>{const o=[0,0,0,0,0,0,0,0,0,0,0,0];for(const G in M_data){if(g&&G!=g)continue;M_data[G].the.forEach((v,i)=>{o[i]+=v})}return o},thSum=(g,n)=>sm(thArr(g),n);
 
 // ==============================================
-// BỔ SUNG CÁC HÀM TIỆN ÍCH BỊ THIẾU (ĐÃ FIX LỖI CHI TIẾT ĐƠN VỊ)
+// BỔ SUNG CÁC HÀM TIỆN ÍCH BỊ THIẾU
 // ==============================================
 const gr = (t, c) => c > 0 ? (t/c - 1 >= 0 ? '+' : '') + p(t/c - 1) : '–';
 const qmon = (qi, n) => Math.max(0, Math.min(3, n - 3*qi));
@@ -210,11 +208,12 @@ const ua = (v, C) => {
     }
     return {
         khY: khY, 
-        kh: W.map(w => khY * w), // Bổ sung mảng Kế hoạch theo từng tháng để vẽ biểu đồ
+        kh: W.map(w => khY * w), 
         th: th, 
         ck: ck
     };
 };
+
 const qrows = (A, n) => [0, 1, 2, 3].map(qi => {
     let mm = qmon(qi, n);
     let khf = A.kh ? sm(A.kh.slice(3*qi, 3*qi+3), 3) : 0;
@@ -301,15 +300,18 @@ function r4(){
  $('tg').innerHTML='<table><tr><th>Nhóm</th><th>Thẻ</th><th>% thực hiện</th></tr>'+Object.keys(M_data).map(G=>{const x=sm(thArr(G),n),y=sm(agg(G,'T').th,n);return`<tr><td>${G}</td><td>${f(x)}</td><td>${y?p(x/y):'–'}</td></tr>`}).join('')+'</table>'
 }
 
-function qtab(Q){const row=o=>`<tr><td>Quý ${o.qi+1}${o.mm&&o.mm<3?'*':''}</td><td>${f(o.khf)}</td><td>${o.mm?f(o.th):'–'}</td>${o.mm&&o.khi?`<td class="h" style="background:${col(o.th/o.khi)}">${p(o.th/o.khi)}</td>`:'<td>–</td>'}<td>${o.ck>1000?f(o.ck):'–'}</td><td>${gr(o.th,o.ck)}</td></tr>`,T=Q.filter(o=>o.mm),kh=T.reduce((s,o)=>s+o.khi,0),th=T.reduce((s,o)=>s+o.th,0),ck=T.reduce((s,o)=>s+o.ck,0);
- return`<table><tr><th>Quý</th><th>KH quý</th><th>Thực hiện</th><th>% hoàn thành</th><th>Cùng kỳ</th><th>Tăng trưởng</th></tr>${Q.map(row).join('')}<tr><td><b>Lũy kế</b></td><td>${f(kh)}</td><td>${f(th)}</td><td>${kh?p(th/kh):'–'}</td><td>${ck>1000?f(ck):'–'}</td><td>${gr(th,ck)}</td></tr></table><div class="lg">% hoàn thành = thực hiện / KH của quý (đến tháng đã chọn). * = quý chưa đủ 3 tháng.</div>`}
+function qtab(Q){
+    const row=o=>`<tr><td>Quý ${o.qi+1}${o.mm&&o.mm<3?'*':''}</td><td>${f(o.khf)}</td><td>${o.mm?f(o.th):'–'}</td>${o.mm&&o.khf?`<td class="h" style="background:${col(o.th/o.khf)}">${p(o.th/o.khf)}</td>`:'<td>–</td>'}<td>${o.ck>1000?f(o.ck):'–'}</td><td>${gr(o.th,o.ck)}</td></tr>`;
+    const T=Q.filter(o=>o.mm),kh=T.reduce((s,o)=>s+o.khi,0),th=T.reduce((s,o)=>s+o.th,0),ck=T.reduce((s,o)=>s+o.ck,0);
+    return`<table><tr><th>Quý</th><th>KH quý</th><th>Thực hiện</th><th>% hoàn thành</th><th>Cùng kỳ</th><th>Tăng trưởng</th></tr>${Q.map(row).join('')}<tr><td><b>Lũy kế</b></td><td>${f(kh)}</td><td>${f(th)}</td><td>${kh?p(th/kh):'–'}</td><td>${ck>1000?f(ck):'–'}</td><td>${gr(th,ck)}</td></tr></table><div class="lg">% hoàn thành = thực hiện / KH toàn quý. * = quý chưa đủ 3 tháng.</div>`;
+}
 
 function rq(g,c,n,cw){
  const A=agg(g,c),Q=qrows(A,n),Wd=420,H=190,L=40,B=26,T=16,gw=(Wd-L-6)/4,bw=gw*.2,mx=Math.max(...Q.map(o=>Math.max(o.khf,o.th,o.ck)),1)*1.12,y=v=>H-B-v/mx*(H-B-T);
  let s=`<svg viewBox="0 0 ${Wd} ${H}">`;for(let i=0;i<=3;i++){const v=mx/1.12*i/3;s+=`<line x1="${L}" x2="${Wd-6}" y1="${y(v)}" y2="${y(v)}" stroke="var(--bd)"/><text x="${L-4}" y="${y(v)+3}" text-anchor="end">${f(v/1000)}k</text>`}
- Q.forEach((o,i)=>{const x0=L+gw*i+gw/2-bw*1.6;[[o.khf,'var(--mu)',.4],[o.th,'var(--ac)',1],[o.ck,'var(--a)',.85]].forEach(([v,cl,op],j)=>{if(v>0)s+=`<rect x="${x0+j*bw*1.1}" y="${y(v)}" width="${bw}" height="${H-B-y(v)}" fill="${cl}" opacity="${op}"/>`});s+=`<text x="${L+gw*i+gw/2}" y="${H-9}" text-anchor="middle">Quý ${i+1}</text>`;const yy=y(Math.max(o.khf,o.th,o.ck))-4;s+=o.mm&&o.khi?`<text x="${L+gw*i+gw/2}" y="${yy}" text-anchor="middle" style="fill:var(--tx);font-weight:600">${p(o.th/o.khi)}</text>`:`<text x="${L+gw*i+gw/2}" y="${yy}" text-anchor="middle">chưa có TH</text>`});
- if($('qc')) $('qc').innerHTML=s+'</svg><div class="lg"><span style="opacity:.5">■</span> KH quý &nbsp; <span style="color:var(--ac)">■</span> Thực hiện &nbsp; <span style="color:var(--a)">■</span> Cùng kỳ năm trước · số trên cột = % hoàn thành KH quý</div>';
- const mt=['BL','GT','B2B','T'].map(C=>{const a2=agg(g,C),R=qrows(a2,n),kY=sm(a2.kh,12),th=sm(a2.th,n);return`<tr><td>${C=='T'?'<b>Tổng</b>':CH[C]}</td>${R.map(o=>o.mm&&o.khi?`<td class="h" style="background:${col(o.th/o.khi)}">${p(o.th/o.khi)}</td>`:'<td>–</td>').join('')}<td class="h" style="background:${kY?col(th/(kY*cw)):'transparent'};color:${kY?'#fff':'inherit'}">${kY?p(th/kY):'–'}</td></tr>`}).join('');
+ Q.forEach((o,i)=>{const x0=L+gw*i+gw/2-bw*1.6;[[o.khf,'var(--mu)',.4],[o.th,'var(--ac)',1],[o.ck,'var(--a)',.85]].forEach(([v,cl,op],j)=>{if(v>0)s+=`<rect x="${x0+j*bw*1.1}" y="${y(v)}" width="${bw}" height="${H-B-y(v)}" fill="${cl}" opacity="${op}"/>`});s+=`<text x="${L+gw*i+gw/2}" y="${H-9}" text-anchor="middle">Quý ${i+1}</text>`;const yy=y(Math.max(o.khf,o.th,o.ck))-4;s+=o.mm&&o.khf?`<text x="${L+gw*i+gw/2}" y="${yy}" text-anchor="middle" style="fill:var(--tx);font-weight:600">${p(o.th/o.khf)}</text>`:`<text x="${L+gw*i+gw/2}" y="${yy}" text-anchor="middle">chưa có TH</text>`});
+ if($('qc')) $('qc').innerHTML=s+'</svg><div class="lg"><span style="opacity:.5">■</span> KH quý &nbsp; <span style="color:var(--ac)">■</span> Thực hiện &nbsp; <span style="color:var(--a)">■</span> Cùng kỳ năm trước · số trên cột = % hoàn thành KH toàn quý</div>';
+ const mt=['BL','GT','B2B','T'].map(C=>{const a2=agg(g,C),R=qrows(a2,n),kY=sm(a2.kh,12),th=sm(a2.th,n);return`<tr><td>${C=='T'?'<b>Tổng</b>':CH[C]}</td>${R.map(o=>o.mm&&o.khf?`<td class="h" style="background:${col(o.th/o.khf)}">${p(o.th/o.khf)}</td>`:'<td>–</td>').join('')}<td class="h" style="background:${kY?col(th/(kY*cw)):'transparent'};color:${kY?'#fff':'inherit'}">${kY?p(th/kY):'–'}</td></tr>`}).join('');
  if($('qt')) $('qt').innerHTML=qtab(Q)+`<h2 style="margin-top:12px">% hoàn thành KH quý theo kênh</h2><table><tr><th>Kênh</th><th>Quý 1</th><th>Quý 2</th><th>Quý 3</th><th>Quý 4</th><th>% KH năm</th></tr>${mt}</table><div class="lg">Ô % KH năm tô màu theo % mục tiêu lũy kế.</div>`;
 }
 
@@ -486,8 +488,6 @@ $('fq').addEventListener('input', e => {
     all(); 
 });
 ['fg','fc','fn'].forEach(i=>$(i).addEventListener('input',all));
-
-document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x==b));document.querySelectorAll('.v2').forEach(x=>x.classList.toggle('on',x.id=='p'+b.dataset.t));$('fb').style.display=b.dataset.t=='5'||b.dataset.t=='6'?'none':'flex'}));
 
 // ==============================================
 // FETCH DOANH THU & ĐẤU THẦU ĐỘC LẬP
@@ -1107,6 +1107,16 @@ window.renderTenderTab = function() {
 }
 
 window.onload = () => {
+    document.querySelectorAll('.tabs button').forEach(b => {
+        b.addEventListener('click', () => {
+            document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x == b));
+            document.querySelectorAll('.v2').forEach(x => x.classList.toggle('on', x.id == 'p' + b.dataset.t));
+            
+            const isNoUnitSelect = (b.dataset.t == '5' || b.dataset.t == '6');
+            $('fb').style.display = isNoUnitSelect ? 'none' : 'flex';
+        });
+    });
+
     loadGoogleSheetData();
     loadTenderData();
 };
