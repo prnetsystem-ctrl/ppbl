@@ -25,7 +25,52 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
 #loading {position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: var(--bg);z-index: 9999;display: flex;justify-content: center;align-items: center;font-size: 16px;color: var(--pri); text-align: center; padding: 20px;}
 .s-g{background:var(--g)}.s-y{background:var(--a)}.s-r{background:var(--r)}.bd{padding:2px 8px;border-radius:12px;font-size:11px;color:#fff;display:inline-block;white-space:nowrap;}
 .t-h3 {text-transform: uppercase; color: var(--tx); font-size: 13px; margin-bottom: 12px; font-weight: bold;}
-</style></head><body>
+
+/* --- CSS CHỨC NĂNG ĐĂNG NHẬP --- */
+body.locked { overflow: hidden; }
+body.locked > *:not(#auth-overlay) { display: none !important; }
+#auth-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg); z-index: 100000;
+    display: flex; justify-content: center; align-items: center;
+}
+.auth-box {
+    background: var(--cd); border: 1px solid var(--bd);
+    padding: 32px 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    width: 100%; max-width: 320px; text-align: center;
+}
+.auth-box h2 { margin-bottom: 8px; color: var(--ac); font-size: 20px; text-transform: uppercase; margin-top: 0;}
+.auth-box p { color: var(--mu); font-size: 13px; margin-bottom: 20px; }
+.auth-box input {
+    width: 100%; padding: 12px; margin-bottom: 12px;
+    border: 1px solid var(--bd); border-radius: 6px;
+    background: var(--bg); color: var(--tx); font-size: 14px; box-sizing: border-box; outline: none;
+}
+.auth-box input:focus { border-color: var(--ac); }
+.auth-box button {
+    width: 100%; padding: 12px; background: var(--ac);
+    color: #fff; border: none; border-radius: 6px;
+    font-size: 15px; font-weight: bold; cursor: pointer; margin-top: 8px;
+}
+.auth-box button:hover { opacity: 0.9; }
+.auth-error { color: var(--r); font-size: 13px; margin-bottom: 12px; display: none; font-weight: 500; }
+</style></head>
+
+<!-- THÊM CLASS LOCKED ĐỂ KHOÁ TRANG -->
+<body class="locked">
+
+<!-- POPUP ĐĂNG NHẬP -->
+<div id="auth-overlay">
+    <div class="auth-box">
+        <h2>Đăng nhập</h2>
+        <p>Hệ thống Báo cáo Phân phối Bán lẻ</p>
+        <div id="auth-err" class="auth-error">Sai tài khoản hoặc mật khẩu!</div>
+        <input type="text" id="auth-u" placeholder="Tên đăng nhập" autocomplete="off">
+        <input type="password" id="auth-p" placeholder="Mật khẩu" autocomplete="off">
+        <button onclick="checkLogin()">TRUY CẬP</button>
+    </div>
+</div>
+
 <div id="loading">Đang tải dữ liệu từ Google Sheet...</div>
 <h1>Kết quả kinh doanh dịch vụ Phân phối bán lẻ trên mạng lưới Bưu điện Việt Nam</h1>
 <div class="sub" id="page-sub">Dữ liệu thực hiện cập nhật tự động · Đơn vị tính: triệu đồng · Được thiết kế bởi ThanhDD - Phòng TCBL </div>
@@ -112,6 +157,38 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
 </div>
 
 <script>
+// ==============================================
+// XỬ LÝ ĐĂNG NHẬP 
+// ==============================================
+function checkLogin() {
+    const u = document.getElementById('auth-u').value.trim();
+    const p = document.getElementById('auth-p').value.trim();
+    
+    // Mã hoá Base64: 
+    // thanhdd => btoa('thanhdd') = 'dGhhbmhkZA=='
+    // bdvn => btoa('bdvn') = 'YmR2bg=='
+    if (btoa(u) === 'dGhhbmhkZA==' && btoa(p) === 'YmR2bg==') {
+        document.body.classList.remove('locked');
+        document.getElementById('auth-overlay').style.display = 'none';
+        
+        // Gọi hàm nạp dữ liệu SAU KHI đăng nhập thành công
+        loadGoogleSheetData();
+        loadTenderData();
+    } else {
+        document.getElementById('auth-err').style.display = 'block';
+    }
+}
+
+// Bắt sự kiện phím Enter cho Form Đăng nhập
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('auth-p').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') checkLogin();
+    });
+    document.getElementById('auth-u').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') document.getElementById('auth-p').focus();
+    });
+});
+
 // ==============================================
 // BẢO VỆ CHỐNG SAO CHÉP MÃ NGUỒN CƠ BẢN
 // ==============================================
@@ -537,8 +614,6 @@ $('fq').addEventListener('input', e => {
     all(); 
 });
 ['fg','fc','fn'].forEach(i=>$(i).addEventListener('input',all));
-
-document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x==b));document.querySelectorAll('.v2').forEach(x=>x.classList.toggle('on',x.id=='p'+b.dataset.t));$('fb').style.display=b.dataset.t=='5'||b.dataset.t=='6'?'none':'flex'}));
 
 // ==============================================
 // FETCH DOANH THU & ĐẤU THẦU ĐỘC LẬP
@@ -1168,7 +1243,7 @@ window.onload = () => {
         });
     });
 
-    loadGoogleSheetData();
-    loadTenderData();
+    // Các hàm load dữ liệu (loadGoogleSheetData và loadTenderData) 
+    // đã được chuyển vào hàm checkLogin() để chỉ chạy sau khi đăng nhập.
 };
 </script></body></html>
