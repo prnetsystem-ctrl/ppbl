@@ -56,7 +56,6 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 .auth-error { color: var(--r); font-size: 13px; margin-bottom: 12px; display: none; font-weight: 500; }
 </style></head>
 
-<!-- THÊM CLASS LOCKED ĐỂ KHOÁ TRANG -->
 <body class="locked">
 
 <!-- POPUP ĐĂNG NHẬP -->
@@ -164,14 +163,10 @@ function checkLogin() {
     const u = document.getElementById('auth-u').value.trim();
     const p = document.getElementById('auth-p').value.trim();
     
-    // Mã hoá Base64: 
-    // thanhdd => btoa('thanhdd') = 'dGhhbmhkZA=='
-    // bdvn => btoa('bdvn') = 'YmR2bg=='
     if (btoa(u) === 'dGhhbmhkZA==' && btoa(p) === 'YmR2bg==') {
         document.body.classList.remove('locked');
         document.getElementById('auth-overlay').style.display = 'none';
         
-        // Gọi hàm nạp dữ liệu SAU KHI đăng nhập thành công
         loadGoogleSheetData();
         loadTenderData();
     } else {
@@ -179,7 +174,6 @@ function checkLogin() {
     }
 }
 
-// Bắt sự kiện phím Enter cho Form Đăng nhập
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('auth-p').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') checkLogin();
@@ -214,13 +208,13 @@ function getKhuVuc(ten) {
     if(t.includes("TCND") || t.includes("PHBC")) return "PHBC+TCDN";
     if(t.includes("HOÀN KIẾM") || t.includes("HÀ ĐÔNG") || t.includes("TỪ LIÊM") || t.includes("LONG BIÊN") || t.includes("ĐÔNG ANH") || t.includes("THANH TRÌ") || t.includes("CHƯƠNG MỸ") || t.includes("SƠN TÂY")) return "TT Hà Nội";
     
-    // Giữ nguyên hiển thị Nhóm TT TP.HCM nếu có đơn vị đích danh mang tên này
-    if(t.includes("TT TP.HCM") || t.includes("TT. TP HCM")) return "TT TP.HCM";
+    // Trả các Bưu điện thuộc TP.HCM về lại nhóm TT TP.HCM để nhóm này có dữ liệu hiển thị
+    if(t.includes("SÀI GÒN") || t.includes("TT PHÚ THỌ") || t.includes("CHỢ LỚN") || t.includes("NAM SÀI GÒN") || t.includes("GIA ĐỊNH") || t.includes("BÌNH CHÁNH") || t.includes("CỦ CHI") || t.includes("THỦ ĐỨC") || t.includes("TT TP.HCM") || t.includes("TT. TP HCM")) return "TT TP.HCM";
 
-    // Chuyển toàn bộ các Bưu điện thuộc TP.HCM, BR-VT, Bình Dương về Đông Nam Bộ để phản ánh đúng vị trí địa lý
-    if(t.includes("SÀI GÒN") || t.includes("TT PHÚ THỌ") || t.includes("CHỢ LỚN") || t.includes("NAM SÀI GÒN") || t.includes("GIA ĐỊNH") || t.includes("BÌNH CHÁNH") || t.includes("CỦ CHI") || t.includes("THỦ ĐỨC") || t.includes("BR VT") || t.includes("BR-VT") || t.includes("BÌNH DƯƠNG") || t.includes("ĐỒNG NAI")) return "Đông Nam Bộ";
+    // Các tỉnh Đông Nam Bộ (Không bao gồm TP.HCM)
+    if(t.includes("BR VT") || t.includes("BR-VT") || t.includes("BÌNH DƯƠNG") || t.includes("ĐỒNG NAI")) return "Đông Nam Bộ";
     
-    // Chuyển Tây Ninh (và các tỉnh Miền Tây cũ) vào chung nhóm Miền Tây
+    // Miền Tây (Bao gồm Tây Ninh)
     if(t.includes("TÂY NINH") || t.includes("ĐỒNG THÁP") || t.includes("AN GIANG") || t.includes("VĨNH LONG") || t.includes("CẦN THƠ") || t.includes("CÀ MAU")) return "Miền Tây";
     
     if(t.includes("HƯNG YÊN") || t.includes("HẢI PHÒNG") || t.includes("QUẢNG NINH") || t.includes("BẮC NINH") || t.includes("NINH BÌNH")) return "ĐB Sông Hồng";
@@ -1250,8 +1244,5 @@ window.onload = () => {
             $('fb').style.display = isNoUnitSelect ? 'none' : 'flex';
         });
     });
-
-    // Các hàm load dữ liệu (loadGoogleSheetData và loadTenderData) 
-    // đã được chuyển vào hàm checkLogin() để chỉ chạy sau khi đăng nhập.
 };
 </script></body></html>
