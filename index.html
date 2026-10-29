@@ -213,14 +213,22 @@ function getKhuVuc(ten) {
     let t = ten.toUpperCase();
     if(t.includes("TCND") || t.includes("PHBC")) return "PHBC+TCDN";
     if(t.includes("HOÀN KIẾM") || t.includes("HÀ ĐÔNG") || t.includes("TỪ LIÊM") || t.includes("LONG BIÊN") || t.includes("ĐÔNG ANH") || t.includes("THANH TRÌ") || t.includes("CHƯƠNG MỸ") || t.includes("SƠN TÂY")) return "TT Hà Nội";
-    if(t.includes("SÀI GÒN") || t.includes("TT PHÚ THỌ") || t.includes("CHỢ LỚN") || t.includes("NAM SÀI GÒN") || t.includes("GIA ĐỊNH") || t.includes("BÌNH CHÁNH") || t.includes("CỦ CHI") || t.includes("THỦ ĐỨC") || t.includes("BR VT") || t.includes("BR-VT") || t.includes("BÌNH DƯƠNG")) return "TT TP.HCM";
-    if(t.includes("TÂY NINH") || t.includes("ĐỒNG NAI")) return "Đông Nam Bộ";
-    if(t.includes("ĐỒNG THÁP") || t.includes("AN GIANG") || t.includes("VĨNH LONG") || t.includes("CẦN THƠ") || t.includes("CÀ MAU")) return "Miền Tây";
+    
+    // Giữ nguyên hiển thị Nhóm TT TP.HCM nếu có đơn vị đích danh mang tên này
+    if(t.includes("TT TP.HCM") || t.includes("TT. TP HCM")) return "TT TP.HCM";
+
+    // Chuyển toàn bộ các Bưu điện thuộc TP.HCM, BR-VT, Bình Dương về Đông Nam Bộ để phản ánh đúng vị trí địa lý
+    if(t.includes("SÀI GÒN") || t.includes("TT PHÚ THỌ") || t.includes("CHỢ LỚN") || t.includes("NAM SÀI GÒN") || t.includes("GIA ĐỊNH") || t.includes("BÌNH CHÁNH") || t.includes("CỦ CHI") || t.includes("THỦ ĐỨC") || t.includes("BR VT") || t.includes("BR-VT") || t.includes("BÌNH DƯƠNG") || t.includes("ĐỒNG NAI")) return "Đông Nam Bộ";
+    
+    // Chuyển Tây Ninh (và các tỉnh Miền Tây cũ) vào chung nhóm Miền Tây
+    if(t.includes("TÂY NINH") || t.includes("ĐỒNG THÁP") || t.includes("AN GIANG") || t.includes("VĨNH LONG") || t.includes("CẦN THƠ") || t.includes("CÀ MAU")) return "Miền Tây";
+    
     if(t.includes("HƯNG YÊN") || t.includes("HẢI PHÒNG") || t.includes("QUẢNG NINH") || t.includes("BẮC NINH") || t.includes("NINH BÌNH")) return "ĐB Sông Hồng";
     if((t.includes("PHÚ THỌ") && !t.includes("TT PHÚ THỌ")) || t.includes("LẠNG SƠN") || t.includes("THÁI NGUYÊN") || t.includes("CAO BẰNG") || t.includes("TUYÊN QUANG")) return "Đông Bắc";
     if(t.includes("LÀO CAI") || t.includes("SƠN LA") || t.includes("ĐIỆN BIÊN") || t.includes("LAI CHÂU")) return "Tây Bắc";
     if(t.includes("THANH HÓA") || t.includes("NGHỆ AN") || t.includes("HÀ TĨNH") || t.includes("QUẢNG TRỊ") || t.includes("HUẾ")) return "Miền Trung";
     if(t.includes("ĐÀ NẴNG") || t.includes("QUẢNG NGÃI") || t.includes("GIA LAI") || t.includes("ĐẮK LẮK") || t.includes("KHÁNH HÒA") || t.includes("LÂM ĐỒNG") || t.includes("NTB")) return "NTB & TN";
+    
     return "Khác";
 }
 
