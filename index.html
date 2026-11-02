@@ -497,7 +497,7 @@ function r6(){
      if (!isGlobal) K.push(['Xếp hạng theo % mục tiêu', pos ? pos + ' / ' + rk.length : '–']);
      K.push(['Khoảng trống còn lại',f(gap)]);
      K.push(['thực hiện cần / hiện tại', `<span style="font-size:15px; letter-spacing:-0.2px">${f(need)} / ${f(pace)}</span>`]);
-     K.push(['Tăng trưởng cùng kỳ lũy kế',ck>1000?(th/ck-1>=0?'+':'')+p(th/ck-1):'–']);
+     K.push(['Tăng trưởng cùng kỳ',ck>1000?(th/ck-1>=0?'+':'')+p(th/ck-1):'–']);
  }
 
  const thTitle = (isMonth||q) ? `KH ${lblSel}` : `KH năm`;
