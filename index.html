@@ -7,7 +7,7 @@
 body{margin:0 auto;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:14px;max-width:1300px;
     -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;}
 h1{font-size:19px;margin:0; display:flex; align-items:center; gap:10px;}
-h1 img { height: 32px; width: auto; }
+h1 img { height: 32px; width: auto; max-width: 150px; object-fit: contain; }
 h2{font-size:14px;margin:0 0 8px}.sub,.lg{color:var(--mu);font-size:12px}.sub{margin:2px 0 10px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .tabs button{background:var(--cd);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer;font-weight:500;}
@@ -28,6 +28,7 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
 .s-g{background:var(--g)}.s-y{background:var(--a)}.s-r{background:var(--r)}.bd{padding:2px 8px;border-radius:12px;font-size:11px;color:#fff;display:inline-block;white-space:nowrap;}
 .t-h3 {text-transform: uppercase; color: var(--tx); font-size: 13px; margin-bottom: 12px; font-weight: bold;}
 
+/* --- CSS CHỨC NĂNG ĐĂNG NHẬP --- */
 body.locked { overflow: hidden; }
 body.locked > *:not(#auth-overlay) { display: none !important; }
 #auth-overlay {
@@ -56,7 +57,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 .auth-box button:hover { opacity: 0.9; }
 .auth-error { color: var(--r); font-size: 13px; margin-bottom: 12px; display: none; font-weight: 500; }
 
-
+/* --- CSS TIÊU ĐỀ THÔNG MINH --- */
 .stitle {
     background: rgba(243, 156, 18, 0.08);
     border: 1px solid rgba(243, 156, 18, 0.25);
@@ -91,7 +92,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 
 <body class="locked">
 
-
+<!-- POPUP ĐĂNG NHẬP -->
 <div id="auth-overlay">
     <div class="auth-box">
         <h2>Đăng nhập</h2>
@@ -104,7 +105,10 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 </div>
 
 <div id="loading">Đang tải dữ liệu từ Google Sheet...</div>
-<h1><img src="https://vnpost.vn/Portals/0/logo_vnpost.png" alt="Vietnam Post Logo" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 50\'><text x=\'10\' y=\'30\' fill=\'%231f5fbf\' font-size=\'16\'>VNPOST</text></svg>'">Kết quả kinh doanh dịch vụ Phân phối bán lẻ trên mạng lưới Bưu điện Việt Nam</h1>
+
+<!-- THAY ĐƯỜNG LINK LOGO VÀO src DƯỚI ĐÂY -->
+<h1><img src="LINK_LOGO_CUA_BAN_VAO_DAY" alt="Logo" onerror="this.style.display='none'">Kết quả kinh doanh dịch vụ Phân phối bán lẻ trên mạng lưới Bưu điện Việt Nam</h1>
+
 <div class="sub" id="page-sub">Dữ liệu thực hiện cập nhật tự động · Đơn vị tính: triệu đồng · Được thiết kế bởi ThanhDD - Phòng TCBL </div>
 <div class="tabs">
     <button data-t="1" class="on">1. Tổng quan</button>
@@ -195,7 +199,9 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 </div>
 
 <script>
-
+// ==============================================
+// XỬ LÝ ĐĂNG NHẬP 
+// ==============================================
 function checkLogin() {
     const u = document.getElementById('auth-u').value.trim();
     const p = document.getElementById('auth-p').value.trim();
@@ -288,17 +294,20 @@ function copyReportContent() {
     });
 }
 
+// ==============================================
+// HÀM DÒ TÌM PHÂN VÙNG ĐƠN VỊ
+// ==============================================
 function getKhuVuc(ten) {
     let t = ten.toUpperCase();
     if(t.includes("TCND") || t.includes("PHBC")) return "PHBC+TCDN";
     if(t.includes("HOÀN KIẾM") || t.includes("HÀ ĐÔNG") || t.includes("TỪ LIÊM") || t.includes("LONG BIÊN") || t.includes("ĐÔNG ANH") || t.includes("THANH TRÌ") || t.includes("CHƯƠNG MỸ") || t.includes("SƠN TÂY")) return "TT Hà Nội";
     
-    // Trả các Bưu điện thuộc TP.HCM về lại nhóm TT TP.HCM để nhóm này có dữ liệu hiển thị
-    if(t.includes("SÀI GÒN") || t.includes("TT PHÚ THỌ") || t.includes("CHỢ LỚN") || t.includes("NAM SÀI GÒN") || t.includes("GIA ĐỊNH") || t.includes("BÌNH CHÁNH") || t.includes("CỦ CHI") || t.includes("THỦ ĐỨC") || t.includes("TT TP.HCM") || t.includes("TT. TP HCM")) return "TT TP.HCM";
-
-    // Các tỉnh Đông Nam Bộ (Không bao gồm TP.HCM)
-    if(t.includes("BR VT") || t.includes("BR-VT") || t.includes("BÌNH DƯƠNG") || t.includes("ĐỒNG NAI")) return "Đông Nam Bộ";
+    // Nhóm Đông Nam Bộ
+    if(t.includes("ĐỒNG NAI") || t.includes("TT. TP.HCM") || t.includes("TT TP.HCM")) return "Đông Nam Bộ";
     
+    // Nhóm TT TP.HCM
+    if(t.includes("SÀI GÒN") || t.includes("TT PHÚ THỌ") || t.includes("CHỢ LỚN") || t.includes("NAM SÀI GÒN") || t.includes("GIA ĐỊNH") || t.includes("BÌNH CHÁNH") || t.includes("CỦ CHI") || t.includes("THỦ ĐỨC") || t.includes("BR VT") || t.includes("BR-VT") || t.includes("BÌNH DƯƠNG")) return "TT TP.HCM";
+
     // Miền Tây (Bao gồm Tây Ninh)
     if(t.includes("TÂY NINH") || t.includes("ĐỒNG THÁP") || t.includes("AN GIANG") || t.includes("VĨNH LONG") || t.includes("CẦN THƠ") || t.includes("CÀ MAU")) return "Miền Tây";
     
@@ -320,7 +329,9 @@ function createEmptyGroup() {
     };
 }
 
-
+// ==============================================
+// URL SHEET GOOGLE DOANH THU & ĐẤU THẦU
+// ==============================================
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9nxZBO6P6MoaJHFmyEqTPJWP0zPByM-DNGKdUPwvVBnbrXHuHI530A-DgA35Q7rsbxRVx7xGU7E1R/pub?gid=1323893050&single=true&output=tsv";
 const TENDER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTlY1Qm04pJ0LURL37yn1w525fC7a6hcLYoL-h4rQUTJngWWItjmi3b7U8qDYIvS0Dy1nof2Gn2FN-4/pub?gid=1854147220&single=true&output=tsv";
 
@@ -393,7 +404,7 @@ function r1(){
     const pct_target_cum = k_n ? p(th/k_n) : '–';
     const growth_ck = ck ? (th/ck-1>=0?'+':'') + p(th/ck-1) : '–';
 
-    const entityName = g ? `Nhóm ${g}` : "Toàn hệ thống";
+    const entityName = g ? `Nhóm ${g}` : "Toàn mạng lưới";
     const channelName = c !== 'T' ? ` · Kênh ${CH[c]}` : '';
     $('view-title-1').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${entityName}</span> <span style="color:var(--mu)">· Lũy kế T1–T${n}/${latest_year}${channelName}</span></div>`;
 
@@ -495,7 +506,7 @@ function r6(){
  let isMonth = m_sel > 0;
  
  let timeLabel = isMonth ? `Tháng ${m_sel}/${latest_year}` : (q ? `Quý ${q}/${latest_year}` : `Lũy kế T1–T${n}/${latest_year}`);
- let entityName = sel ? sel : (g ? `Nhóm ${g}` : "Toàn hệ thống");
+ let entityName = sel ? sel : (g ? `Nhóm ${g}` : "Toàn mạng lưới");
  let channelName = c !== 'T' ? ` · Kênh ${CH[c]}` : '';
  $('uh').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${entityName}</span> <span style="color:var(--mu)">· ${timeLabel}${channelName}</span></div>`;
  
@@ -650,7 +661,7 @@ function r6(){
  }
  s2+=`<polyline fill="none" stroke="var(--r)" stroke-width="2" points="${a.kh.map((q_v,i)=>x2(i)+','+y2(q_v)).join(' ')}"/><polyline fill="none" stroke="var(--mu)" stroke-width="2" stroke-dasharray="4 3" points="${a.ck.slice(0,n).map((q_v,i)=>x2(i)+','+y2(q_v)).join(' ')}"/></svg>`;
  
- let headerTitle = isGlobal ? `Chi tiết mạng lưới: ${g ? 'Nhóm ' + g : 'Toàn hệ thống'}` : `Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button>`;
+ let headerTitle = isGlobal ? `Chi tiết mạng lưới: ${g ? 'Nhóm ' + g : 'Toàn mạng lưới'}` : `Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button>`;
 
  $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>${headerTitle}</h2><div class="kp">${K.map(([q_v,r_v])=>`<div class="k"><span>${q_v}</span><b style="font-size:19px">${r_v}</b></div>`).join('')}</div>
  <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));">
@@ -902,7 +913,7 @@ function rrep() {
     const w_month = W[n-1]; 
 
     let topGaps = [];
-    let donViName = sel ? sel : (g ? `Nhóm ${g}` : "Toàn hệ thống");
+    let donViName = sel ? sel : (g ? `Nhóm ${g}` : "Toàn mạng lưới");
 
     if (sel) {
         const v = V_data.find(x => x[0] == sel);
@@ -978,7 +989,7 @@ function rrep() {
         }
     }
 
-    let nhanXetThang = `Trong tháng ${n}, ${sel ? 'đơn vị' : 'toàn mạng'} thực hiện đạt <b>${f(month_TH)}</b>, tương đương <b>${pct_month.toFixed(1)}%</b> mục tiêu giao riêng trong tháng (${f(month_KH)}). `;
+    let nhanXetThang = `Trong tháng ${n}, ${sel ? 'đơn vị' : 'toàn mạng lưới'} thực hiện đạt <b>${f(month_TH)}</b>, tương đương <b>${pct_month.toFixed(1)}%</b> mục tiêu giao riêng trong tháng (${f(month_KH)}). `;
     if (month_CK > 0) {
         nhanXetThang += `So với cùng kỳ năm trước, doanh thu riêng tháng ${n} đạt <b>${tang_truong_month.toFixed(1)}%</b>. `;
     }
@@ -997,7 +1008,7 @@ function rrep() {
     h += `<div class="rm">Nội dung báo cáo được hệ thống tự động bóc tách và phân tích theo số liệu ${sel ? 'riêng của đơn vị' : 'toàn mạng lưới'}.</div>`;
     
     h += `<h3>I. Đánh giá lũy kế T1-T${n}</h3>`;
-    h += `<p>Sau ${n} tháng, ${sel ? 'đơn vị' : 'toàn mạng'} thực hiện đạt <b>${f(total_TH)}</b>, tương đương <b>${pct_nam.toFixed(1)}%</b> kế hoạch năm (${f(total_KH)}). So với mục tiêu luỹ kế đến thời điểm hiện tại, đạt <b>${pct_mt.toFixed(1)}%</b> và bằng <b>${tang_truong.toFixed(1)}%</b> so với cùng kỳ năm trước.</p>`;
+    h += `<p>Sau ${n} tháng, ${sel ? 'đơn vị' : 'toàn mạng lưới'} thực hiện đạt <b>${f(total_TH)}</b>, tương đương <b>${pct_nam.toFixed(1)}%</b> kế hoạch năm (${f(total_KH)}). So với mục tiêu luỹ kế đến thời điểm hiện tại, đạt <b>${pct_mt.toFixed(1)}%</b> và bằng <b>${tang_truong.toFixed(1)}%</b> so với cùng kỳ năm trước.</p>`;
     h += `<p>${nhanXetB2B}</p>`;
     
     h += `<div class="sc"><table style="margin-top:10px">
@@ -1026,7 +1037,7 @@ function rrep() {
     h += `<ul>
         <li><b>Kênh Bán Lẻ:</b> Rà soát lại năng lực bán lẻ${sel ? ' tại đơn vị' : ' tại các đơn vị có Gap lớn'}, đẩy mạnh các chương trình khuyến mại bám sát mục tiêu tháng.</li>
         <li><b>Kênh GT:</b> ${sel ? 'Khai thác tối đa tiềm năng tại các điểm bán trên địa bàn.' : 'Xác nhận lại định nghĩa và cách ghi nhận kênh GT tại các đơn vị đang có doanh thu quá thấp.'}</li>
-        <li><b>Kênh B2B:</b> ${sel ? 'Theo sát tiến độ đàm phán, thanh toán và giải ngân các hợp đồng B2B đã ký.' : 'Tiếp tục theo dõi tiến độ giải ngân hợp đồng mạng lưới để đảm bảo không bị rơi rớt doanh thu cuối năm.'}</li>
+        <li><b>Kênh B2B:</b> ${sel ? 'Theo sát tiến độ đàm phán, thanh toán và giải ngân các hợp đồng B2B đã ký.' : 'Tiếp tục theo dõi tiến độ giải ngân hợp đồng trên toàn mạng lưới để đảm bảo không bị rơi rớt doanh thu cuối năm.'}</li>
     </ul>`;
 
     if($('rp')) $('rp').innerHTML = h;
