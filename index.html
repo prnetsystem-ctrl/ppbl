@@ -104,10 +104,10 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
     </div>
 </div>
 
-<div id="loading">Đang tải dữ liệu từ Google Sheet...</div>
+<div id="loading">Đang tải dữ liệu từ hệ thống...</div>
 
-<!-- LOGO SẼ TỰ ĐỘNG HIỂN THỊ KHI BẠN CHÈN LINK ẢNH VÀO ĐÂY -->
-<h1><img src="logo nhan dien_2.png" alt="Vietnam Post Logo" onerror="this.style.display='none'">Kết quả kinh doanh dịch vụ Phân phối bán lẻ trên mạng lưới Bưu điện Việt Nam</h1>
+<!-- THAY ĐƯỜNG LINK LOGO VÀO src DƯỚI ĐÂY -->
+<h1><img src="LINK_LOGO_CUA_BAN_VAO_DAY" alt="Logo" onerror="this.style.display='none'">Kết quả kinh doanh dịch vụ Phân phối bán lẻ trên mạng lưới Bưu điện Việt Nam</h1>
 
 <div class="sub" id="page-sub">Dữ liệu thực hiện cập nhật tự động · Đơn vị tính: triệu đồng · Được thiết kế bởi ThanhDD - Phòng TCBL </div>
 <div class="tabs">
@@ -302,11 +302,11 @@ function getKhuVuc(ten) {
     if(t.includes("TCND") || t.includes("PHBC")) return "PHBC+TCDN";
     if(t.includes("HOÀN KIẾM") || t.includes("HÀ ĐÔNG") || t.includes("TỪ LIÊM") || t.includes("LONG BIÊN") || t.includes("ĐÔNG ANH") || t.includes("THANH TRÌ") || t.includes("CHƯƠNG MỸ") || t.includes("SƠN TÂY")) return "TT Hà Nội";
     
-    // Nhóm TT TP.HCM (Bao gồm BĐ cấp tỉnh BRVT và Bình Dương)
+    // Nhóm TT TP.HCM (Bao gồm BĐ cấp tỉnh BRVT và Bình Dương, và các TT trực thuộc TP.HCM)
     if(t.includes("SÀI GÒN") || t.includes("TT PHÚ THỌ") || t.includes("CHỢ LỚN") || t.includes("NAM SÀI GÒN") || t.includes("GIA ĐỊNH") || t.includes("BÌNH CHÁNH") || t.includes("CỦ CHI") || t.includes("THỦ ĐỨC") || t.includes("BR VT") || t.includes("BR-VT") || t.includes("BÌNH DƯƠNG")) return "TT TP.HCM";
 
-    // Nhóm Đông Nam Bộ (Đồng Nai và TT. TP.HCM)
-    if(t.includes("ĐỒNG NAI") || t.includes("TP.HCM") || t.includes("TP HCM") || t.includes("HỒ CHÍ MINH") || t.includes("HCM")) return "Đông Nam Bộ";
+    // Nhóm Đông Nam Bộ (Bao gồm BĐ cấp tỉnh Đồng Nai và BĐ cấp tỉnh TT. TP.HCM)
+    if(t.includes("ĐỒNG NAI") || t.includes("TP.HCM") || t.includes("TP HCM") || t.includes("TPHCM") || t.includes("HỒ CHÍ MINH") || t.includes("HCM")) return "Đông Nam Bộ";
     
     // Miền Tây (Bao gồm Tây Ninh)
     if(t.includes("TÂY NINH") || t.includes("ĐỒNG THÁP") || t.includes("AN GIANG") || t.includes("VĨNH LONG") || t.includes("CẦN THƠ") || t.includes("CÀ MAU") || t.includes("SÓC TRĂNG") || t.includes("BẠC LIÊU") || t.includes("BẾN TRE") || t.includes("TRÀ VINH") || t.includes("KIÊN GIANG") || t.includes("HẬU GIANG") || t.includes("TIỀN GIANG") || t.includes("LONG AN")) return "Miền Tây";
