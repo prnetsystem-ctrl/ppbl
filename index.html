@@ -54,6 +54,20 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 }
 .auth-box button:hover { opacity: 0.9; }
 .auth-error { color: var(--r); font-size: 13px; margin-bottom: 12px; display: none; font-weight: 500; }
+
+/* --- CSS TIÊU ĐỀ THÔNG MINH --- */
+.stitle {
+    background: rgba(243, 156, 18, 0.08);
+    border: 1px solid rgba(243, 156, 18, 0.25);
+    border-left: 4px solid #f39c12;
+    padding: 6px 14px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    font-size: 14px;
+}
 </style></head>
 
 <body class="locked">
@@ -100,7 +114,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 
 <!-- TAB 1: TỔNG QUAN -->
 <div class="v2 on" id="p1">
-    <div id="view-title-1" style="margin-bottom:15px; font-size:15px; font-weight:bold; color:var(--ac)"></div>
+    <div id="view-title-1"></div>
     <div class="kp" id="k1"></div>
     <div class="grid">
         <div style="display:flex;flex-direction:column;gap:10px;">
@@ -120,7 +134,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
         <span class="lg" id="us"></span>
     </div>
     <div class="c" style="margin-bottom:10px">
-        <div id="uh" style="margin-bottom:12px; font-size:15px; font-weight:bold; color:var(--ac)"></div>
+        <div id="uh"></div>
         <div id="dist"></div>
         <div id="ub" class="ug"></div>
         <div class="lg" id="ul"></div>
@@ -316,9 +330,9 @@ function r1(){
     const pct_target_cum = k_n ? p(th/k_n) : '–';
     const growth_ck = ck ? (th/ck-1>=0?'+':'') + p(th/ck-1) : '–';
 
-    const entityName = g ? `Nhóm ${g}` : "Toàn mạng lưới";
-    const channelName = c !== 'T' ? ` (Kênh ${CH[c]})` : '';
-    $('view-title-1').innerHTML = `<span style="color:var(--mu);font-weight:normal">Đang xem:</span> Kết quả kinh doanh lũy kế đến Tháng ${n} của <b>${entityName}</b>${channelName}`;
+    const entityName = g ? `Nhóm ${g}` : "Toàn hệ thống";
+    const channelName = c !== 'T' ? ` · Kênh ${CH[c]}` : '';
+    $('view-title-1').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${entityName}</span> <span style="color:var(--mu)">· Lũy kế T1–T${n}/${latest_year}${channelName}</span></div>`;
 
     const K=[
         ['KH năm',f(kY)],
@@ -417,10 +431,10 @@ function r6(){
  const{g,c,n}=S(),sel=$('fu').value,q=+$('fq').value,m_sel=+$('fm').value,cw=sm(W,n),qi=q-1,mm=q?qmon(qi,n):0;
  let isMonth = m_sel > 0;
  
- let timeLabel = isMonth ? `Tháng ${m_sel}` : (q ? `Quý ${q}` : `năm lũy kế đến Tháng ${n}`);
- let entityName = sel ? sel : (g ? `Nhóm ${g}` : "Toàn mạng lưới");
- let channelName = c !== 'T' ? ` (Kênh ${CH[c]})` : '';
- $('uh').innerHTML = `<span style="color:var(--mu);font-weight:normal">Đang xem:</span> Tỷ lệ hoàn thành KH ${timeLabel} của <b>${entityName}</b>${channelName}`;
+ let timeLabel = isMonth ? `Tháng ${m_sel}/${latest_year}` : (q ? `Quý ${q}/${latest_year}` : `Lũy kế T1–T${n}/${latest_year}`);
+ let entityName = sel ? sel : (g ? `Nhóm ${g}` : "Toàn hệ thống");
+ let channelName = c !== 'T' ? ` · Kênh ${CH[c]}` : '';
+ $('uh').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${entityName}</span> <span style="color:var(--mu)">· ${timeLabel}${channelName}</span></div>`;
  
  const active_m = isMonth ? m_sel : n; 
  
@@ -573,7 +587,7 @@ function r6(){
  }
  s2+=`<polyline fill="none" stroke="var(--r)" stroke-width="2" points="${a.kh.map((q_v,i)=>x2(i)+','+y2(q_v)).join(' ')}"/><polyline fill="none" stroke="var(--mu)" stroke-width="2" stroke-dasharray="4 3" points="${a.ck.slice(0,n).map((q_v,i)=>x2(i)+','+y2(q_v)).join(' ')}"/></svg>`;
  
- let headerTitle = isGlobal ? `Chi tiết mạng lưới: ${g ? 'Nhóm ' + g : 'Toàn mạng lưới'}` : `Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button>`;
+ let headerTitle = isGlobal ? `Chi tiết mạng lưới: ${g ? 'Nhóm ' + g : 'Toàn hệ thống'}` : `Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button>`;
 
  $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>${headerTitle}</h2><div class="kp">${K.map(([q_v,r_v])=>`<div class="k"><span>${q_v}</span><b style="font-size:19px">${r_v}</b></div>`).join('')}</div>
  <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));">
