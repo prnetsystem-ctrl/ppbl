@@ -100,6 +100,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 
 <!-- TAB 1: TỔNG QUAN -->
 <div class="v2 on" id="p1">
+    <div id="view-title-1" style="margin-bottom:15px; font-size:15px; font-weight:bold; color:var(--ac)"></div>
     <div class="kp" id="k1"></div>
     <div class="grid">
         <div style="display:flex;flex-direction:column;gap:10px;">
@@ -118,7 +119,12 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
         <label>Tháng <select id="fm"><option value="0">— Không chọn —</option></select></label>
         <span class="lg" id="us"></span>
     </div>
-    <div class="c" style="margin-bottom:10px"><h2 id="uh"></h2><div id="dist"></div><div id="ub" class="ug"></div><div class="lg" id="ul"></div></div>
+    <div class="c" style="margin-bottom:10px">
+        <div id="uh" style="margin-bottom:12px; font-size:15px; font-weight:bold; color:var(--ac)"></div>
+        <div id="dist"></div>
+        <div id="ub" class="ug"></div>
+        <div class="lg" id="ul"></div>
+    </div>
     
     <!-- GRID HIỂN THỊ CHUNG KHI CHƯA CHỌN ĐƠN VỊ CỤ THỂ -->
     <div class="grid" id="global-q-dash">
@@ -310,6 +316,10 @@ function r1(){
     const pct_target_cum = k_n ? p(th/k_n) : '–';
     const growth_ck = ck ? (th/ck-1>=0?'+':'') + p(th/ck-1) : '–';
 
+    const entityName = g ? `Nhóm ${g}` : "Toàn mạng lưới";
+    const channelName = c !== 'T' ? ` (Kênh ${CH[c]})` : '';
+    $('view-title-1').innerHTML = `<span style="color:var(--mu);font-weight:normal">Đang xem:</span> Kết quả kinh doanh lũy kế đến Tháng ${n} của <b>${entityName}</b>${channelName}`;
+
     const K=[
         ['KH năm',f(kY)],
         ['Thực hiện lũy kế T'+n,f(th)],
@@ -329,7 +339,7 @@ function r1(){
             <div class="t p"><i style="width:${Math.min(kk?t/kk:0,1.5)/1.5*100}%;background:${col(m?t/m:0)}"></i></div>
             <span class="v" style="color:var(--tx);text-align:right"><b>${f(t)}</b> <span style="color:var(--mu);font-size:11px">/ ${f(kk)} (${kk?p(t/kk):'–'}) · CK ${sm(b.ck,n)?gr(t,sm(b.ck,n)):'–'}</span></span>
         </div>`
-    }).join('')+'<div class="lg">Thanh = % KH năm (tối đa 150%); màu theo % mục tiêu lũy kế.</div>';
+    }).join('')+'<div class="lg">Thanh = % KH năm (tối đa 150%); màu theo % mục tiêu.</div>';
     
     $('month-title').innerText = `Thực hiện riêng Tháng ${n} theo kênh`;
     $('ch-month').innerHTML=['BL','GT','B2B'].map(C=>{
@@ -406,7 +416,11 @@ function r6(){
  try {
  const{g,c,n}=S(),sel=$('fu').value,q=+$('fq').value,m_sel=+$('fm').value,cw=sm(W,n),qi=q-1,mm=q?qmon(qi,n):0;
  let isMonth = m_sel > 0;
- $('uh').textContent = isMonth ? `Tỷ lệ hoàn thành KH Tháng ${m_sel} theo đơn vị` : (q ? `Tỷ lệ hoàn thành KH Quý ${q} theo đơn vị` : `Tỷ lệ hoàn thành KH năm theo đơn vị`);
+ 
+ let timeLabel = isMonth ? `Tháng ${m_sel}` : (q ? `Quý ${q}` : `năm lũy kế đến Tháng ${n}`);
+ let entityName = sel ? sel : (g ? `Nhóm ${g}` : "Toàn mạng lưới");
+ let channelName = c !== 'T' ? ` (Kênh ${CH[c]})` : '';
+ $('uh').innerHTML = `<span style="color:var(--mu);font-weight:normal">Đang xem:</span> Tỷ lệ hoàn thành KH ${timeLabel} của <b>${entityName}</b>${channelName}`;
  
  const active_m = isMonth ? m_sel : n; 
  
@@ -440,9 +454,19 @@ function r6(){
  $('us').textContent=rows.length+' đơn vị';
  $('dist').innerHTML=rows.length?`<div class="mix">${[[nG,'var(--g)',(isMonth||q)?'đạt KH kỳ':'đạt mục tiêu'],[nA,'var(--a)','70–100%'],[nR,'var(--r)','dưới 70%']].map(([x,cl,t])=>`<div style="width:${pc(x)}%;background:${cl}">${x?x+' '+t:''}</div>`).join('')}</div>`:'';
  
- $('ub').innerHTML=rows.length?rows.map(o=>`<div class="row ur${o.n==sel?' sel':''}" data-u="${o.n}" style="grid-template-columns:135px 1fr 50px;cursor:pointer"><span class="n" title="${o.n}">${o.n}</span><div class="t"><i style="width:${Math.min(o.p,2)*50}%;background:${col(o.m)}"></i>${(isMonth||q)?'':`<b class="mk" style="left:${cw*50}%"></b>`}</div><span class="v">${o.p_text}</span></div>`).join(''):'<div class="lg">Chưa có thực hiện trong kỳ đã chọn.</div>';
+ const scale_max = rows.length > 0 ? Math.max(1.5, ...rows.map(o => isFinite(o.p) ? o.p : 0)) : 1.5;
+
+ $('ub').innerHTML=rows.length?rows.map(o=>`<div class="row ur${o.n==sel?' sel':''}" data-u="${o.n}" style="grid-template-columns:135px 1fr 50px;cursor:pointer">
+     <span class="n" title="${o.n}">${o.n}</span>
+     <div class="t p">
+         <i style="width:${(Math.max(0, o.p)/scale_max)*100}%;background:${col(o.m)}"></i>
+         <b class="mk" style="left:${(1/scale_max)*100}%; border-left: 1px dashed var(--mu); opacity: 0.6"></b>
+         ${(isMonth||q)?'':`<b class="mk" style="left:${(cw/scale_max)*100}%; border-left: 2px solid var(--tx); opacity: 0.5"></b>`}
+     </div>
+     <span class="v">${o.p_text}</span>
+ </div>`).join(''):'<div class="lg">Chưa có thực hiện trong kỳ đã chọn.</div>';
  
- $('ul').innerHTML='Thanh = '+(isMonth?`% hoàn thành KH Tháng ${m_sel}`: (q?`% hoàn thành KH Quý ${q}`:'% KH năm'))+' (tối đa 200%) · vạch đứt giữa = 100%'+((isMonth||q)?'':' · vạch đậm = mục tiêu lũy kế đến tháng đã chọn')+' · màu: xanh ≥100% '+((isMonth||q)?'KH kỳ':'mục tiêu')+', vàng ≥70%, đỏ &lt;70% · bấm vào một dòng để xem chi tiết. Bộ lọc nhóm, kênh, tháng ở trên đều áp dụng.';
+ $('ul').innerHTML='Thanh = '+(isMonth?`% hoàn thành KH Tháng ${m_sel}`: (q?`% hoàn thành KH Quý ${q}`:'% KH năm'))+' · vạch đứt = 100% KH kỳ'+((isMonth||q)?'':' · vạch đậm = mục tiêu lũy kế đến tháng đã chọn')+' · màu: xanh ≥100% '+((isMonth||q)?'KH kỳ':'mục tiêu')+', vàng ≥70%, đỏ &lt;70% · bấm vào một dòng để xem chi tiết. Bộ lọc nhóm, kênh, tháng ở trên đều áp dụng.';
  
  // PHẦN RENDER CHI TIẾT ĐƠN VỊ / MẠNG LƯỚI
  let isGlobal = !sel;
@@ -497,7 +521,7 @@ function r6(){
      if (!isGlobal) K.push(['Xếp hạng theo % mục tiêu', pos ? pos + ' / ' + rk.length : '–']);
      K.push(['Khoảng trống còn lại',f(gap)]);
      K.push(['thực hiện cần / hiện tại', `<span style="font-size:15px; letter-spacing:-0.2px">${f(need)} / ${f(pace)}</span>`]);
-     K.push(['Tăng trưởng cùng kỳ',ck>1000?(th/ck-1>=0?'+':'')+p(th/ck-1):'–']);
+     K.push(['Tăng trưởng cùng kỳ lũy kế',ck>1000?(th/ck-1>=0?'+':'')+p(th/ck-1):'–']);
  }
 
  const thTitle = (isMonth||q) ? `KH ${lblSel}` : `KH năm`;
@@ -616,6 +640,8 @@ $('fq').addEventListener('input', e => {
     all(); 
 });
 ['fg','fc','fn'].forEach(i=>$(i).addEventListener('input',all));
+
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x==b));document.querySelectorAll('.v2').forEach(x=>x.classList.toggle('on',x.id=='p'+b.dataset.t));$('fb').style.display=b.dataset.t=='5'||b.dataset.t=='6'?'none':'flex'}));
 
 // ==============================================
 // FETCH DOANH THU & ĐẤU THẦU ĐỘC LẬP
