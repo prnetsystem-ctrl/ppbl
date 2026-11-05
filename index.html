@@ -106,8 +106,8 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 
 <div id="loading">Đang tải dữ liệu từ Google Sheet...</div>
 
-<!-- THAY ĐƯỜNG LINK LOGO VÀO src DƯỚI ĐÂY -->
-<h1><img src="LINK_LOGO_CUA_BAN_VAO_DAY" alt="Logo" onerror="this.style.display='none'">Kết quả kinh doanh dịch vụ Phân phối bán lẻ trên mạng lưới Bưu điện Việt Nam</h1>
+<!-- LOGO SẼ TỰ ĐỘNG HIỂN THỊ KHI BẠN CHÈN LINK ẢNH VÀO ĐÂY -->
+<h1><img src="logo nhan dien_2.png" alt="Vietnam Post Logo" onerror="this.style.display='none'">Kết quả kinh doanh dịch vụ Phân phối bán lẻ trên mạng lưới Bưu điện Việt Nam</h1>
 
 <div class="sub" id="page-sub">Dữ liệu thực hiện cập nhật tự động · Đơn vị tính: triệu đồng · Được thiết kế bởi ThanhDD - Phòng TCBL </div>
 <div class="tabs">
@@ -302,20 +302,24 @@ function getKhuVuc(ten) {
     if(t.includes("TCND") || t.includes("PHBC")) return "PHBC+TCDN";
     if(t.includes("HOÀN KIẾM") || t.includes("HÀ ĐÔNG") || t.includes("TỪ LIÊM") || t.includes("LONG BIÊN") || t.includes("ĐÔNG ANH") || t.includes("THANH TRÌ") || t.includes("CHƯƠNG MỸ") || t.includes("SƠN TÂY")) return "TT Hà Nội";
     
-    // Nhóm Đông Nam Bộ
-    if(t.includes("ĐỒNG NAI") || t.includes("TT. TP.HCM") || t.includes("TT TP.HCM")) return "Đông Nam Bộ";
-    
-    // Nhóm TT TP.HCM
+    // Nhóm TT TP.HCM (Bao gồm BĐ cấp tỉnh BRVT và Bình Dương)
     if(t.includes("SÀI GÒN") || t.includes("TT PHÚ THỌ") || t.includes("CHỢ LỚN") || t.includes("NAM SÀI GÒN") || t.includes("GIA ĐỊNH") || t.includes("BÌNH CHÁNH") || t.includes("CỦ CHI") || t.includes("THỦ ĐỨC") || t.includes("BR VT") || t.includes("BR-VT") || t.includes("BÌNH DƯƠNG")) return "TT TP.HCM";
 
-    // Miền Tây (Bao gồm Tây Ninh)
-    if(t.includes("TÂY NINH") || t.includes("ĐỒNG THÁP") || t.includes("AN GIANG") || t.includes("VĨNH LONG") || t.includes("CẦN THƠ") || t.includes("CÀ MAU")) return "Miền Tây";
+    // Nhóm Đông Nam Bộ (Đồng Nai và TT. TP.HCM)
+    if(t.includes("ĐỒNG NAI") || t.includes("TP.HCM") || t.includes("TP HCM") || t.includes("HỒ CHÍ MINH") || t.includes("HCM")) return "Đông Nam Bộ";
     
-    if(t.includes("HƯNG YÊN") || t.includes("HẢI PHÒNG") || t.includes("QUẢNG NINH") || t.includes("BẮC NINH") || t.includes("NINH BÌNH")) return "ĐB Sông Hồng";
-    if((t.includes("PHÚ THỌ") && !t.includes("TT PHÚ THỌ")) || t.includes("LẠNG SƠN") || t.includes("THÁI NGUYÊN") || t.includes("CAO BẰNG") || t.includes("TUYÊN QUANG")) return "Đông Bắc";
-    if(t.includes("LÀO CAI") || t.includes("SƠN LA") || t.includes("ĐIỆN BIÊN") || t.includes("LAI CHÂU")) return "Tây Bắc";
-    if(t.includes("THANH HÓA") || t.includes("NGHỆ AN") || t.includes("HÀ TĨNH") || t.includes("QUẢNG TRỊ") || t.includes("HUẾ")) return "Miền Trung";
-    if(t.includes("ĐÀ NẴNG") || t.includes("QUẢNG NGÃI") || t.includes("GIA LAI") || t.includes("ĐẮK LẮK") || t.includes("KHÁNH HÒA") || t.includes("LÂM ĐỒNG") || t.includes("NTB")) return "NTB & TN";
+    // Miền Tây (Bao gồm Tây Ninh)
+    if(t.includes("TÂY NINH") || t.includes("ĐỒNG THÁP") || t.includes("AN GIANG") || t.includes("VĨNH LONG") || t.includes("CẦN THƠ") || t.includes("CÀ MAU") || t.includes("SÓC TRĂNG") || t.includes("BẠC LIÊU") || t.includes("BẾN TRE") || t.includes("TRÀ VINH") || t.includes("KIÊN GIANG") || t.includes("HẬU GIANG") || t.includes("TIỀN GIANG") || t.includes("LONG AN")) return "Miền Tây";
+    
+    if(t.includes("HƯNG YÊN") || t.includes("HẢI PHÒNG") || t.includes("QUẢNG NINH") || t.includes("BẮC NINH") || t.includes("NINH BÌNH") || t.includes("HẢI DƯƠNG") || t.includes("THÁI BÌNH") || t.includes("NAM ĐỊNH") || t.includes("VĨNH PHÚC") || t.includes("HÀ NAM")) return "ĐB Sông Hồng";
+    
+    if((t.includes("PHÚ THỌ") && !t.includes("TT PHÚ THỌ")) || t.includes("LẠNG SƠN") || t.includes("THÁI NGUYÊN") || t.includes("CAO BẰNG") || t.includes("TUYÊN QUANG") || t.includes("HÀ GIANG") || t.includes("BẮC KẠN") || t.includes("BẮC GIANG")) return "Đông Bắc";
+    
+    if(t.includes("LÀO CAI") || t.includes("SƠN LA") || t.includes("ĐIỆN BIÊN") || t.includes("LAI CHÂU") || t.includes("YÊN BÁI") || t.includes("HÒA BÌNH")) return "Tây Bắc";
+    
+    if(t.includes("THANH HÓA") || t.includes("NGHỆ AN") || t.includes("HÀ TĨNH") || t.includes("QUẢNG TRỊ") || t.includes("HUẾ") || t.includes("QUẢNG BÌNH")) return "Miền Trung";
+    
+    if(t.includes("ĐÀ NẴNG") || t.includes("QUẢNG NGÃI") || t.includes("GIA LAI") || t.includes("ĐẮK LẮK") || t.includes("KHÁNH HÒA") || t.includes("LÂM ĐỒNG") || t.includes("NTB") || t.includes("QUẢNG NAM") || t.includes("BÌNH ĐỊNH") || t.includes("PHÚ YÊN") || t.includes("NINH THUẬN") || t.includes("BÌNH THUẬN") || t.includes("KONTUM") || t.includes("ĐẮK NÔNG")) return "NTB & TN";
     
     return "Khác";
 }
