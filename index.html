@@ -178,7 +178,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 </div>
 
 <div class="v2" id="p2"><div class="grid"><div class="c"><h2>Thực hiện theo tháng so với KH và cùng kỳ</h2><div id="g1"></div><div class="lg">Cột = thực hiện · đường vàng = KH · đường xám đứt = cùng kỳ năm trước. B2B dồn vào cuối quý.</div></div><div class="c"><h2>Lũy kế thực hiện so với KH lũy kế</h2><div id="g2"></div></div></div></div>
-<div class="v2" id="p3"><div class="grid"><div class="c"><h2>Xếp hạng % mục tiêu lũy kế</h2><div id="rk"></div><div class="lg">Vạch đứt = 100% mục tiêu 70% KH năm · xanh ≥100%, vàng ≥70%, đỏ &lt;70%</div></div><div class="c"><h2>10 đơn vị thiếu nhiều nhất</h2><div id="pa"></div></div><div class="c"><h2>Heatmap % KH năm theo kênh (top 12 đơn vị khoảng trống)</h2><div class="sc" id="hm"></div></div></div></div>
+<div class="v2" id="p3"><div class="grid"><div class="c"><h2>Xếp hạng % mục tiêu lũy kế</h2><div id="rk"></div><div class="lg">Vạch đứt = 100% mục tiêu lũy kế · xanh ≥100%, vàng ≥70%, đỏ &lt;70%</div></div><div class="c"><h2>10 đơn vị thiếu nhiều nhất</h2><div id="pa"></div></div><div class="c"><h2>Heatmap % KH năm theo kênh (top 12 đơn vị khoảng trống)</h2><div class="sc" id="hm"></div></div></div></div>
 <div class="v2" id="p4"><div class="kp" id="k4"></div><div class="grid"><div class="c"><h2>Kinh doanh thẻ theo tháng</h2><div id="g4"></div><div class="lg">Cột đỏ = tháng thẻ âm (cần rà soát điều chỉnh/hoàn trừ). Thẻ nằm trong tổng thực hiện, chưa có KH riêng.</div></div><div class="c"><h2>Đơn vị có thẻ cao nhất</h2><div id="tk"></div></div><div class="c"><h2>Theo nhóm đơn vị</h2><div id="tg"></div></div><div class="c" style="grid-column:1/-1"><h2>Đơn vị bị âm thẻ (theo tháng đã chọn)</h2><div class="sc" id="ng"></div></div></div></div>
 <div class="v2" id="p5"><div class="rp" id="rp"></div></div>
 
@@ -188,6 +188,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
         <label>Năm <select id="td-year" onchange="renderTenderTab()"><option value="all">Tất cả các năm</option></select></label>
         <label>Tháng <select id="td-month" onchange="renderTenderTab()"><option value="all">Tất cả các tháng</option></select></label>
     </div>
+    <div id="tender-title"></div>
     <div class="kp" id="tender-kpi">
         <div class="k"><span>Đang lấy dữ liệu Đấu thầu...</span><b>...</b></div>
     </div>
@@ -385,9 +386,6 @@ function agg(g,c){const o={kh:[0,0,0,0,0,0,0,0,0,0,0,0],th:[0,0,0,0,0,0,0,0,0,0,
 const sm=(a,n)=>a.slice(0,n).reduce((x,y)=>x+y,0);
 const thArr=g=>{const o=[0,0,0,0,0,0,0,0,0,0,0,0];for(const G in M_data){if(g&&G!=g)continue;M_data[G].the.forEach((v,i)=>{o[i]+=v})}return o},thSum=(g,n)=>sm(thArr(g),n);
 
-// ==============================================
-// BỔ SUNG CÁC HÀM TIỆN ÍCH BỊ THIẾU
-// ==============================================
 const gr = (t, c) => c > 0 ? (t/c - 1 >= 0 ? '+' : '') + p(t/c - 1) : '–';
 const qmon = (qi, n) => Math.max(0, Math.min(3, n - 3*qi));
 const ua = (v, C) => {
@@ -481,14 +479,64 @@ function r2(){const{g,c,n}=S(),a=agg(g,c),Wd=560,H=210,L=44,B=24,T=10,pw=(Wd-L-8
  const l2=(arr,cl)=>`<polyline fill="none" stroke="${cl}" stroke-width="2.5" points="${arr.map((v,i)=>x(i)+','+y2(v)).join(' ')}"/>`;
  $('g2').innerHTML=s2+l2(K,'var(--a)')+l2(Tt,'var(--ac)')+`</svg><div class="lg"><span style="color:var(--ac)">■</span> Thực hiện lũy kế &nbsp; <span style="color:var(--a)">■</span> KH lũy kế</div>`}
 
-function r3(){const{g,c}=S(),idx={BL:[2,5],GT:[3,6],B2B:[4,7]};
- const rs=U_data.filter(u=>(g?u[1]==g:u[1]!='Khác')).map(u=>{const ks=c=='T'?[2,3,4]:[idx[c][0]],ts=c=='T'?[5,6,7]:[idx[c][1]];const kh=ks.reduce((s,i)=>s+u[i],0),th=ts.reduce((s,i)=>s+u[i],0);return{n:u[0],u,kh,th,pm:kh?th/(kh*.7):null,gap:Math.max(kh-th,0)}}).filter(o=>o.kh>0);
- const rk=[...rs].sort((a,b)=>b.pm-a.pm),sel=rk.length>16?[...rk.slice(0,8),...rk.slice(-8)]:rk;
- $('rk').innerHTML=sel.map(o=>`<div class="row" style="grid-template-columns:115px 1fr 48px"><span class="n">${o.n}</span><div class="t"><i style="width:${Math.min(o.pm,2)*50}%;background:${col(o.pm)}"></i></div><span class="v" style="text-align:right">${p(o.pm)}</span></div>`).join('');
- const G=rs.reduce((s,o)=>s+o.gap,0),pr=[...rs].sort((a,b)=>b.gap-a.gap).slice(0,10),mx=pr[0]?pr[0].gap:1;let cu=0;
- $('pa').innerHTML=pr.map(o=>{cu+=o.gap;return`<div class="row" style="grid-template-columns:115px 1fr 48px"><span class="n">${o.n}</span><div class="t p"><i style="width:${o.gap/mx*100}%;background:var(--ac)"></i></div><span class="v" style="text-align:right">${p(cu/G)}</span></div>`}).join('')+'<div class="lg">Cột = gap; số phải = % gap tích lũy.</div>';
- const cell=(u,k)=>{const kh=u[idx[k][0]],th=u[idx[k][1]];return kh?`<td class="h" style="background:${col(th/(kh*.7))}">${p(th/kh)}</td>`:'<td>–</td>'};
- $('hm').innerHTML='<table><tr><th>Đơn vị</th><th>Bán lẻ</th><th>GT</th><th>B2B</th></tr>'+[...rs].sort((a,b)=>b.gap-a.gap).slice(0,12).map(o=>`<tr><td>${o.n}</td>${cell(o.u,'BL')}${cell(o.u,'GT')}${cell(o.u,'B2B')}</tr>`).join('')+'</table>'}
+function r3(){
+    const {g, c, n} = S();
+    const idx = {BL: [2, 5], GT: [3, 6], B2B: [4, 7]};
+    const cw = sm(W, n);
+
+    const rs = U_data.filter(u => (g ? u[1] == g : u[1] != 'Khác')).map(u => {
+        const ks = c == 'T' ? [2, 3, 4] : [idx[c][0]];
+        const ts = c == 'T' ? [5, 6, 7] : [idx[c][1]];
+        const kh = ks.reduce((s, i) => s + u[i], 0);
+        const th = ts.reduce((s, i) => s + u[i], 0);
+        
+        const kh_lk = kh * cw;
+        const gap = Math.max(kh_lk - th, 0); 
+        
+        return {
+            n: u[0], u, kh, kh_lk, th, 
+            pm: kh_lk ? th / kh_lk : null, gap
+        };
+    }).filter(o => o.kh > 0);
+
+    const rk = [...rs].sort((a, b) => b.pm - a.pm);
+    const sel = rk.length > 16 ? [...rk.slice(0, 8), ...rk.slice(-8)] : rk;
+    
+    const max_pm = Math.max(1.2, ...sel.map(o => isFinite(o.pm) ? o.pm : 0));
+
+    $('rk').innerHTML = sel.map(o => `
+        <div class="row" style="grid-template-columns:115px 1fr 48px; white-space:nowrap">
+            <span class="n">${o.n}</span>
+            <div class="t p">
+                <i style="width:${Math.min(o.pm / max_pm * 100, 100)}%;background:${col(o.pm)}"></i>
+                <b class="mk" style="left:${1 / max_pm * 100}%; border-left: 1px dashed var(--mu); opacity: 0.6"></b>
+            </div>
+            <span class="v" style="text-align:right">${p(o.pm)}</span>
+        </div>
+    `).join('');
+
+    const pr = [...rs].sort((a, b) => b.gap - a.gap).slice(0, 10);
+    const mx = pr[0] && pr[0].gap > 0 ? pr[0].gap : 1;
+    
+    $('pa').innerHTML = pr.map(o => {
+        const hutPct = o.kh_lk ? (o.gap / o.kh_lk) : 0;
+        return `
+        <div class="row" style="grid-template-columns:115px 1fr 48px; white-space:nowrap">
+            <span class="n">${o.n}</span>
+            <div class="t p"><i style="width:${Math.min(o.gap / mx * 100, 100)}%;background:var(--r)"></i></div>
+            <span class="v" style="text-align:right">-${p(hutPct)}</span>
+        </div>`;
+    }).join('') + '<div class="lg">Cột = Gap; số phải = % hụt (Gap / KH lũy kế).</div>';
+
+    const cell = (u, k) => {
+        const kh = u[idx[k][0]];
+        const th = u[idx[k][1]];
+        const kh_lk_cell = kh * cw;
+        return kh ? `<td class="h" style="background:${col(th / kh_lk_cell)}">${p(th / kh)}</td>` : '<td>–</td>';
+    };
+    
+    $('hm').innerHTML = '<table><tr><th>Đơn vị</th><th>Bán lẻ</th><th>GT</th><th>B2B</th></tr>' + [...rs].sort((a, b) => b.gap - a.gap).slice(0, 12).map(o => `<tr><td>${o.n}</td>${cell(o.u, 'BL')}${cell(o.u, 'GT')}${cell(o.u, 'B2B')}</tr>`).join('') + '</table>';
+}
 
 function r4(){
  const {g,c,n} = S();
@@ -1198,6 +1246,12 @@ window.renderTenderTab = function() {
     
     const fY = $('td-year') ? $('td-year').value : 'all';
     const fM = $('td-month') ? $('td-month').value : 'all';
+
+    const yText = fY === 'all' ? 'Tất cả các năm' : 'Năm ' + fY;
+    const mText = fM === 'all' ? 'Tất cả các tháng' : 'Tháng ' + fM;
+    if($('tender-title')) {
+        $('tender-title').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${yText}</span> <span style="color:var(--mu)">·</span> <span style="color:var(--tx);font-weight:bold">${mText}</span></div>`;
+    }
 
     let won = 0, lost = 0, online = 0, totalVal = 0;
     let khuVucMap = {}, namMap = {}, thangNamMap = {};
