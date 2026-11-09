@@ -119,21 +119,25 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
     <button data-t="6">6. Đấu thầu</button>
     <button data-t="5">7. Báo cáo đánh giá tự động</button>
 </div>
-<div class="bar" id="fb"><label>Nhóm đơn vị <select id="fg">
-    <option value="">Tất cả</option>
-    <option>TT Hà Nội</option>
-    <option>TT TP.HCM</option>
-    <option>Đông Nam Bộ</option>
-    <option>Miền Tây</option>
-    <option>ĐB Sông Hồng</option>
-    <option>Đông Bắc</option>
-    <option>Tây Bắc</option>
-    <option>Miền Trung</option>
-    <option>NTB & TN</option>
-    <option>PHBC+TCDN</option>
-</select></label>
-<label>Kênh <select id="fc"><option value="T">Tổng</option><option value="BL">Bán lẻ</option><option value="GT">GT</option><option value="B2B">B2B</option></select></label>
-<label>Lũy kế đến tháng <select id="fn"></select></label><span class="lg" id="fh"></span></div>
+<div class="bar" id="fb">
+    <label>Nhóm đơn vị <select id="fg">
+        <option value="">Tất cả</option>
+        <option>TT Hà Nội</option>
+        <option>TT TP.HCM</option>
+        <option>Đông Nam Bộ</option>
+        <option>Miền Tây</option>
+        <option>ĐB Sông Hồng</option>
+        <option>Đông Bắc</option>
+        <option>Tây Bắc</option>
+        <option>Miền Trung</option>
+        <option>NTB & TN</option>
+        <option>PHBC+TCDN</option>
+    </select></label>
+    <label>Kênh <select id="fc"><option value="T">Tổng</option><option value="BL">Bán lẻ</option><option value="GT">GT</option><option value="B2B">B2B</option></select></label>
+    <label>Lũy kế đến tháng <select id="fn"></select></label>
+    <span class="lg" id="fh"></span>
+    <button class="btn" onclick="resetFilters()" style="margin-left:auto; background:var(--cd); border:1px solid var(--bd); color:var(--tx); font-weight:600">↺ Bỏ chọn lọc</button>
+</div>
 
 <!-- TAB 1: TỔNG QUAN -->
 <div class="v2 on" id="p1">
@@ -225,6 +229,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') document.getElementById('auth-p').focus();
     });
 });
+
+// ==============================================
+// HÀM RESET BỘ LỌC
+// ==============================================
+function resetFilters() {
+    $('fg').value = '';
+    $('fc').value = 'T';
+    if(max_month_th) $('fn').value = max_month_th;
+    if($('fu')) $('fu').value = '';
+    if($('fq')) $('fq').value = '0';
+    if($('fm')) $('fm').value = '0';
+    all();
+}
 
 // ==============================================
 // BẢO VỆ CHỐNG SAO CHÉP MÃ NGUỒN CƠ BẢN
@@ -409,8 +426,8 @@ function r1(){
     const growth_ck = ck ? (th/ck-1>=0?'+':'') + p(th/ck-1) : '–';
 
     const entityName = g ? `Nhóm ${g}` : "Toàn mạng lưới";
-    const channelName = c !== 'T' ? ` · Kênh ${CH[c]}` : '';
-    $('view-title-1').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${entityName}</span> <span style="color:var(--mu)">· Lũy kế T1–T${n}/${latest_year}${channelName}</span></div>`;
+    const channelNameStr = c !== 'T' ? `Kênh ${CH[c]}` : 'Các kênh bán';
+    $('view-title-1').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${entityName}</span> <span style="color:var(--mu)">· Lũy kế T1–T${n}/${latest_year} · </span> <span style="color:var(--tx);font-weight:bold">${channelNameStr}</span></div>`;
 
     const K=[
         ['KH năm',f(kY)],
@@ -467,9 +484,9 @@ function r2(){const{g,c,n}=S(),a=agg(g,c),Wd=560,H=210,L=44,B=24,T=10,pw=(Wd-L-8
 function r3(){const{g,c}=S(),idx={BL:[2,5],GT:[3,6],B2B:[4,7]};
  const rs=U_data.filter(u=>(g?u[1]==g:u[1]!='Khác')).map(u=>{const ks=c=='T'?[2,3,4]:[idx[c][0]],ts=c=='T'?[5,6,7]:[idx[c][1]];const kh=ks.reduce((s,i)=>s+u[i],0),th=ts.reduce((s,i)=>s+u[i],0);return{n:u[0],u,kh,th,pm:kh?th/(kh*.7):null,gap:Math.max(kh-th,0)}}).filter(o=>o.kh>0);
  const rk=[...rs].sort((a,b)=>b.pm-a.pm),sel=rk.length>16?[...rk.slice(0,8),...rk.slice(-8)]:rk;
- $('rk').innerHTML=sel.map(o=>`<div class="row"><span class="n">${o.n}</span><div class="t"><i style="width:${Math.min(o.pm,2)*50}%;background:${col(o.pm)}"></i></div><span class="v">${p(o.pm)}</span></div>`).join('');
+ $('rk').innerHTML=sel.map(o=>`<div class="row" style="grid-template-columns:115px 1fr 48px"><span class="n">${o.n}</span><div class="t"><i style="width:${Math.min(o.pm,2)*50}%;background:${col(o.pm)}"></i></div><span class="v" style="text-align:right">${p(o.pm)}</span></div>`).join('');
  const G=rs.reduce((s,o)=>s+o.gap,0),pr=[...rs].sort((a,b)=>b.gap-a.gap).slice(0,10),mx=pr[0]?pr[0].gap:1;let cu=0;
- $('pa').innerHTML=pr.map(o=>{cu+=o.gap;return`<div class="row"><span class="n">${o.n}</span><div class="t p"><i style="width:${o.gap/mx*100}%;background:var(--ac)"></i></div><span class="v">${p(cu/G)}</span></div>`}).join('')+'<div class="lg">Cột = gap; số phải = % gap tích lũy.</div>';
+ $('pa').innerHTML=pr.map(o=>{cu+=o.gap;return`<div class="row" style="grid-template-columns:115px 1fr 48px"><span class="n">${o.n}</span><div class="t p"><i style="width:${o.gap/mx*100}%;background:var(--ac)"></i></div><span class="v" style="text-align:right">${p(cu/G)}</span></div>`}).join('')+'<div class="lg">Cột = gap; số phải = % gap tích lũy.</div>';
  const cell=(u,k)=>{const kh=u[idx[k][0]],th=u[idx[k][1]];return kh?`<td class="h" style="background:${col(th/(kh*.7))}">${p(th/kh)}</td>`:'<td>–</td>'};
  $('hm').innerHTML='<table><tr><th>Đơn vị</th><th>Bán lẻ</th><th>GT</th><th>B2B</th></tr>'+[...rs].sort((a,b)=>b.gap-a.gap).slice(0,12).map(o=>`<tr><td>${o.n}</td>${cell(o.u,'BL')}${cell(o.u,'GT')}${cell(o.u,'B2B')}</tr>`).join('')+'</table>'}
 
@@ -511,8 +528,8 @@ function r6(){
  
  let timeLabel = isMonth ? `Tháng ${m_sel}/${latest_year}` : (q ? `Quý ${q}/${latest_year}` : `Lũy kế T1–T${n}/${latest_year}`);
  let entityName = sel ? sel : (g ? `Nhóm ${g}` : "Toàn mạng lưới");
- let channelName = c !== 'T' ? ` · Kênh ${CH[c]}` : '';
- $('uh').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${entityName}</span> <span style="color:var(--mu)">· ${timeLabel}${channelName}</span></div>`;
+ let channelNameStr = c !== 'T' ? `Kênh ${CH[c]}` : 'Các kênh bán';
+ $('uh').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${entityName}</span> <span style="color:var(--mu)">· ${timeLabel} · </span> <span style="color:var(--tx);font-weight:bold">${channelNameStr}</span></div>`;
  
  const active_m = isMonth ? m_sel : n; 
  
@@ -665,7 +682,7 @@ function r6(){
  }
  s2+=`<polyline fill="none" stroke="var(--r)" stroke-width="2" points="${a.kh.map((q_v,i)=>x2(i)+','+y2(q_v)).join(' ')}"/><polyline fill="none" stroke="var(--mu)" stroke-width="2" stroke-dasharray="4 3" points="${a.ck.slice(0,n).map((q_v,i)=>x2(i)+','+y2(q_v)).join(' ')}"/></svg>`;
  
- let headerTitle = isGlobal ? `Chi tiết mạng lưới: ${g ? 'Nhóm ' + g : 'Toàn mạng lưới'}` : `Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right">Bỏ chọn</button>`;
+ let headerTitle = isGlobal ? `Chi tiết mạng lưới: ${g ? 'Nhóm ' + g : 'Toàn mạng lưới'}` : `Chi tiết đơn vị: ${sel} <span class="lg">· ${v[1]}</span> <button class="btn" id="uc" style="float:right" onclick="resetFilters()">Bỏ chọn</button>`;
 
  $('ud').innerHTML=`<div class="c" style="margin-top:10px"><h2>${headerTitle}</h2><div class="kp">${K.map(([q_v,r_v])=>`<div class="k"><span>${q_v}</span><b style="font-size:19px">${r_v}</b></div>`).join('')}</div>
  <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));">
