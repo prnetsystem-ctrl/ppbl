@@ -14,7 +14,6 @@ h2{font-size:14px;margin:0 0 8px}.sub,.lg{color:var(--mu);font-size:12px}.sub{ma
 .tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 .bar{display:flex;flex-wrap:wrap;gap:12px;background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:8px 12px;margin-bottom:10px}.bar label{font-size:12px;color:var(--mu);display:flex;gap:6px;align-items:center}
 select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:3px 6px;font:inherit;outline:none}
-#fc {font-weight: bold; color: var(--ac); border-color: var(--ac); background-color: rgba(31, 95, 191, 0.05);}
 .kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:10px}.k{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:10px}.k b{display:block;font-size:19px}.k span{font-size:13px;color:var(--mu)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:10px}.c{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:14px;min-width:0}
 .row{display:grid;grid-template-columns:105px 1fr 48px;gap:6px;align-items:center;margin:3px 0;font-size:12px}.n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v{text-align:right;color:var(--mu)}
@@ -107,7 +106,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 
 <div id="loading">Đang tải dữ liệu từ Google Sheet...</div>
 
-<!-- LOGO SẼ TỰ ĐỘNG HIỂN THỊ KHI BẠN CHÈN LINK ẢNH VÀO ĐÂY -->
+<!-- THAY ĐƯỜNG LINK LOGO VÀO src DƯỚI ĐÂY -->
 <h1><img src="logo nhan dien_2.png" alt="Vietnam Post Logo" onerror="this.style.display='none'">Kết quả kinh doanh dịch vụ Phân phối bán lẻ trên mạng lưới Bưu điện Việt Nam</h1>
 
 <div class="sub" id="page-sub">Dữ liệu thực hiện cập nhật tự động · Đơn vị tính: triệu đồng · Được thiết kế bởi ThanhDD - Phòng TCBL </div>
@@ -134,7 +133,9 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
     <option>PHBC+TCDN</option>
 </select></label>
 <label>Kênh <select id="fc"><option value="T">Tổng</option><option value="BL">Bán lẻ</option><option value="GT">GT</option><option value="B2B">B2B</option></select></label>
-<label>Lũy kế đến tháng <select id="fn"></select></label><span class="lg" id="fh"></span></div>
+<label>Lũy kế đến tháng <select id="fn"></select></label>
+<button class="btn" id="btn-reset-all" style="margin-left:auto; font-size:12px; padding: 4px 12px; background: #e0e0e0; border: none; color: #333; font-weight:500">Bỏ chọn</button>
+</div>
 
 <!-- TAB 1: TỔNG QUAN -->
 <div class="v2 on" id="p1">
@@ -155,7 +156,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
         <label>Chọn đơn vị <select id="fu"><option value="">— Tất cả đơn vị —</option></select></label>
         <label>Kỳ đánh giá <select id="fq"><option value="0">Lũy kế (so với KH năm)</option><option value="1">Quý 1</option><option value="2">Quý 2</option><option value="3">Quý 3</option><option value="4">Quý 4</option></select></label>
         <label>Tháng <select id="fm"><option value="0">— Không chọn —</option></select></label>
-        <span class="lg" id="us"></span>
+        <button class="btn" id="btn-reset-unit" style="margin-left:auto; font-size:12px; padding: 4px 12px; background: #e0e0e0; border: none; color: #333; font-weight:500">Bỏ chọn</button>
     </div>
     <div class="c" style="margin-bottom:10px">
         <div id="uh"></div>
@@ -303,20 +304,28 @@ function getKhuVuc(ten) {
     if(t.includes("TCND") || t.includes("PHBC")) return "PHBC+TCDN";
     if(t.includes("HOÀN KIẾM") || t.includes("HÀ ĐÔNG") || t.includes("TỪ LIÊM") || t.includes("LONG BIÊN") || t.includes("ĐÔNG ANH") || t.includes("THANH TRÌ") || t.includes("CHƯƠNG MỸ") || t.includes("SƠN TÂY")) return "TT Hà Nội";
     
+    // Nhóm TT TP.HCM (Bao gồm các TT quận/huyện HCM + BRVT + Bình Dương)
     if(t.includes("SÀI GÒN") || t.includes("TT PHÚ THỌ") || t.includes("CHỢ LỚN") || t.includes("NAM SÀI GÒN") || t.includes("GIA ĐỊNH") || t.includes("BÌNH CHÁNH") || t.includes("CỦ CHI") || t.includes("THỦ ĐỨC") || t.includes("BR VT") || t.includes("BR-VT") || t.includes("BÌNH DƯƠNG") || t.includes("BÀ RỊA")) return "TT TP.HCM";
 
+    // Nhóm Đông Nam Bộ (Bao gồm Đồng Nai và Bưu điện tỉnh TT. TP.HCM)
     if(t.includes("ĐỒNG NAI") || t.includes("TP.HCM") || t.includes("TP HCM") || t.includes("TPHCM") || t.includes("HỒ CHÍ MINH") || t.includes("HCM")) return "Đông Nam Bộ";
     
+    // Miền Tây
     if(t.includes("TÂY NINH") || t.includes("ĐỒNG THÁP") || t.includes("AN GIANG") || t.includes("VĨNH LONG") || t.includes("CẦN THƠ") || t.includes("CÀ MAU") || t.includes("SÓC TRĂNG") || t.includes("BẠC LIÊU") || t.includes("BẾN TRE") || t.includes("TRÀ VINH") || t.includes("KIÊN GIANG") || t.includes("HẬU GIANG") || t.includes("TIỀN GIANG") || t.includes("LONG AN")) return "Miền Tây";
     
+    // ĐB Sông Hồng
     if(t.includes("HƯNG YÊN") || t.includes("HẢI PHÒNG") || t.includes("QUẢNG NINH") || t.includes("BẮC NINH") || t.includes("NINH BÌNH") || t.includes("HẢI DƯƠNG") || t.includes("THÁI BÌNH") || t.includes("NAM ĐỊNH") || t.includes("VĨNH PHÚC") || t.includes("HÀ NAM")) return "ĐB Sông Hồng";
     
+    // Đông Bắc
     if((t.includes("PHÚ THỌ") && !t.includes("TT PHÚ THỌ")) || t.includes("LẠNG SƠN") || t.includes("THÁI NGUYÊN") || t.includes("CAO BẰNG") || t.includes("TUYÊN QUANG") || t.includes("HÀ GIANG") || t.includes("BẮC KẠN") || t.includes("BẮC GIANG")) return "Đông Bắc";
     
+    // Tây Bắc
     if(t.includes("LÀO CAI") || t.includes("SƠN LA") || t.includes("ĐIỆN BIÊN") || t.includes("LAI CHÂU") || t.includes("YÊN BÁI") || t.includes("HÒA BÌNH")) return "Tây Bắc";
     
+    // Miền Trung
     if(t.includes("THANH HÓA") || t.includes("NGHỆ AN") || t.includes("HÀ TĨNH") || t.includes("QUẢNG TRỊ") || t.includes("HUẾ") || t.includes("QUẢNG BÌNH")) return "Miền Trung";
     
+    // NTB & Tây Nguyên
     if(t.includes("ĐÀ NẴNG") || t.includes("QUẢNG NGÃI") || t.includes("GIA LAI") || t.includes("ĐẮK LẮK") || t.includes("KHÁNH HÒA") || t.includes("LÂM ĐỒNG") || t.includes("NTB") || t.includes("QUẢNG NAM") || t.includes("BÌNH ĐỊNH") || t.includes("PHÚ YÊN") || t.includes("NINH THUẬN") || t.includes("BÌNH THUẬN") || t.includes("KONTUM") || t.includes("ĐẮK NÔNG")) return "NTB & TN";
     
     return "Khác";
@@ -399,7 +408,7 @@ const qrows = (A, n) => [0, 1, 2, 3].map(qi => {
 });
 
 function r1(){
-    const{g,c,n}=S(),a=agg(g,c),kY=sm(a.kh,12),th=sm(a.th,n),ck=sm(a.ck,n),gap=Math.max(kY-th,0);
+    const{g,c,n}=S(),a=agg(g,c),kY=sm(a.kh,12),th=sm(a.th,n),ck=sm(a.ck,n),gap=Math.max(kY*sm(W,n)-th,0);
     const cw = sm(W, n); const k_n = kY * cw; 
     const pace=th/n,need=n<12?gap/(12-n):0;
     
@@ -407,8 +416,9 @@ function r1(){
     const growth_ck = ck ? (th/ck-1>=0?'+':'') + p(th/ck-1) : '–';
 
     const entityName = g ? `Nhóm ${g}` : "Toàn mạng lưới";
-    const channelName = c !== 'T' ? ` · Kênh ${CH[c]}` : '';
-    $('view-title-1').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${entityName}</span> <span style="color:var(--mu)">· Lũy kế T1–T${n}/${latest_year}${channelName}</span></div>`;
+    const channelNameStr = c !== 'T' ? `Kênh ${CH[c]}` : `Các kênh bán`;
+    
+    $('view-title-1').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${entityName}</span> <span style="color:var(--mu)">· Lũy kế T1–T${n}/${latest_year} · </span><span style="color:var(--tx);font-weight:bold">${channelNameStr}</span></div>`;
 
     const K=[
         ['KH năm',f(kY)],
@@ -465,6 +475,7 @@ function r2(){const{g,c,n}=S(),a=agg(g,c),Wd=560,H=210,L=44,B=24,T=10,pw=(Wd-L-8
 function r3(){
     const { g, c, n } = S();
     const cw = sm(W, n);
+    const MAX_PCT = 1.5; // Cap bar chart ở mức 150%
     
     const rs = V_data.filter(u => (g ? u[1] == g : u[1] != 'Khác')).map(u => {
         const u_c = ua(u, c);
@@ -477,14 +488,12 @@ function r3(){
 
     const rk = [...rs].filter(o => o.pm !== null).sort((a, b) => b.pm - a.pm);
     const sel_rk = rk.length > 16 ? [...rk.slice(0, 8), ...rk.slice(-8)] : rk;
-    
-    const scale_max = rk.length > 0 ? Math.max(1.2, ...rk.map(o => o.pm)) : 1.2;
 
-    $('rk').innerHTML = sel_rk.map(o => `<div class="row ur${o.n==$('fu').value?' sel':''}" data-u="${o.n}" style="cursor:pointer">
+    $('rk').innerHTML = sel_rk.map(o => `<div class="row ur${o.n==$('fu').value?' sel':''}" data-u="${o.n}" style="cursor:pointer; grid-template-columns:105px 1fr 50px;">
         <span class="n">${o.n}</span>
         <div class="t p">
-            <i style="width:${(Math.max(0, o.pm) / scale_max) * 100}%;background:${col(o.pm)}"></i>
-            <b class="mk" style="left:${(1 / scale_max) * 100}%; border-left: 1px dashed var(--mu); opacity: 0.6"></b>
+            <i style="width:${(Math.min(Math.max(0, o.pm), MAX_PCT) / MAX_PCT) * 100}%;background:${col(o.pm)}"></i>
+            <b class="mk" style="left:${(1 / MAX_PCT) * 100}%; border-left: 1px dashed var(--mu); opacity: 0.6"></b>
         </div>
         <span class="v">${p(o.pm)}</span>
     </div>`).join('');
@@ -493,12 +502,12 @@ function r3(){
     const mx = pr[0] && pr[0].gap > 0 ? pr[0].gap : 1;
     $('pa').innerHTML = pr.map(o => {
         const pct_thieu = o.kh ? o.gap / o.kh : 0;
-        return `<div class="row ur${o.n==$('fu').value?' sel':''}" data-u="${o.n}" style="cursor:pointer">
+        return `<div class="row ur${o.n==$('fu').value?' sel':''}" data-u="${o.n}" style="cursor:pointer; grid-template-columns:105px 1fr 90px;">
             <span class="n">${o.n}</span>
             <div class="t p"><i style="width:${o.gap / mx * 100}%;background:var(--r)"></i></div>
-            <span class="v">${f(o.gap)} <span style="font-size:10.5px; color:var(--mu)">(${p(pct_thieu)})</span></span>
+            <span class="v" style="white-space:nowrap">${f(o.gap)} <span style="font-size:10.5px; color:var(--mu)">(${p(pct_thieu)})</span></span>
         </div>`;
-    }).join('') + '<div class="lg" style="margin-top:6px">Cột = giá trị khoảng trống (hụt so với mục tiêu); số phải = giá trị hụt (% hụt).</div>';
+    }).join('') + '<div class="lg" style="margin-top:6px">Cột = giá trị khoảng trống (hụt so với mục tiêu LK); số phải = giá trị hụt (% hụt).</div>';
 
     const cell = (u, k) => {
         const u_k = ua(u, k);
@@ -550,8 +559,8 @@ function r6(){
  
  let timeLabel = isMonth ? `Tháng ${m_sel}/${latest_year}` : (q ? `Quý ${q}/${latest_year}` : `Lũy kế T1–T${n}/${latest_year}`);
  let entityName = sel ? sel : (g ? `Nhóm ${g}` : "Toàn mạng lưới");
- let channelName = c !== 'T' ? ` · Kênh ${CH[c]}` : '';
- $('uh').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${entityName}</span> <span style="color:var(--mu)">· ${timeLabel}${channelName}</span></div>`;
+ let channelNameStr = c !== 'T' ? `Kênh ${CH[c]}` : `Các kênh bán`;
+ $('uh').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${entityName}</span> <span style="color:var(--mu)">· ${timeLabel} · </span><span style="color:var(--tx);font-weight:bold">${channelNameStr}</span></div>`;
  
  const active_m = isMonth ? m_sel : n; 
  
@@ -559,36 +568,35 @@ function r6(){
      const a=ua(v,c), kY=a.khY;
      let p_=null, kq=0, tq=0;
      if(isMonth){
-         kq = kY * W[m_sel-1];
+         kq = a.kh[m_sel-1];
          tq = a.th[m_sel-1];
          p_ = kq ? tq/kq : null;
      } else if(q){
-         kq = kY * sm(W.slice(3*qi,3*qi+mm),mm);
+         kq = sm(a.kh.slice(3*qi,3*qi+mm),mm);
          tq = sm(a.th.slice(3*qi,3*qi+mm),mm);
          p_ = kq ? tq/kq : null;
      } else {
-         kq = kY;
+         kq = kY * cw;
          tq = sm(a.th,n);
-         p_ = kY ? tq/kY : null;
+         p_ = kq ? tq/kq : null;
      }
-     let m_val = (isMonth || q) ? p_ : (cw&&kY?sm(a.th,n)/(kY*cw):-1);
-     let p_text = (isMonth||q) ? (kq ? p(tq/kq) : '–') : (kY ? p(tq/kY) : '–');
+     let p_text = (isMonth||q) ? (kq ? p(tq/kq) : '–') : (kY ? p(sm(a.th,n)/kY) : '–');
      
-     return {n:v[0], kh:kY, th_val:tq, p:p_, p_text:p_text, m:m_val};
+     return {n:v[0], kh:kY, th_val:tq, p:p_, p_text:p_text, m:p_};
  }).filter(o=>o.kh>0&&o.p!=null).sort((x,y)=>y.p-x.p);
  
  const nG=rows.filter(o=>o.m>=1).length,nA=rows.filter(o=>o.m>=.7&&o.m<1).length,nR=rows.length-nG-nA,pc=x=>rows.length?x/rows.length*100:0;
  $('us').textContent=rows.length+' đơn vị';
  $('dist').innerHTML=rows.length?`<div class="mix">${[[nG,'var(--g)',(isMonth||q)?'đạt KH kỳ':'đạt mục tiêu'],[nA,'var(--a)','70–100%'],[nR,'var(--r)','dưới 70%']].map(([x,cl,t])=>`<div style="width:${pc(x)}%;background:${cl}">${x?x+' '+t:''}</div>`).join('')}</div>`:'';
  
- const scale_max = rows.length > 0 ? Math.max(1.5, ...rows.map(o => isFinite(o.p) ? o.p : 0)) : 1.5;
+ const MAX_PCT = 1.5;
 
  $('ub').innerHTML=rows.length?rows.map(o=>`<div class="row ur${o.n==sel?' sel':''}" data-u="${o.n}" style="grid-template-columns:135px 1fr 50px;cursor:pointer">
      <span class="n" title="${o.n}">${o.n}</span>
      <div class="t p">
-         <i style="width:${(Math.max(0, o.p)/scale_max)*100}%;background:${col(o.m)}"></i>
-         <b class="mk" style="left:${(1/scale_max)*100}%; border-left: 1px dashed var(--mu); opacity: 0.6"></b>
-         ${(isMonth||q)?'':`<b class="mk" style="left:${(cw/scale_max)*100}%; border-left: 2px solid var(--tx); opacity: 0.5"></b>`}
+         <i style="width:${(Math.min(Math.max(0, o.p), MAX_PCT)/MAX_PCT)*100}%;background:${col(o.m)}"></i>
+         <b class="mk" style="left:${(1/MAX_PCT)*100}%; border-left: 1px dashed var(--mu); opacity: 0.6"></b>
+         ${(isMonth||q)?'':`<b class="mk" style="left:${(cw/MAX_PCT)*100}%; border-left: 2px solid var(--tx); opacity: 0.5"></b>`}
      </div>
      <span class="v">${o.p_text}</span>
  </div>`).join(''):'<div class="lg">Chưa có thực hiện trong kỳ đã chọn.</div>';
@@ -784,6 +792,22 @@ $('fq').addEventListener('input', e => {
 });
 ['fg','fc','fn'].forEach(i=>$(i).addEventListener('input',all));
 
+$('btn-reset-all').addEventListener('click', () => {
+    $('fg').value = ''; 
+    $('fc').value = 'T'; 
+    $('fn').value = max_month_th;
+    $('fu').value = ''; 
+    $('fq').value = '0'; 
+    $('fm').value = '0';
+    all();
+});
+$('btn-reset-unit').addEventListener('click', () => {
+    $('fu').value = ''; 
+    $('fq').value = '0'; 
+    $('fm').value = '0';
+    all();
+});
+
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x==b));document.querySelectorAll('.v2').forEach(x=>x.classList.toggle('on',x.id=='p'+b.dataset.t));$('fb').style.display=b.dataset.t=='5'||b.dataset.t=='6'?'none':'flex'}));
 
 // ==============================================
@@ -953,473 +977,4 @@ async function loadGoogleSheetData() {
         console.error("Lỗi khi tải dữ liệu từ Google Sheet Doanh thu:", error);
     }
 }
-
-function rrep() {
-    const {g, c, n} = S(); 
-    const sel = $('fu').value; 
-
-    let total_KH = 0, total_TH = 0, total_CK = 0;
-    let bl_KH = 0, bl_TH = 0, gt_KH = 0, gt_TH = 0, b2b_KH = 0, b2b_TH = 0;
-
-    let month_KH = 0, month_TH = 0, month_CK = 0;
-    let month_bl_TH = 0, month_gt_TH = 0, month_b2b_TH = 0;
-
-    const cw = sm(W, n); 
-    const w_month = W[n-1]; 
-
-    let topGaps = [];
-    let donViName = sel ? sel : (g ? `Nhóm ${g}` : "Toàn mạng lưới");
-    let channelName = c !== 'T' ? ` - Kênh ${CH[c]}` : '';
-
-    if (sel) {
-        const v = V_data.find(x => x[0] == sel);
-        if (!v) return;
-
-        const uT = ua(v, 'T'), uBL = ua(v, 'BL'), uGT = ua(v, 'GT'), uB2B = ua(v, 'B2B');
-
-        total_KH = uT.khY;
-        bl_KH = uBL.khY; gt_KH = uGT.khY; b2b_KH = uB2B.khY;
-
-        total_TH = sm(uT.th, n); bl_TH = sm(uBL.th, n); gt_TH = sm(uGT.th, n); b2b_TH = sm(uB2B.th, n);
-        total_CK = sm(uT.ck, n);
-
-        month_TH = uT.th[n-1] || 0; month_CK = uT.ck[n-1] || 0;
-        month_bl_TH = uBL.th[n-1] || 0; month_gt_TH = uGT.th[n-1] || 0; month_b2b_TH = uB2B.th[n-1] || 0;
-
-        topGaps = [
-            {n: 'Bán lẻ', gap: Math.max(bl_KH * cw - bl_TH, 0)},
-            {n: 'GT', gap: Math.max(gt_KH * cw - gt_TH, 0)},
-            {n: 'B2B', gap: Math.max(b2b_KH * cw - b2b_TH, 0)}
-        ].filter(o => o.gap > 0).sort((a,b) => b.gap - a.gap);
-
-    } else {
-        for (const G in M_data) {
-            if(g && G != g) continue;
-            bl_KH += sm(M_data[G].BL.kh, 12); bl_TH += sm(M_data[G].BL.th, n); month_bl_TH += M_data[G].BL.th[n-1] || 0;
-            gt_KH += sm(M_data[G].GT.kh, 12); gt_TH += sm(M_data[G].GT.th, n); month_gt_TH += M_data[G].GT.th[n-1] || 0;
-            b2b_KH += sm(M_data[G].B2B.kh, 12); b2b_TH += sm(M_data[G].B2B.th, n); month_b2b_TH += M_data[G].B2B.th[n-1] || 0;
-            total_CK += sm(M_data[G].BL.ck, n) + sm(M_data[G].GT.ck, n) + sm(M_data[G].B2B.ck, n);
-            month_CK += (M_data[G].BL.ck[n-1] || 0) + (M_data[G].GT.ck[n-1] || 0) + (M_data[G].B2B.ck[n-1] || 0);
-        }
-        total_KH = bl_KH + gt_KH + b2b_KH;
-        total_TH = bl_TH + gt_TH + b2b_TH;
-        month_TH = month_bl_TH + month_gt_TH + month_b2b_TH;
-
-        const rs_gaps = V_data.filter(x=>(g?x[1]==g:x[1]!='Khác')).map(x => {
-            const a = ua(x, c);
-            const t = sm(a.th, n);
-            return {n: x[0], gap: Math.max(a.khY * cw - t, 0)};
-        }).sort((a,b) => b.gap - a.gap);
-        topGaps = rs_gaps.slice(0, 5).filter(o => o.gap > 0);
-    }
-
-    if(c !== 'T') {
-        if(c === 'BL') { total_KH = bl_KH; total_TH = bl_TH; month_TH = month_bl_TH; }
-        if(c === 'GT') { total_KH = gt_KH; total_TH = gt_TH; month_TH = month_gt_TH; }
-        if(c === 'B2B') { total_KH = b2b_KH; total_TH = b2b_TH; month_TH = month_b2b_TH; }
-    }
-
-    month_KH = total_KH * w_month;
-    const muctieu_LK = total_KH * cw;
-
-    const pct_nam = total_KH ? (total_TH / total_KH * 100) : 0;
-    const pct_mt = muctieu_LK ? (total_TH / muctieu_LK * 100) : 0;
-    const tang_truong = total_CK ? (total_TH / total_CK * 100) : 0;
-
-    const pct_month = month_KH ? (month_TH / month_KH * 100) : 0;
-    const tang_truong_month = month_CK ? (month_TH / month_CK * 100) : 0;
-
-    let nhanXetB2B = "";
-    if (c === 'T' && total_TH > 0 && (b2b_TH / total_TH) > 0.6) {
-        nhanXetB2B = `Tuy nhiên, kết quả tổng thể đang phụ thuộc quá nhiều vào một kênh: <b>B2B chiếm tới ${p(b2b_TH/total_TH)} doanh thu</b>, trong khi Bán lẻ và GT vẫn đang chậm tiến độ. ${sel ? 'Đơn vị' : 'Toàn mạng lưới'} cần rà soát lại cơ cấu doanh thu thực chất.`;
-    } else if (c === 'T') {
-        nhanXetB2B = `Cơ cấu doanh thu các kênh đang duy trì ở mức tương đối ổn định.`;
-    }
-
-    let nhanXetGap = "";
-    if (sel) {
-        if (topGaps.length > 0) {
-            nhanXetGap = `Đơn vị đang có khoảng trống (Gap) hụt so với mục tiêu lũy kế cần tập trung đẩy mạnh là: ` + topGaps.map(x => `<b>Kênh ${x.n}</b> (hụt ${f(x.gap)})`).join(', ') + `.`;
-        } else {
-            nhanXetGap = `Đơn vị đang bám sát và hoàn thành tốt tiến độ kế hoạch ở các kênh.`;
-        }
-    } else {
-        if (topGaps.length > 0) {
-            nhanXetGap = `Các đơn vị đang có khoảng trống (Gap) hụt mục tiêu lớn nhất mạng lưới cần tập trung hỗ trợ/xử lý là: ` + topGaps.map(x => `<b>${x.n}</b> (hụt ${f(x.gap)})`).join(', ') + `.`;
-        } else {
-            nhanXetGap = `Đa số các đơn vị đều theo kịp hoặc vượt tiến độ kế hoạch đặt ra.`;
-        }
-    }
-
-    let nhanXetThang = `Trong tháng ${n}, ${sel ? 'đơn vị' : 'toàn mạng lưới'} thực hiện đạt <b>${f(month_TH)}</b>, tương đương <b>${pct_month.toFixed(1)}%</b> mục tiêu giao riêng trong tháng (${f(month_KH)}). `;
-    if (month_CK > 0) {
-        nhanXetThang += `So với cùng kỳ năm trước, doanh thu riêng tháng ${n} đạt <b>${tang_truong_month.toFixed(1)}%</b>. `;
-    }
-    
-    if (pct_month >= 100) {
-        nhanXetThang += `<span style="color:var(--g)"><b>Đánh giá: Rất tốt.</b> Đã hoàn thành và vượt mục tiêu doanh thu của tháng.</span>`;
-    } else if (pct_month >= 80) {
-        nhanXetThang += `<span style="color:var(--a)"><b>Đánh giá: Đạt yêu cầu.</b> Đang bám sát mục tiêu tháng, cần nỗ lực thêm để về đích trọn vẹn.</span>`;
-    } else {
-        nhanXetThang += `<span style="color:var(--r)"><b>Đánh giá: Chậm tiến độ.</b> Kết quả tháng ${n} đang thấp hơn so với kỳ vọng, cần có các biện pháp thúc đẩy bán hàng ngay lập tức.</span>`;
-    }
-
-    let h = `<button id="btn-copy-report" class="copy-btn" onclick="copyReportContent()">Sao chép báo cáo</button>`;
-    h += `<h1 class="rt" style="text-transform:uppercase; margin-top:20px;">BÁO CÁO ĐÁNH GIÁ TỰ ĐỘNG THÁNG ${n} ${sel ? '- ĐƠN VỊ ' + sel : ''}</h1>`;
-    h += `<div class="rs">Đơn vị: ${donViName} · Kỳ báo cáo: T1–T${n}/${latest_year}${channelName}</div>`;
-    h += `<div class="rm">Nội dung báo cáo được hệ thống tự động bóc tách và phân tích theo số liệu ${sel ? 'riêng của đơn vị' : 'toàn mạng lưới'}.</div>`;
-    
-    h += `<h3>I. Đánh giá lũy kế T1-T${n}</h3>`;
-    h += `<p>Sau ${n} tháng, ${sel ? 'đơn vị' : 'toàn mạng lưới'} thực hiện đạt <b>${f(total_TH)}</b>, tương đương <b>${pct_nam.toFixed(1)}%</b> kế hoạch năm (${f(total_KH)}). So với mục tiêu luỹ kế đến thời điểm hiện tại, đạt <b>${pct_mt.toFixed(1)}%</b> và bằng <b>${tang_truong.toFixed(1)}%</b> so với cùng kỳ năm trước.</p>`;
-    h += `<p>${nhanXetB2B}</p>`;
-    
-    h += `<div class="sc"><table style="margin-top:10px">
-        <tr><th style="text-align:left">Kênh</th><th>KH Năm</th><th>Thực hiện LK</th><th>% KH Năm</th><th>% Mục tiêu LK</th></tr>
-        <tr><td style="text-align:left">Bán lẻ</td><td>${f(bl_KH)}</td><td>${f(bl_TH)}</td><td>${bl_KH?p(bl_TH/bl_KH):'-'}</td><td class="h" style="background:${bl_KH?col(bl_TH/(bl_KH*cw)):'transparent'};color:${bl_KH?'#fff':'inherit'}">${bl_KH?p(bl_TH/(bl_KH*cw)):'-'}</td></tr>
-        <tr><td style="text-align:left">GT</td><td>${f(gt_KH)}</td><td>${f(gt_TH)}</td><td>${gt_KH?p(gt_TH/gt_KH):'-'}</td><td class="h" style="background:${gt_KH?col(gt_TH/(gt_KH*cw)):'transparent'};color:${gt_KH?'#fff':'inherit'}">${gt_KH?p(gt_TH/(gt_KH*cw)):'-'}</td></tr>
-        <tr><td style="text-align:left">B2B</td><td>${f(b2b_KH)}</td><td>${f(b2b_TH)}</td><td>${b2b_KH?p(b2b_TH/b2b_KH):'-'}</td><td class="h" style="background:${b2b_KH?col(b2b_TH/(b2b_KH*cw)):'transparent'};color:${b2b_KH?'#fff':'inherit'}">${b2b_KH?p(b2b_TH/(b2b_KH*cw)):'-'}</td></tr>
-        <tr><td style="text-align:left"><b>Tổng</b></td><td><b>${f(total_KH)}</b></td><td><b>${f(total_TH)}</b></td><td><b>${total_KH?p(total_TH/total_KH):'-'}</b></td><td class="h" style="background:${total_KH?col(total_TH/muctieu_LK):'transparent'};color:${total_KH?'#fff':'inherit'}"><b>${total_KH?p(total_TH/muctieu_LK):'-'}</b></td></tr>
-    </table></div>`;
-
-    h += `<h3>II. Đánh giá riêng Tháng ${n}</h3>`;
-    h += `<p>${nhanXetThang}</p>`;
-    
-    h += `<div class="sc"><table style="margin-top:10px">
-        <tr><th style="text-align:left">Kênh</th><th>KH Tháng ${n}</th><th>Thực hiện T${n}</th><th>% KH Tháng</th></tr>
-        <tr><td style="text-align:left">Bán lẻ</td><td>${f(bl_KH*w_month)}</td><td>${f(month_bl_TH)}</td><td class="h" style="background:${(bl_KH*w_month)?col(month_bl_TH/(bl_KH*w_month)):'transparent'};color:${(bl_KH*w_month)?'#fff':'inherit'}">${(bl_KH*w_month)?p(month_bl_TH/(bl_KH*w_month)):'-'}</td></tr>
-        <tr><td style="text-align:left">GT</td><td>${f(gt_KH*w_month)}</td><td>${f(month_gt_TH)}</td><td class="h" style="background:${(gt_KH*w_month)?col(month_gt_TH/(gt_KH*w_month)):'transparent'};color:${(gt_KH*w_month)?'#fff':'inherit'}">${(gt_KH*w_month)?p(month_gt_TH/(gt_KH*w_month)):'-'}</td></tr>
-        <tr><td style="text-align:left">B2B</td><td>${f(b2b_KH*w_month)}</td><td>${f(month_b2b_TH)}</td><td class="h" style="background:${(b2b_KH*w_month)?col(month_b2b_TH/(b2b_KH*w_month)):'transparent'};color:${(b2b_KH*w_month)?'#fff':'inherit'}">${(b2b_KH*w_month)?p(month_b2b_TH/(b2b_KH*w_month)):'-'}</td></tr>
-        <tr><td style="text-align:left"><b>Tổng</b></td><td><b>${f(month_KH)}</b></td><td><b>${f(month_TH)}</b></td><td class="h" style="background:${month_KH?col(month_TH/month_KH):'transparent'};color:${month_KH?'#fff':'inherit'}"><b>${month_KH?p(month_TH/month_KH):'-'}</b></td></tr>
-    </table></div>`;
-
-    h += `<h3>III. Nhận diện rủi ro & Khoảng trống (Gap)</h3>`;
-    h += `<p>${nhanXetGap}</p>`;
-    
-    h += `<h3>IV. Khuyến nghị hành động</h3>`;
-    h += `<ul>
-        <li><b>Kênh Bán Lẻ:</b> Rà soát lại năng lực bán lẻ${sel ? ' tại đơn vị' : ' tại các đơn vị có Gap lớn'}, đẩy mạnh các chương trình khuyến mại bám sát mục tiêu tháng.</li>
-        <li><b>Kênh GT:</b> ${sel ? 'Khai thác tối đa tiềm năng tại các điểm bán trên địa bàn.' : 'Xác nhận lại định nghĩa và cách ghi nhận kênh GT tại các đơn vị đang có doanh thu quá thấp.'}</li>
-        <li><b>Kênh B2B:</b> ${sel ? 'Theo sát tiến độ đàm phán, thanh toán và giải ngân các hợp đồng B2B đã ký.' : 'Tiếp tục theo dõi tiến độ giải ngân hợp đồng trên toàn mạng lưới để đảm bảo không bị rơi rớt doanh thu cuối năm.'}</li>
-    </ul>`;
-
-    if($('rp')) $('rp').innerHTML = h;
-}
-
-async function loadTenderData() {
-    try {
-        const res = await fetch(TENDER_CSV_URL + "&_t=" + new Date().getTime());
-        const text = await res.text();
-
-        const rows = [];
-        let row = [], inQuotes = false, val = "";
-        let delimiter = '\t';
-        if (text.indexOf('\t') === -1) delimiter = text.indexOf(';') !== -1 ? ';' : ',';
-        
-        for (let i = 0; i < text.length; i++) {
-            const c = text[i];
-            if (c === '"') inQuotes = !inQuotes;
-            else if (c === delimiter && !inQuotes) { row.push(val.trim()); val = ""; }
-            else if (c === '\n' && !inQuotes) { row.push(val.trim()); if(row.join('') !== '') rows.push(row); row = []; val = ""; }
-            else if (c !== '\r') val += c;
-        }
-        if (val) row.push(val.trim());
-        if (row.length > 0 && row.join('') !== '') rows.push(row);
-
-        if (rows.length > 1) {
-            const h = rows[0].map(s => s ? s.toLowerCase() : "");
-            
-            const cT = h.findIndex(x => x.includes("tình trạng"));
-            const cThang = h.findIndex(x => x === "tháng" || x === "thang");
-            const cTrucTuyen = h.findIndex(x => x.includes("chào giá") || x.includes("trực tuyến"));
-            const cDv = 9; // Index 9 (Cột J)
-            const cCDT = h.findIndex(x => x.includes("chủ đầu tư"));
-            const cGia = 18; // Index 18 (Cột S)
-            const cNam = 21; // Index 21 (Cột V)
-            const cKhuVuc = 24; // Index 24 (Cột Y)
-
-            Tender_Data = rows.slice(1).map(r => ({
-                tinhTrang: cT >= 0 ? (r[cT] || '') : '',
-                thang: cThang >= 0 ? (r[cThang] || '') : '',
-                donVi: (cDv >= 0 && r[cDv]) ? r[cDv] : 'Chưa rõ',
-                trucTuyen: cTrucTuyen >= 0 ? (r[cTrucTuyen] || '') : '',
-                chuDauTu: cCDT >= 0 ? (r[cCDT] || '') : '',
-                giaTrung: (cGia >= 0 && r[cGia]) ? parseVNNumber(r[cGia]) : 0,
-                nam: cNam >= 0 ? (r[cNam] || '') : '',
-                khuVuc: cKhuVuc >= 0 ? (r[cKhuVuc] || '') : ''
-            }));
-            
-            let years = [...new Set(Tender_Data.map(d => {
-                let yStr = d.nam.toString().replace(/[^\d]/g, '');
-                return yStr.length >= 4 ? yStr.substring(0,4) : null;
-            }).filter(y => y))].sort();
-            
-            let ySelect = $('td-year');
-            ySelect.innerHTML = '<option value="all">Tất cả các năm</option>';
-            years.forEach(y => ySelect.add(new Option(y, y)));
-            
-            let mSelect = $('td-month');
-            mSelect.innerHTML = '<option value="all">Tất cả các tháng</option>';
-            for(let i=1; i<=12; i++) mSelect.add(new Option('Tháng '+i, i));
-
-            if($('p6').classList.contains('on') || Tender_Data.length > 0) renderTenderTab();
-        }
-    } catch(e) {
-        console.error("Lỗi tải data Đấu thầu", e);
-        $('tender-kpi').innerHTML = `<div class="k" style="color:red; grid-column: span 5;">Đang chờ cập nhật liên kết dữ liệu đấu thầu hợp lệ...</div>`;
-    }
-}
-
-window.changeTenderPage = function(tableId, dir) {
-    if (tableId === 1) {
-        window.t1Page += dir;
-        drawTenderUnits();
-    } else {
-        window.t2Page += dir;
-        drawTenderInvestors();
-    }
-}
-
-function drawTenderUnits() {
-    let limit = 10;
-    let total = window.unitTenderList.length;
-    let maxP = Math.max(0, Math.ceil(total/limit) - 1);
-    if (window.t1Page < 0) window.t1Page = 0;
-    if (window.t1Page > maxP) window.t1Page = maxP;
-    
-    let arr = window.unitTenderList.slice(window.t1Page*limit, window.t1Page*limit + limit);
-    let startIdx = window.t1Page*limit + 1;
-    let tbody = arr.map((d, i) => `<tr>
-        <td style="text-align:left">${startIdx + i}.</td>
-        <td style="text-align:left">${d.n}</td>
-        <td style="text-align:center">${d.thamGia}</td>
-        <td style="text-align:center" class="ok">${d.trung}</td>
-        <td style="text-align:center" class="fl">${d.truot}</td>
-        <td style="text-align:center">${d.trucTuyen}</td>
-        <td><b>${f(d.giaTrung)}</b></td>
-    </tr>`).join('');
-    
-    let html = `<table><tr><th style="text-align:left;width:20px">#</th><th style="text-align:left">Đơn vị</th><th style="text-align:center">Tham gia</th><th style="text-align:center">Trúng</th><th style="text-align:center">Trượt</th><th style="text-align:center">Trực tuyến</th><th>Tổng giá trúng ▾</th></tr>${tbody}</table>
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px">
-        <button class="btn" onclick="changeTenderPage(1, -1)" ${window.t1Page===0?'disabled':''}>◀ Trước</button>
-        <span class="lg">Trang ${window.t1Page+1} / ${maxP+1}</span>
-        <button class="btn" onclick="changeTenderPage(1, 1)" ${window.t1Page>=maxP?'disabled':''}>Sau ▶</button>
-    </div>`;
-    $('tender-units').innerHTML = html;
-}
-
-function drawTenderInvestors() {
-    let limit = 10;
-    let total = window.invTenderList.length;
-    let maxP = Math.max(0, Math.ceil(total/limit) - 1);
-    if (window.t2Page < 0) window.t2Page = 0;
-    if (window.t2Page > maxP) window.t2Page = maxP;
-    
-    let arr = window.invTenderList.slice(window.t2Page*limit, window.t2Page*limit + limit);
-    let startIdx = window.t2Page*limit + 1;
-    let tbody = arr.map((d, i) => `<tr>
-        <td style="text-align:left">${startIdx + i}.</td>
-        <td style="text-align:left;white-space:normal;min-width:180px">${d.n}</td>
-        <td style="text-align:left;white-space:normal">${d.dv}</td>
-        <td style="text-align:center" class="ok">${d.trung}</td>
-        <td style="text-align:center">${d.trucTuyen}</td>
-        <td><b>${f(d.giaTrung)}</b></td>
-    </tr>`).join('');
-    
-    let html = `<table><tr><th style="text-align:left;width:20px">#</th><th style="text-align:left">Chủ đầu tư</th><th style="text-align:left">Đơn vị</th><th style="text-align:center">Trúng</th><th style="text-align:center">Trực tuyến</th><th>Tổng giá trúng ▾</th></tr>${tbody}</table>
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px">
-        <button class="btn" onclick="changeTenderPage(2, -1)" ${window.t2Page===0?'disabled':''}>◀ Trước</button>
-        <span class="lg">Trang ${window.t2Page+1} / ${maxP+1}</span>
-        <button class="btn" onclick="changeTenderPage(2, 1)" ${window.t2Page>=maxP?'disabled':''}>Sau ▶</button>
-    </div>`;
-    $('tender-invs').innerHTML = html;
-}
-
-window.renderTenderTab = function() {
-    if (!Tender_Data.length) return;
-    
-    const fY = $('td-year') ? $('td-year').value : 'all';
-    const fM = $('td-month') ? $('td-month').value : 'all';
-
-    let won = 0, lost = 0, online = 0, totalVal = 0;
-    let khuVucMap = {}, namMap = {}, thangNamMap = {};
-    let unitMap = {}, invMap = {};
-
-    Tender_Data.forEach(d => {
-        let tStr = d.tinhTrang.toLowerCase();
-        let isWon = tStr.includes('trúng') || tStr.includes('thành công');
-        let isLost = tStr.includes('trượt') || tStr.includes('hủy') || tStr.includes('không');
-        
-        if (!isWon && !isLost) return; 
-        
-        let tMatch = d.thang.match(/\d+/);
-        let m = tMatch ? parseInt(tMatch[0]) : 0;
-        
-        let yStr = d.nam ? d.nam.toString().replace(/[^\d]/g, '') : '';
-        let y = yStr.length >= 4 ? yStr.substring(0,4) : '';
-
-        let dv = d.donVi;
-
-        if (isWon && y) {
-            if (!thangNamMap[y]) thangNamMap[y] = Array(12).fill(0);
-            if (m >= 1 && m <= 12) thangNamMap[y][m - 1] += d.giaTrung;
-        }
-
-        if (isWon && y && (fM === 'all' || m == fM)) {
-            namMap[y] = (namMap[y] || 0) + d.giaTrung;
-        }
-
-        if (fY !== 'all' && y !== fY) return;
-        if (fM !== 'all' && m != fM) return;
-
-        let isOnline = d.trucTuyen.toLowerCase().includes('tt') || d.trucTuyen.toLowerCase().includes('có') || d.trucTuyen.toLowerCase().includes('trực tuyến');
-        
-        if (isWon) won++;
-        if (isLost) lost++;
-        if (isOnline) online++;
-        if (isWon) totalVal += d.giaTrung;
-        
-        if (d.khuVuc && !d.khuVuc.includes('#N/A') && d.khuVuc.trim() !== '') {
-            khuVucMap[d.khuVuc] = (khuVucMap[d.khuVuc] || 0) + 1;
-        }
-        
-        if (dv) {
-            if (!unitMap[dv]) unitMap[dv] = {n: dv, thamGia: 0, trung: 0, truot: 0, trucTuyen: 0, giaTrung: 0};
-            unitMap[dv].thamGia++;
-            if (isWon) unitMap[dv].trung++;
-            if (isLost) unitMap[dv].truot++;
-            if (isOnline) unitMap[dv].trucTuyen++;
-            if (isWon) unitMap[dv].giaTrung += d.giaTrung;
-        }
-        
-        let cdt = d.chuDauTu;
-        if (cdt && isWon) {
-            if (!invMap[cdt]) invMap[cdt] = {n: cdt, dv: dv, trung: 0, trucTuyen: 0, giaTrung: 0};
-            invMap[cdt].trung++;
-            if (isOnline) invMap[cdt].trucTuyen++;
-            invMap[cdt].giaTrung += d.giaTrung;
-        }
-    });
-
-    let total = won + lost;
-    let winRate = total > 0 ? (won / total) : 0;
-    let onlineRate = total > 0 ? (online / total) : 0;
-    let lostRate = total > 0 ? (lost / total) : 0;
-
-    const tenderK = [
-        ['Giá trúng thầu', `<strong style="color:var(--g)">${f(totalVal)}</strong>`],
-        ['SL gói thầu tham gia', total],
-        ['SL gói thầu đã trúng', `<strong style="color:var(--a)">${won}</strong> <small style="font-size:13px;font-weight:normal;color:var(--tx)">(${p(winRate)})</small>`],
-        ['SL gói trực tuyến', `<strong style="color:var(--ac)">${online}</strong> <small style="font-size:13px;font-weight:normal;color:var(--tx)">(${p(onlineRate)})</small>`],
-        ['SL gói thầu thất bại', `<strong class="pu">${lost}</strong> <small style="font-size:13px;font-weight:normal;color:var(--tx)">(${p(lostRate)})</small>`]
-    ];
-    $('tender-kpi').innerHTML = tenderK.map(([x,y]) => `<div class="k"><span>${x}</span><b>${y}</b></div>`).join('');
-
-    let pieHtml = '';
-    let pieTotal = Object.values(khuVucMap).reduce((a,b)=>a+b,0);
-    if (pieTotal > 0) {
-        let svg = '<svg viewBox="-1 -1 2 2" style="transform: rotate(-90deg); width: 100%; max-width:200px; display: block; margin: 0 auto;">';
-        let acc = 0;
-        const colors = ['#5b9bff','#e67e22','#2ecc71','#1abc9c','#f1c40f','#9b59b6','#34495e','#e74c3c','#7f8c8d'];
-        let legends = '';
-        Object.entries(khuVucMap).sort((a,b)=>b[1]-a[1]).forEach(([k,v], i) => {
-            let pct = v/pieTotal;
-            let start = acc * Math.PI * 2;
-            let end = (acc + pct) * Math.PI * 2;
-            let x1 = Math.cos(start), y1 = Math.sin(start);
-            let x2 = Math.cos(end), y2 = Math.sin(end);
-            let largeArc = pct > 0.5 ? 1 : 0;
-            if (pct === 1) {
-                svg += `<circle cx="0" cy="0" r="1" fill="${colors[i%colors.length]}"/>`;
-            } else {
-                svg += `<path d="M 0 0 L ${x1} ${y1} A 1 1 0 ${largeArc} 1 ${x2} ${y2} Z" fill="${colors[i%colors.length]}" stroke="#fff" stroke-width="0.02"/>`;
-            }
-            legends += `<div style="font-size:11px; display:flex; align-items:center; gap:6px"><span style="display:inline-block;width:12px;height:12px;background:${colors[i%colors.length]}; border-radius:50%"></span>${k} (${p(pct)})</div>`;
-            acc += pct;
-        });
-        svg += '<circle cx="0" cy="0" r="0.45" fill="var(--cd)"/>';
-        svg += '</svg>';
-        pieHtml = `<div style="display:grid; grid-template-columns: 1fr 1fr; align-items: center; gap:10px; height: 200px"><div>${svg}</div><div style="display:flex;flex-direction:column;gap:6px;max-height:180px;overflow-y:auto">${legends}</div></div>`;
-    } else {
-        pieHtml = `<div class="lg" style="height:200px; display:flex; align-items:center; justify-content:center">Chưa có dữ liệu Khu vực</div>`;
-    }
-    $('tender-pie').innerHTML = pieHtml;
-
-    let barHtml = '';
-    let barEntries = Object.entries(namMap).sort((a,b)=>a[0].localeCompare(b[0])); 
-    if (barEntries.length) {
-        let maxBar = Math.max(...Object.values(namMap), 1);
-        barHtml = `<div style="display:flex;flex-direction:column;gap:16px;margin-top:10px; height: 180px; justify-content:center">
-        <div class="lg"><span style="color:var(--ac)">■</span> Giá trúng thầu</div>`;
-        barEntries.forEach(([y, val]) => {
-            let pct = val/maxBar * 100;
-            barHtml += `
-                <div class="row" style="grid-template-columns: 40px 1fr 60px;">
-                    <span class="n" style="font-weight:bold">${y}</span>
-                    <div class="t p" style="height:32px; background:transparent"><i style="width:${pct}%;background:var(--ac)"></i></div>
-                    <span class="v" style="color:var(--tx); font-weight:bold">${(val/1000000000).toFixed(1)} Tỷ</span>
-                </div>
-            `;
-        });
-        barHtml += `</div>`;
-    } else {
-        barHtml = `<div class="lg" style="height:200px; display:flex; align-items:center; justify-content:center">Chưa có dữ liệu Doanh thu năm</div>`;
-    }
-    $('tender-bar').innerHTML = barHtml;
-
-    let lineHtml = '';
-    if (Object.keys(thangNamMap).length) {
-        let mxLine = 1;
-        Object.values(thangNamMap).forEach(arr => {
-            let lm = Math.max(...arr);
-            if (lm > mxLine) mxLine = lm;
-        });
-        mxLine *= 1.1; 
-        let Wd = 400, H = 180, L = 40, B = 20, T = 10, pw = (Wd-L)/12;
-        let yLine = v => H - B - v/mxLine * (H-B-T);
-        let xLine = idx => L + pw*idx + pw/2;
-        let sL = `<svg viewBox="0 0 ${Wd} ${H}" style="height:175px">`;
-        sL += `<line x1="${L}" x2="${Wd}" y1="${yLine(0)}" y2="${yLine(0)}" stroke="var(--bd)"/>`;
-        for(let i=0;i<12;i++) sL += `<text x="${xLine(i)}" y="${H-5}" text-anchor="middle" font-size="9">T${i+1}</text>`;
-        
-        let colorsL = ['var(--ac)', 'var(--a)', 'var(--g)'];
-        let idxColor = 0;
-        let legendsL = '';
-        Object.entries(thangNamMap).sort().forEach(([year, arr]) => {
-            let pts = arr.map((v,j) => `${xLine(j)},${yLine(v)}`).join(' ');
-            let c = colorsL[idxColor % colorsL.length];
-            sL += `<polyline fill="none" stroke="${c}" stroke-width="2.5" points="${pts}"/>`;
-            arr.forEach((v,j) => {
-                sL += `<circle cx="${xLine(j)}" cy="${yLine(v)}" r="3" fill="${c}"/>`;
-            });
-            legendsL += `<span style="color:${c}; margin-left:10px; font-size:12px">●</span> Năm ${year} `;
-            idxColor++;
-        });
-        sL += `</svg><div class="lg" style="text-align:center; margin-top:5px">${legendsL}</div>`;
-        lineHtml = sL;
-    } else {
-        lineHtml = `<div class="lg" style="height:200px; display:flex; align-items:center; justify-content:center">Chưa có dữ liệu các tháng</div>`;
-    }
-    $('tender-line').innerHTML = lineHtml;
-
-    window.unitTenderList = Object.values(unitMap).sort((a,b)=>b.giaTrung - a.giaTrung);
-    window.invTenderList = Object.values(invMap).sort((a,b)=>b.giaTrung - a.giaTrung);
-    
-    window.t1Page = 0;
-    window.t2Page = 0;
-    
-    drawTenderUnits();
-    drawTenderInvestors();
-}
-
-window.onload = () => {
-    document.querySelectorAll('.tabs button').forEach(b => {
-        b.addEventListener('click', () => {
-            document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x == b));
-            document.querySelectorAll('.v2').forEach(x => x.classList.toggle('on', x.id == 'p' + b.dataset.t));
-            
-            const isNoUnitSelect = (b.dataset.t == '5' || b.dataset.t == '6');
-            $('fb').style.display = isNoUnitSelect ? 'none' : 'flex';
-        });
-    });
-};
 </script></body></html>
