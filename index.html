@@ -93,10 +93,13 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 .copy-btn.copied { background: var(--g); }
 
 /* --- CSS TAB DANH SÁCH GĐX --- */
-.gdx-table th, .gdx-table td { text-align: left; vertical-align: middle; }
-.gdx-table th.num, .gdx-table td.num { text-align: center; width: 42px; }
+.gdx-bar { flex-wrap: nowrap; gap: 8px; }
+.gdx-bar label { white-space: nowrap; }
+@media (max-width: 780px) { .gdx-bar { flex-wrap: wrap; } }
+.gdx-table th, .gdx-table td { text-align: left; vertical-align: top; }
+.gdx-table th.num, .gdx-table td.num { text-align: center; width: 38px; }
 .gdx-table tbody tr:hover { background: var(--bg); }
-.gdx-phone { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.gdx-phone { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
 .gdx-phone a { color: var(--ac); text-decoration: none; font-weight: 600; }
 .gdx-phone a:hover { text-decoration: underline; }
 .gdx-copy-mini {
@@ -109,6 +112,8 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
     display: inline-block; padding: 2px 7px; border-radius: 10px;
     font-size: 11px; background: rgba(31,95,191,0.1); color: var(--ac); font-weight: 600; white-space: nowrap;
 }
+.gdx-pt-item { padding: 2px 0; line-height: 1.35; }
+.gdx-pt-item + .gdx-pt-item { border-top: 1px dashed var(--bd); margin-top: 2px; padding-top: 3px; }
 .gdx-chart-scroll { max-height: 290px; overflow-y: auto; padding-right: 4px; }
 .gdx-bar-row { cursor: pointer; padding: 3px 4px; border-radius: 4px; }
 .gdx-bar-row:hover { background: var(--bg); }
@@ -235,25 +240,17 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 
 <!-- TAB 7: DANH SÁCH GĐX -->
 <div class="v2" id="p7">
-    <div class="bar" style="margin-bottom:10px">
-        <label style="flex:1;min-width:220px">Tìm nhanh
-            <input type="search" id="gdx-q" placeholder="Nhập tên GĐX, ngày sinh, SĐT, chức vụ trước, đơn vị/xã, BĐT/TP..." style="width:100%;min-width:200px" oninput="onGdxFilterChange()">
+    <div class="bar gdx-bar" style="margin-bottom:10px">
+        <label style="flex:1;min-width:180px">Tìm nhanh
+            <input type="search" id="gdx-q" placeholder="Tên GĐX, SĐT, HRM, phụ trách, Bưu cục/BĐ-VHX, loại hình..." style="width:100%;min-width:150px" oninput="onGdxFilterChange()">
         </label>
         <label>Khu vực
-            <select id="gdx-kv" onchange="onGdxKvChange()"><option value="">Tất cả khu vực</option></select>
+            <select id="gdx-kv" style="max-width:125px" onchange="onGdxKvChange()"><option value="">Tất cả KV</option></select>
         </label>
         <label>BĐT/TP
-            <select id="gdx-bdt" onchange="onGdxFilterChange()"><option value="">Tất cả BĐT/TP</option></select>
+            <select id="gdx-bdt" style="max-width:170px" onchange="onGdxFilterChange()"><option value="">Tất cả BĐT/TP</option></select>
         </label>
-        <label>Hiển thị
-            <select id="gdx-limit" onchange="window.gdxPage=0;renderGdxTable()">
-                <option value="25">25 dòng</option>
-                <option value="50" selected>50 dòng</option>
-                <option value="100">100 dòng</option>
-                <option value="500">500 dòng</option>
-            </select>
-        </label>
-        <button class="btn" onclick="resetGdxFilters()" style="margin-left:auto; background:var(--cd); border:1px solid var(--bd); color:var(--tx); font-weight:600">↺ Xóa lọc</button>
+        <button class="btn" onclick="resetGdxFilters()" style="white-space:nowrap;flex-shrink:0;background:var(--cd);border:1px solid var(--bd);color:var(--tx);font-weight:600">↺ Xóa lọc</button>
     </div>
 
     <div id="gdx-title"></div>
@@ -274,7 +271,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 
     <div class="c">
         <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
-            <div class="t-h3" style="margin:0">DANH SÁCH TRA CỨU GIÁM ĐỐC XÃ (GĐX)</div>
+            <div class="t-h3" style="margin:0">DANH SÁCH TRA CỨU GIÁM ĐỐC XÃ (GĐX) &amp; ĐIỂM BÁN</div>
             <span class="lg" id="gdx-count-info"></span>
         </div>
         <div class="sc" id="gdx-table-wrap"></div>
@@ -437,17 +434,17 @@ function createEmptyGroup() {
 }
 
 // ==============================================
-// URL SHEET GOOGLE DOANH THU, ĐẤU THẦU & DS GĐX
+// URL SHEET GOOGLE DOANH THU, ĐẤU THẦU, DS GĐX & ĐIỂM
 // ==============================================
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9nxZBO6P6MoaJHFmyEqTPJWP0zPByM-DNGKdUPwvVBnbrXHuHI530A-DgA35Q7rsbxRVx7xGU7E1R/pub?gid=1323893050&single=true&output=tsv";
 const TENDER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRj3ZqmvFi5q_58y0JoKY2CNbINyu78kGT-AQVxpN23cLqbFa_Glep6X9wG8L70E3HXnzcb3K615IJt/pub?gid=1854147220&single=true&output=tsv";
 const GDX_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9nxZBO6P6MoaJHFmyEqTPJWP0zPByM-DNGKdUPwvVBnbrXHuHI530A-DgA35Q7rsbxRVx7xGU7E1R/pub?gid=1608569052&single=true&output=tsv";
+const DIEM_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9nxZBO6P6MoaJHFmyEqTPJWP0zPByM-DNGKdUPwvVBnbrXHuHI530A-DgA35Q7rsbxRVx7xGU7E1R/pub?gid=61914261&single=true&output=tsv";
 
 let N_data = [], M_data = {}, U_data = [], V_data = [];
 let Tender_Data = [];
 let GDX_Data = [];
 let GDX_Filtered = [];
-let GDX_ExtraCols = [];
 let max_month_th = 0; 
 let latest_year = new Date().getFullYear();
 
@@ -475,6 +472,18 @@ const stripVN = (str) => {
     return (str || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().trim();
 };
 
+const normUnitKey = (str) => {
+    return stripVN(str)
+        .replace(/^(buu dien xa|buu dien phuong|buu dien thi tran|bdx|bdp|bdtt|xa|phuong|thi tran|tt\.?)\s+/g, '')
+        .replace(/[^a-z0-9]/g, '');
+};
+
+const normBdtKey = (str) => {
+    return stripVN(str)
+        .replace(/^(buu dien tinh|buu dien tp\.?|buu dien thanh pho|bdt|bdtp|tinh|tp\.?|thanh pho)\s+/g, '')
+        .replace(/[^a-z0-9]/g, '');
+};
+
 const escHtml = (str) => (str || '').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 const pad2 = (n) => n.toString().padStart(2, '0');
@@ -482,10 +491,8 @@ const pad2 = (n) => n.toString().padStart(2, '0');
 function formatDobVN(raw, isUSFormat) {
     const s = (raw || '').toString().trim();
     if (!s) return '';
-    // Dạng YYYY-MM-DD hoặc YYYY/MM/DD
     let m = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
     if (m) return `${pad2(m[3])}/${pad2(m[2])}/${m[1]}`;
-    // Dạng D/M/YYYY hoặc M/D/YYYY
     m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/);
     if (m) {
         let p1 = parseInt(m[1], 10), p2 = parseInt(m[2], 10), y = m[3];
@@ -1525,12 +1532,78 @@ window.renderTenderTab = function() {
 }
 
 // ==============================================
-// FETCH & RENDER TAB 7: DANH SÁCH GĐX
+// FETCH & RENDER TAB 7: DANH SÁCH GĐX + SHEET ĐIỂM
 // ==============================================
+function parseDiemRows(text) {
+    const byBdtAndBdx = {};
+    const byBdxOnly = {};
+    if (!text || text.trim().startsWith("<!DOCTYPE html>")) return { byBdtAndBdx, byBdxOnly };
+
+    const rows = parseDelimitedText(text);
+    if (rows.length < 2) return { byBdtAndBdx, byBdxOnly };
+
+    let headerIdx = 0;
+    for (let i = 0; i < Math.min(rows.length, 5); i++) {
+        const joined = stripVN(rows[i].join(' '));
+        if (joined.includes('buu cuc') || joined.includes('loai hinh') || joined.includes('tam dung') || joined.includes('lao dong') || joined.includes('buu dien')) {
+            headerIdx = i;
+            break;
+        }
+    }
+
+    const normH = rows[headerIdx].map(h => stripVN(h));
+    const findCol = (keywords, excludeIdx = []) => {
+        for (const kw of keywords) {
+            const idx = normH.findIndex((h, i) => !excludeIdx.includes(i) && h.includes(kw));
+            if (idx >= 0) return idx;
+        }
+        return -1;
+    };
+
+    const cBdt = findCol(['bdt', 'buu dien tinh', 'tinh/tp', 'tinh tp', 'buu dien tp', 'tinh']);
+    const cBdx = findCol(['buu dien xa', 'bdx', 'xa/phuong', 'phuong/xa', 'xa phuong', 'don vi', 'xa'], [cBdt]);
+    const cTenBc = findCol(['ten buu cuc', 'buu cuc/bd-vhx', 'buu cuc', 'bd-vhx', 'bdvhx', 'ten diem', 'diem ban'], [cBdt, cBdx]);
+    const cLoaiHinh = findCol(['loai hinh diem ban', 'loai hinh', 'loai diem', 'mo hinh']);
+    const cTamDung = findCol(['tam dung', 'trang thai', 'ngung hoat dong', 'tinh trang']);
+    const cLaoDong = findCol(['so luong lao dong', 'sl lao dong', 'tong lao dong', 'lao dong', 'sl ld', 'nhan su']);
+
+    for (let i = headerIdx + 1; i < rows.length; i++) {
+        const r = rows[i];
+        const bdtRaw = (cBdt >= 0 && r[cBdt]) ? r[cBdt].trim() : '';
+        const bdxRaw = (cBdx >= 0 && r[cBdx]) ? r[cBdx].trim() : '';
+        const tenBc = (cTenBc >= 0 && r[cTenBc]) ? r[cTenBc].trim() : '';
+        const loaiHinh = (cLoaiHinh >= 0 && r[cLoaiHinh]) ? r[cLoaiHinh].trim() : '';
+        const tamDung = (cTamDung >= 0 && r[cTamDung]) ? r[cTamDung].trim() : '';
+        const laoDong = (cLaoDong >= 0 && r[cLaoDong]) ? r[cLaoDong].trim() : '';
+
+        if (!bdxRaw && !tenBc) continue;
+
+        const pt = { tenBc, loaiHinh, tamDung, laoDong };
+        const kBdt = normBdtKey(bdtRaw);
+        const kBdx = normUnitKey(bdxRaw);
+
+        if (kBdt && kBdx) {
+            const fullKey = kBdt + '|' + kBdx;
+            if (!byBdtAndBdx[fullKey]) byBdtAndBdx[fullKey] = [];
+            byBdtAndBdx[fullKey].push(pt);
+        }
+        if (kBdx) {
+            if (!byBdxOnly[kBdx]) byBdxOnly[kBdx] = [];
+            byBdxOnly[kBdx].push(pt);
+        }
+    }
+    return { byBdtAndBdx, byBdxOnly };
+}
+
 async function loadGdxData() {
     try {
-        const res = await fetch(GDX_CSV_URL + "&_t=" + new Date().getTime());
-        const text = await res.text();
+        const ts = new Date().getTime();
+        const [gdxRes, diemText] = await Promise.all([
+            fetch(GDX_CSV_URL + "&_t=" + ts),
+            fetch(DIEM_CSV_URL + "&_t=" + ts).then(r => r.text()).catch(() => "")
+        ]);
+
+        const text = await gdxRes.text();
         if (text.trim().startsWith("<!DOCTYPE html>")) {
             $('gdx-kpi').innerHTML = `<div class="k" style="grid-column:1/-1;color:var(--r)"><span>Lỗi kết nối</span><b style="font-size:14px">Không thể đọc tab DS GĐX. Kiểm tra lại mã GID hoặc quyền Xuất bản lên web của Google Trang tính.</b></div>`;
             return;
@@ -1541,7 +1614,8 @@ async function loadGdxData() {
             return;
         }
 
-        // Tìm dòng tiêu đề
+        const diemIndex = parseDiemRows(diemText);
+
         let headerIdx = 0;
         for (let i = 0; i < Math.min(rows.length, 5); i++) {
             const joined = stripVN(rows[i].join(' '));
@@ -1569,13 +1643,14 @@ async function loadGdxData() {
         let cSdt = findCol(['sdt', 'so dien thoai', 'dien thoai', 'phone', 'di dong', 'tel', 'lien he']);
         let cKv = findCol(['khu vuc', 'vung', 'mien', 'nhom']);
 
-        // Cố định lấy Ngày sinh từ cột H (7) & cột I (8), và Chức vụ trước từ cột O (14)
-        const cDobH = 7;  // Cột H
-        const cDobI = 8;  // Cột I
+        // Các cột cố định theo cấu trúc sheet DS GĐX
+        const cPhuTrach = 4;     // Cột E
+        const cHrm = 5;          // Cột F
+        const cDobH = 7;         // Cột H
+        const cDobI = 8;         // Cột I
         const cChucVuTruoc = 14; // Cột O
 
-        // Fallback theo thứ tự cột nếu tiêu đề không khớp từ khóa
-        const used = () => [cStt, cBdt, cDonVi, cTen, cDobH, cDobI, cSdt, cKv, cChucVuTruoc].filter(x => x >= 0);
+        const used = () => [cStt, cBdt, cDonVi, cTen, cPhuTrach, cHrm, cDobH, cDobI, cSdt, cKv, cChucVuTruoc].filter(x => x >= 0);
         const nextFree = () => {
             for (let i = 0; i < rawHeaders.length; i++) {
                 if (!used().includes(i)) return i;
@@ -1587,7 +1662,7 @@ async function loadGdxData() {
         if (cTen < 0) cTen = nextFree();
         if (cSdt < 0) cSdt = nextFree();
 
-        // Tự động phát hiện sheet có xuất ngày sinh dạng Mỹ (M/D/YYYY) hay không
+        // Tự động phát hiện định dạng ngày Mỹ (M/D/YYYY) hay VN (D/M/YYYY)
         let usVotes = 0, vnVotes = 0;
         for (let i = headerIdx + 1; i < rows.length; i++) {
             const r = rows[i];
@@ -1608,14 +1683,13 @@ async function loadGdxData() {
             const bdt = (cBdt >= 0 && r[cBdt]) ? r[cBdt].trim() : '';
             const donVi = (cDonVi >= 0 && r[cDonVi]) ? r[cDonVi].trim() : '';
             const ten = (cTen >= 0 && r[cTen]) ? r[cTen].trim() : '';
+            const phuTrach = (r[cPhuTrach] || '').trim();
+            const hrm = (r[cHrm] || '').trim();
 
-            // Lấy ngày sinh từ cả cột H và cột I, chuẩn hóa DD/MM/YYYY
             const rawH = (r[cDobH] || '').trim();
             const rawI = (r[cDobI] || '').trim();
-            const rawDob = rawH || rawI;
-            const ngaySinh = formatDobVN(rawDob, isUSDate);
+            const ngaySinh = formatDobVN(rawH || rawI, isUSDate);
 
-            // Lấy chức vụ trước từ cột O
             const chucVuTruoc = (r[cChucVuTruoc] || '').trim();
 
             let sdt = (cSdt >= 0 && r[cSdt]) ? r[cSdt].trim() : '';
@@ -1629,18 +1703,32 @@ async function loadGdxData() {
 
             if (!bdt && !donVi && !ten && !sdt) continue;
 
-            const searchBlob = stripVN([bdt, kv, donVi, ten, ngaySinh, chucVuTruoc, sdt].join(' '));
+            // Ghép dữ liệu từ sheet Điểm theo BĐT/TP + Bưu điện xã/phường
+            const kBdt = normBdtKey(bdt);
+            const kBdx = normUnitKey(donVi);
+            let points = [];
+            if (kBdt && kBdx && diemIndex.byBdtAndBdx[kBdt + '|' + kBdx]) {
+                points = diemIndex.byBdtAndBdx[kBdt + '|' + kBdx];
+            } else if (kBdx && diemIndex.byBdxOnly[kBdx]) {
+                points = diemIndex.byBdxOnly[kBdx];
+            }
+
+            const pointsText = points.map(pt => [pt.tenBc, pt.loaiHinh, pt.tamDung, pt.laoDong].join(' ')).join(' ');
+            const searchBlob = stripVN([bdt, kv, donVi, phuTrach, hrm, ten, ngaySinh, chucVuTruoc, sdt, pointsText].join(' '));
             const phoneDigits = sdt.replace(/\D/g, '');
 
             GDX_Data.push({
                 bdt: bdt || 'Chưa rõ BĐT/TP',
                 kv: kv || 'Khác',
                 donVi,
+                phuTrach,
+                hrm,
                 ten,
                 ngaySinh,
                 chucVuTruoc,
                 sdt,
                 phoneDigits,
+                points,
                 searchBlob
             });
         }
@@ -1656,7 +1744,7 @@ async function loadGdxData() {
 function populateGdxDropdowns() {
     const kvs = [...new Set(GDX_Data.map(d => d.kv).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'vi'));
     const kvSel = $('gdx-kv');
-    kvSel.innerHTML = '<option value="">Tất cả khu vực</option>';
+    kvSel.innerHTML = '<option value="">Tất cả KV</option>';
     kvs.forEach(k => kvSel.add(new Option(k, k)));
     updateGdxBdtOptions();
 }
@@ -1824,9 +1912,17 @@ window.changeGdxPage = function(dir) {
     renderGdxTable();
 };
 
+function renderPointCol(points, field, rawQ, isCenter) {
+    if (!points || !points.length) return '<span class="lg">–</span>';
+    return points.map(pt => {
+        const val = pt[field] || '–';
+        return `<div class="gdx-pt-item"${isCenter ? ' style="text-align:center"' : ''}>${val === '–' ? '<span class="lg">–</span>' : highlightMatch(val, rawQ)}</div>`;
+    }).join('');
+}
+
 function renderGdxTable() {
     const rawQ = $('gdx-q') ? $('gdx-q').value.trim() : '';
-    const limit = parseInt($('gdx-limit') ? $('gdx-limit').value : '50', 10) || 50;
+    const limit = 50; // Mặc định 50 dòng/trang
     const total = GDX_Filtered.length;
     const maxP = Math.max(0, Math.ceil(total / limit) - 1);
     if (window.gdxPage < 0) window.gdxPage = 0;
@@ -1852,10 +1948,16 @@ function renderGdxTable() {
             <td class="num">${start + i + 1}</td>
             <td><span class="gdx-badge">${highlightMatch(d.bdt, rawQ)}</span></td>
             <td>${highlightMatch(d.donVi || '–', rawQ)}</td>
+            <td>${highlightMatch(d.phuTrach || '–', rawQ)}</td>
+            <td style="white-space:nowrap">${highlightMatch(d.hrm || '–', rawQ)}</td>
             <td><b>${highlightMatch(d.ten || '–', rawQ)}</b></td>
             <td style="white-space:nowrap">${highlightMatch(d.ngaySinh || '–', rawQ)}</td>
             <td>${highlightMatch(d.chucVuTruoc || '–', rawQ)}</td>
             <td>${phoneHtml}</td>
+            <td>${renderPointCol(d.points, 'tenBc', rawQ, false)}</td>
+            <td>${renderPointCol(d.points, 'loaiHinh', rawQ, false)}</td>
+            <td>${renderPointCol(d.points, 'tamDung', rawQ, true)}</td>
+            <td>${renderPointCol(d.points, 'laoDong', rawQ, true)}</td>
         </tr>`;
     }).join('');
 
@@ -1866,10 +1968,16 @@ function renderGdxTable() {
                     <th class="num">#</th>
                     <th>BĐT/TP</th>
                     <th>Đơn vị / Bưu điện xã</th>
+                    <th>Phụ trách</th>
+                    <th>HRM</th>
                     <th>Họ và tên GĐX</th>
                     <th>Ngày sinh</th>
                     <th>Chức vụ trước</th>
                     <th>Số điện thoại</th>
+                    <th>Tên Bưu cục/BĐ-VHX</th>
+                    <th>Loại hình điểm bán</th>
+                    <th style="text-align:center">Tạm dừng</th>
+                    <th style="text-align:center">SL Lao động</th>
                 </tr>
             </thead>
             <tbody>${tbody}</tbody>
