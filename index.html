@@ -237,7 +237,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 <div class="v2" id="p7">
     <div class="bar" style="margin-bottom:10px">
         <label style="flex:1;min-width:220px">Tìm nhanh
-            <input type="search" id="gdx-q" placeholder="Nhập tên GĐX, ngày sinh, SĐT, đơn vị/xã, BĐT/TP..." style="width:100%;min-width:200px" oninput="onGdxFilterChange()">
+            <input type="search" id="gdx-q" placeholder="Nhập tên GĐX, ngày sinh, SĐT, chức vụ trước, đơn vị/xã, BĐT/TP..." style="width:100%;min-width:200px" oninput="onGdxFilterChange()">
         </label>
         <label>Khu vực
             <select id="gdx-kv" onchange="onGdxKvChange()"><option value="">Tất cả khu vực</option></select>
@@ -476,6 +476,29 @@ const stripVN = (str) => {
 };
 
 const escHtml = (str) => (str || '').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+const pad2 = (n) => n.toString().padStart(2, '0');
+
+function formatDobVN(raw, isUSFormat) {
+    const s = (raw || '').toString().trim();
+    if (!s) return '';
+    // Dạng YYYY-MM-DD hoặc YYYY/MM/DD
+    let m = s.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+    if (m) return `${pad2(m[3])}/${pad2(m[2])}/${m[1]}`;
+    // Dạng D/M/YYYY hoặc M/D/YYYY
+    m = s.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/);
+    if (m) {
+        let p1 = parseInt(m[1], 10), p2 = parseInt(m[2], 10), y = m[3];
+        if (y.length === 2) y = (parseInt(y, 10) > 30 ? '19' : '20') + y;
+        let day, month;
+        if (p2 > 12 && p1 <= 12) { day = p2; month = p1; }
+        else if (p1 > 12 && p2 <= 12) { day = p1; month = p2; }
+        else if (isUSFormat) { day = p2; month = p1; }
+        else { day = p1; month = p2; }
+        return `${pad2(day)}/${pad2(month)}/${y}`;
+    }
+    return s;
+}
 
 function parseDelimitedText(text) {
     const rows = [];
@@ -1543,13 +1566,16 @@ async function loadGdxData() {
         let cBdt = findCol(['bdt', 'buu dien tinh', 'tinh/tp', 'tinh tp', 'buu dien tp', 'tinh', 'cap 1']);
         let cDonVi = findCol(['buu dien xa', 'bdx', 'ten don vi', 'don vi', 'buu cuc', 'dia ban', 'xa/phuong', 'xa', 'huyen', 'bdh', 'trung tam']);
         let cTen = findCol(['ho va ten', 'ho ten', 'ten gdx', 'giam doc', 'nhan su', 'can bo', 'ten'], [cBdt, cDonVi]);
-        let cNgaySinh = findCol(['ngay thang nam sinh', 'ngay/thang/nam sinh', 'ngay sinh', 'nam sinh', 'sinh ngay', 'ntns', 'dob'], [cBdt, cDonVi, cTen]);
         let cSdt = findCol(['sdt', 'so dien thoai', 'dien thoai', 'phone', 'di dong', 'tel', 'lien he']);
         let cKv = findCol(['khu vuc', 'vung', 'mien', 'nhom']);
-        let cChucVu = findCol(['chuc vu', 'vi tri', 'vai tro', 'chuc danh']);
+
+        // Cố định lấy Ngày sinh từ cột H (7) & cột I (8), và Chức vụ trước từ cột O (14)
+        const cDobH = 7;  // Cột H
+        const cDobI = 8;  // Cột I
+        const cChucVuTruoc = 14; // Cột O
 
         // Fallback theo thứ tự cột nếu tiêu đề không khớp từ khóa
-        const used = () => [cStt, cBdt, cDonVi, cTen, cNgaySinh, cSdt, cKv, cChucVu].filter(x => x >= 0);
+        const used = () => [cStt, cBdt, cDonVi, cTen, cDobH, cDobI, cSdt, cKv, cChucVuTruoc].filter(x => x >= 0);
         const nextFree = () => {
             for (let i = 0; i < rawHeaders.length; i++) {
                 if (!used().includes(i)) return i;
@@ -1561,14 +1587,20 @@ async function loadGdxData() {
         if (cTen < 0) cTen = nextFree();
         if (cSdt < 0) cSdt = nextFree();
 
-        // Lưu các cột phụ bổ sung nếu có
-        const coreCols = new Set([cStt, cBdt, cDonVi, cTen, cNgaySinh, cSdt, cKv, cChucVu].filter(x => x >= 0));
-        GDX_ExtraCols = [];
-        rawHeaders.forEach((h, i) => {
-            if (!coreCols.has(i) && h && h.trim() !== '') {
-                GDX_ExtraCols.push({ idx: i, name: h.trim() });
-            }
-        });
+        // Tự động phát hiện sheet có xuất ngày sinh dạng Mỹ (M/D/YYYY) hay không
+        let usVotes = 0, vnVotes = 0;
+        for (let i = headerIdx + 1; i < rows.length; i++) {
+            const r = rows[i];
+            [r[cDobH], r[cDobI]].forEach(val => {
+                const m = (val || '').trim().match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})$/);
+                if (m) {
+                    const p1 = parseInt(m[1], 10), p2 = parseInt(m[2], 10);
+                    if (p2 > 12 && p1 <= 12) usVotes++;
+                    else if (p1 > 12 && p2 <= 12) vnVotes++;
+                }
+            });
+        }
+        const isUSDate = usVotes > vnVotes;
 
         GDX_Data = [];
         for (let i = headerIdx + 1; i < rows.length; i++) {
@@ -1576,22 +1608,28 @@ async function loadGdxData() {
             const bdt = (cBdt >= 0 && r[cBdt]) ? r[cBdt].trim() : '';
             const donVi = (cDonVi >= 0 && r[cDonVi]) ? r[cDonVi].trim() : '';
             const ten = (cTen >= 0 && r[cTen]) ? r[cTen].trim() : '';
-            const ngaySinh = (cNgaySinh >= 0 && r[cNgaySinh]) ? r[cNgaySinh].trim() : '';
+
+            // Lấy ngày sinh từ cả cột H và cột I, chuẩn hóa DD/MM/YYYY
+            const rawH = (r[cDobH] || '').trim();
+            const rawI = (r[cDobI] || '').trim();
+            const rawDob = rawH || rawI;
+            const ngaySinh = formatDobVN(rawDob, isUSDate);
+
+            // Lấy chức vụ trước từ cột O
+            const chucVuTruoc = (r[cChucVuTruoc] || '').trim();
+
             let sdt = (cSdt >= 0 && r[cSdt]) ? r[cSdt].trim() : '';
             const digitsOnly = sdt.replace(/\D/g, '');
             if (digitsOnly.length === 9 && /^[35789]/.test(digitsOnly)) {
                 sdt = '0' + digitsOnly;
             }
-            const chucVu = (cChucVu >= 0 && r[cChucVu]) ? r[cChucVu].trim() : '';
+
             let kv = (cKv >= 0 && r[cKv]) ? r[cKv].trim() : '';
             if (!kv) kv = getKhuVuc(bdt || donVi);
 
             if (!bdt && !donVi && !ten && !sdt) continue;
 
-            const extras = {};
-            GDX_ExtraCols.forEach(ec => { extras[ec.idx] = (r[ec.idx] || '').trim(); });
-
-            const searchBlob = stripVN([bdt, kv, donVi, ten, ngaySinh, chucVu, sdt, Object.values(extras).join(' ')].join(' '));
+            const searchBlob = stripVN([bdt, kv, donVi, ten, ngaySinh, chucVuTruoc, sdt].join(' '));
             const phoneDigits = sdt.replace(/\D/g, '');
 
             GDX_Data.push({
@@ -1600,10 +1638,9 @@ async function loadGdxData() {
                 donVi,
                 ten,
                 ngaySinh,
+                chucVuTruoc,
                 sdt,
                 phoneDigits,
-                chucVu,
-                extras,
                 searchBlob
             });
         }
@@ -1807,24 +1844,18 @@ function renderGdxTable() {
         return;
     }
 
-    const hasChucVu = GDX_Data.some(d => d.chucVu);
-    const extraHeaders = GDX_ExtraCols.slice(0, 3).map(ec => `<th>${escHtml(ec.name)}</th>`).join('');
-
     const tbody = slice.map((d, i) => {
         const phoneHtml = d.sdt
             ? `<div class="gdx-phone"><a href="tel:${escHtml(d.phoneDigits || d.sdt)}">${highlightMatch(d.sdt, rawQ)}</a><button class="gdx-copy-mini" title="Sao chép SĐT" onclick="copyGdxPhone('${escHtml(d.sdt).replace(/'/g, "\\'")}', this)">Copy</button></div>`
             : '<span class="lg">–</span>';
-        const extraCells = GDX_ExtraCols.slice(0, 3).map(ec => `<td>${highlightMatch(d.extras[ec.idx] || '', rawQ)}</td>`).join('');
         return `<tr>
             <td class="num">${start + i + 1}</td>
             <td><span class="gdx-badge">${highlightMatch(d.bdt, rawQ)}</span></td>
-            <td>${escHtml(d.kv)}</td>
             <td>${highlightMatch(d.donVi || '–', rawQ)}</td>
             <td><b>${highlightMatch(d.ten || '–', rawQ)}</b></td>
             <td style="white-space:nowrap">${highlightMatch(d.ngaySinh || '–', rawQ)}</td>
-            ${hasChucVu ? `<td>${highlightMatch(d.chucVu || '–', rawQ)}</td>` : ''}
+            <td>${highlightMatch(d.chucVuTruoc || '–', rawQ)}</td>
             <td>${phoneHtml}</td>
-            ${extraCells}
         </tr>`;
     }).join('');
 
@@ -1834,13 +1865,11 @@ function renderGdxTable() {
                 <tr>
                     <th class="num">#</th>
                     <th>BĐT/TP</th>
-                    <th>Khu vực</th>
                     <th>Đơn vị / Bưu điện xã</th>
                     <th>Họ và tên GĐX</th>
                     <th>Ngày sinh</th>
-                    ${hasChucVu ? '<th>Chức vụ</th>' : ''}
+                    <th>Chức vụ trước</th>
                     <th>Số điện thoại</th>
-                    ${extraHeaders}
                 </tr>
             </thead>
             <tbody>${tbody}</tbody>
