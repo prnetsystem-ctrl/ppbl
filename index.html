@@ -237,7 +237,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 <div class="v2" id="p7">
     <div class="bar" style="margin-bottom:10px">
         <label style="flex:1;min-width:220px">Tìm nhanh
-            <input type="search" id="gdx-q" placeholder="Nhập tên GĐX, SĐT, đơn vị/xã, BĐT/TP..." style="width:100%;min-width:200px" oninput="onGdxFilterChange()">
+            <input type="search" id="gdx-q" placeholder="Nhập tên GĐX, ngày sinh, SĐT, đơn vị/xã, BĐT/TP..." style="width:100%;min-width:200px" oninput="onGdxFilterChange()">
         </label>
         <label>Khu vực
             <select id="gdx-kv" onchange="onGdxKvChange()"><option value="">Tất cả khu vực</option></select>
@@ -441,7 +441,6 @@ function createEmptyGroup() {
 // ==============================================
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9nxZBO6P6MoaJHFmyEqTPJWP0zPByM-DNGKdUPwvVBnbrXHuHI530A-DgA35Q7rsbxRVx7xGU7E1R/pub?gid=1323893050&single=true&output=tsv";
 const TENDER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRj3ZqmvFi5q_58y0JoKY2CNbINyu78kGT-AQVxpN23cLqbFa_Glep6X9wG8L70E3HXnzcb3K615IJt/pub?gid=1854147220&single=true&output=tsv";
-// THAY NHAP_GID_DS_GDX_VAO_DAY BẰNG MÃ GID CỦA TAB "DS GĐX" TRONG FILE "Doanh thu_skill_test"
 const GDX_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9nxZBO6P6MoaJHFmyEqTPJWP0zPByM-DNGKdUPwvVBnbrXHuHI530A-DgA35Q7rsbxRVx7xGU7E1R/pub?gid=1608569052&single=true&output=tsv";
 
 let N_data = [], M_data = {}, U_data = [], V_data = [];
@@ -1506,11 +1505,6 @@ window.renderTenderTab = function() {
 // FETCH & RENDER TAB 7: DANH SÁCH GĐX
 // ==============================================
 async function loadGdxData() {
-    if (GDX_CSV_URL.includes("NHAP_GID_DS_GDX_VAO_DAY")) {
-        $('gdx-kpi').innerHTML = `<div class="k" style="grid-column:1/-1;border-left:4px solid var(--a)"><span>Chưa cấu hình mã GID của tab <b>DS GĐX</b></span><b style="font-size:14px;font-weight:500;margin-top:4px">Vui lòng mở file index.html, tìm dòng <code>GDX_CSV_URL</code> và thay <code>NHAP_GID_DS_GDX_VAO_DAY</code> bằng mã <code>gid</code> của tab <b>DS GĐX</b> trong Google Trang tính <i>Doanh thu_skill_test</i>.</b></div>`;
-        $('gdx-table-wrap').innerHTML = `<div class="lg">Chưa có dữ liệu hiển thị.</div>`;
-        return;
-    }
     try {
         const res = await fetch(GDX_CSV_URL + "&_t=" + new Date().getTime());
         const text = await res.text();
@@ -1524,7 +1518,7 @@ async function loadGdxData() {
             return;
         }
 
-        // Tìm dòng tiêu đề (bỏ qua các dòng tiêu đề gộp nếu có ở đầu sheet)
+        // Tìm dòng tiêu đề
         let headerIdx = 0;
         for (let i = 0; i < Math.min(rows.length, 5); i++) {
             const joined = stripVN(rows[i].join(' '));
@@ -1549,12 +1543,13 @@ async function loadGdxData() {
         let cBdt = findCol(['bdt', 'buu dien tinh', 'tinh/tp', 'tinh tp', 'buu dien tp', 'tinh', 'cap 1']);
         let cDonVi = findCol(['buu dien xa', 'bdx', 'ten don vi', 'don vi', 'buu cuc', 'dia ban', 'xa/phuong', 'xa', 'huyen', 'bdh', 'trung tam']);
         let cTen = findCol(['ho va ten', 'ho ten', 'ten gdx', 'giam doc', 'nhan su', 'can bo', 'ten'], [cBdt, cDonVi]);
+        let cNgaySinh = findCol(['ngay thang nam sinh', 'ngay/thang/nam sinh', 'ngay sinh', 'nam sinh', 'sinh ngay', 'ntns', 'dob'], [cBdt, cDonVi, cTen]);
         let cSdt = findCol(['sdt', 'so dien thoai', 'dien thoai', 'phone', 'di dong', 'tel', 'lien he']);
         let cKv = findCol(['khu vuc', 'vung', 'mien', 'nhom']);
         let cChucVu = findCol(['chuc vu', 'vi tri', 'vai tro', 'chuc danh']);
 
         // Fallback theo thứ tự cột nếu tiêu đề không khớp từ khóa
-        const used = () => [cStt, cBdt, cDonVi, cTen, cSdt, cKv, cChucVu].filter(x => x >= 0);
+        const used = () => [cStt, cBdt, cDonVi, cTen, cNgaySinh, cSdt, cKv, cChucVu].filter(x => x >= 0);
         const nextFree = () => {
             for (let i = 0; i < rawHeaders.length; i++) {
                 if (!used().includes(i)) return i;
@@ -1566,8 +1561,8 @@ async function loadGdxData() {
         if (cTen < 0) cTen = nextFree();
         if (cSdt < 0) cSdt = nextFree();
 
-        // Lưu các cột phụ bổ sung (Email, Ghi chú, Mã Bưu cục...) nếu có
-        const coreCols = new Set([cStt, cBdt, cDonVi, cTen, cSdt, cKv, cChucVu].filter(x => x >= 0));
+        // Lưu các cột phụ bổ sung nếu có
+        const coreCols = new Set([cStt, cBdt, cDonVi, cTen, cNgaySinh, cSdt, cKv, cChucVu].filter(x => x >= 0));
         GDX_ExtraCols = [];
         rawHeaders.forEach((h, i) => {
             if (!coreCols.has(i) && h && h.trim() !== '') {
@@ -1581,8 +1576,8 @@ async function loadGdxData() {
             const bdt = (cBdt >= 0 && r[cBdt]) ? r[cBdt].trim() : '';
             const donVi = (cDonVi >= 0 && r[cDonVi]) ? r[cDonVi].trim() : '';
             const ten = (cTen >= 0 && r[cTen]) ? r[cTen].trim() : '';
+            const ngaySinh = (cNgaySinh >= 0 && r[cNgaySinh]) ? r[cNgaySinh].trim() : '';
             let sdt = (cSdt >= 0 && r[cSdt]) ? r[cSdt].trim() : '';
-            // Chuẩn hóa số điện thoại VN nếu bị mất số 0 đầu (9 chữ số)
             const digitsOnly = sdt.replace(/\D/g, '');
             if (digitsOnly.length === 9 && /^[35789]/.test(digitsOnly)) {
                 sdt = '0' + digitsOnly;
@@ -1596,7 +1591,7 @@ async function loadGdxData() {
             const extras = {};
             GDX_ExtraCols.forEach(ec => { extras[ec.idx] = (r[ec.idx] || '').trim(); });
 
-            const searchBlob = stripVN([bdt, kv, donVi, ten, chucVu, sdt, Object.values(extras).join(' ')].join(' '));
+            const searchBlob = stripVN([bdt, kv, donVi, ten, ngaySinh, chucVu, sdt, Object.values(extras).join(' ')].join(' '));
             const phoneDigits = sdt.replace(/\D/g, '');
 
             GDX_Data.push({
@@ -1604,6 +1599,7 @@ async function loadGdxData() {
                 kv: kv || 'Khác',
                 donVi,
                 ten,
+                ngaySinh,
                 sdt,
                 phoneDigits,
                 chucVu,
@@ -1704,7 +1700,6 @@ function renderGdxTab() {
     const fKv = $('gdx-kv').value;
     const fBdt = $('gdx-bdt').value;
 
-    // Lọc danh sách
     GDX_Filtered = GDX_Data.filter(d => {
         if (fKv && d.kv !== fKv) return false;
         if (fBdt && d.bdt !== fBdt) return false;
@@ -1716,13 +1711,11 @@ function renderGdxTab() {
         return true;
     });
 
-    // Tiêu đề thông minh
     const titleParts = [];
     titleParts.push(fBdt ? `BĐT/TP ${escHtml(fBdt)}` : (fKv ? `Khu vực ${escHtml(fKv)}` : 'Toàn mạng lưới'));
     if (rawQ) titleParts.push(`Từ khóa: "${escHtml(rawQ)}"`);
     $('gdx-title').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${titleParts.join(' · ')}</span></div>`;
 
-    // KPI Cards
     const totalAll = GDX_Data.length;
     const totalShow = GDX_Filtered.length;
     const bdtSet = new Set(GDX_Filtered.map(d => d.bdt));
@@ -1742,7 +1735,6 @@ function renderGdxTab() {
     ];
     $('gdx-kpi').innerHTML = kpiArr.map(([x,y]) => `<div class="k"><span>${x}</span><b>${y}</b></div>`).join('');
 
-    // Biểu đồ BĐT/TP (dựa trên bộ lọc Khu vực & từ khóa, giữ tất cả BĐT để dễ chuyển đổi nhanh)
     const chartBase = GDX_Data.filter(d => {
         if (fKv && d.kv !== fKv) return false;
         if (normQ) {
@@ -1765,7 +1757,6 @@ function renderGdxTab() {
         </div>
     `).join('') : '<div class="lg">Không có dữ liệu phù hợp.</div>';
 
-    // Biểu đồ Khu vực
     const kvBase = GDX_Data.filter(d => {
         if (normQ) {
             const matchText = d.searchBlob.includes(normQ);
@@ -1830,6 +1821,7 @@ function renderGdxTable() {
             <td>${escHtml(d.kv)}</td>
             <td>${highlightMatch(d.donVi || '–', rawQ)}</td>
             <td><b>${highlightMatch(d.ten || '–', rawQ)}</b></td>
+            <td style="white-space:nowrap">${highlightMatch(d.ngaySinh || '–', rawQ)}</td>
             ${hasChucVu ? `<td>${highlightMatch(d.chucVu || '–', rawQ)}</td>` : ''}
             <td>${phoneHtml}</td>
             ${extraCells}
@@ -1845,6 +1837,7 @@ function renderGdxTable() {
                     <th>Khu vực</th>
                     <th>Đơn vị / Bưu điện xã</th>
                     <th>Họ và tên GĐX</th>
+                    <th>Ngày sinh</th>
                     ${hasChucVu ? '<th>Chức vụ</th>' : ''}
                     <th>Số điện thoại</th>
                     ${extraHeaders}
