@@ -472,15 +472,35 @@ const stripVN = (str) => {
     return (str || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().trim();
 };
 
-const normUnitKey = (str) => {
-    return stripVN(str)
-        .replace(/^(buu dien xa|buu dien phuong|buu dien thi tran|bdx|bdp|bdtt|xa|phuong|thi tran|tt\.?)\s+/g, '')
+// Chuẩn hóa tên Tỉnh / BĐT-TP để khớp chính xác giữa Cột B (DS GĐX) và Cột C (Điểm)
+const normBdtKey = (str) => {
+    let s = stripVN(str)
+        .replace(/^(buu dien tinh|buu dien thanh pho|buu dien tp\.?|bdtp|bdt|tinh|thanh pho|tp\.?)\s+/g, '')
         .replace(/[^a-z0-9]/g, '');
+    if (s === 'hcm' || s === 'tphcm' || s === 'hochiminh' || s === 'tphochiminh') return 'hochiminh';
+    if (s === 'brvt' || s === 'bariavungtau') return 'bariavungtau';
+    if (s === 'tthue' || s === 'thuathienhue' || s === 'hue') return 'hue';
+    if (s === 'daklak' || s === 'daclac') return 'daklak';
+    if (s === 'daknong' || s === 'dacnong') return 'daknong';
+    return s;
 };
 
-const normBdtKey = (str) => {
+// Chuẩn hóa tên Bưu điện xã/phường giữ nguyên phân biệt Xã / Phường / Thị trấn
+const normExactUnitKey = (str) => {
+    let s = stripVN(str).replace(/\s+/g, ' ');
+    s = s.replace(/^(buu dien xa|bdx)\s+/g, 'xa ');
+    s = s.replace(/^(buu dien phuong|bdp)\s+/g, 'phuong ');
+    s = s.replace(/^(buu dien thi tran|bdtt)\s+/g, 'thitran ');
+    s = s.replace(/^(thi tran|tt\.?)\s+/g, 'thitran ');
+    s = s.replace(/^buu dien\s+/g, '');
+    return s.replace(/[^a-z0-9]/g, '');
+};
+
+// Chuẩn hóa tên lõi (chỉ dùng dự phòng TRONG CÙNG TỈNH nếu một bên không ghi tiền tố xã/phường)
+const normCoreUnitKey = (str) => {
     return stripVN(str)
-        .replace(/^(buu dien tinh|buu dien tp\.?|buu dien thanh pho|bdt|bdtp|tinh|tp\.?|thanh pho)\s+/g, '')
+        .replace(/\s+/g, ' ')
+        .replace(/^(buu dien xa|buu dien phuong|buu dien thi tran|buu dien|bdx|bdp|bdtt|xa|phuong|thi tran|tt\.?)\s+/g, '')
         .replace(/[^a-z0-9]/g, '');
 };
 
@@ -1535,12 +1555,12 @@ window.renderTenderTab = function() {
 // FETCH & RENDER TAB 7: DANH SÁCH GĐX + SHEET ĐIỂM
 // ==============================================
 function parseDiemRows(text) {
-    const byBdtAndBdx = {};
-    const byBdxOnly = {};
-    if (!text || text.trim().startsWith("<!DOCTYPE html>")) return { byBdtAndBdx, byBdxOnly };
+    const exactByProv = {};
+    const coreByProv = {};
+    if (!text || text.trim().startsWith("<!DOCTYPE html>")) return { exactByProv, coreByProv };
 
     const rows = parseDelimitedText(text);
-    if (rows.length < 2) return { byBdtAndBdx, byBdxOnly };
+    if (rows.length < 2) return { exactByProv, coreByProv };
 
     let headerIdx = 0;
     for (let i = 0; i < Math.min(rows.length, 5); i++) {
@@ -1560,39 +1580,42 @@ function parseDiemRows(text) {
         return -1;
     };
 
-    const cBdt = findCol(['bdt', 'buu dien tinh', 'tinh/tp', 'tinh tp', 'buu dien tp', 'tinh']);
-    const cBdx = findCol(['buu dien xa', 'bdx', 'xa/phuong', 'phuong/xa', 'xa phuong', 'don vi', 'xa'], [cBdt]);
-    const cTenBc = findCol(['ten buu cuc', 'buu cuc/bd-vhx', 'buu cuc', 'bd-vhx', 'bdvhx', 'ten diem', 'diem ban'], [cBdt, cBdx]);
-    const cLoaiHinh = findCol(['loai hinh diem ban', 'loai hinh', 'loai diem', 'mo hinh']);
-    const cTamDung = findCol(['tam dung', 'trang thai', 'ngung hoat dong', 'tinh trang']);
-    const cLaoDong = findCol(['so luong lao dong', 'sl lao dong', 'tong lao dong', 'lao dong', 'sl ld', 'nhan su']);
+    // Cố định đúng cột đối chiếu của sheet Điểm: Tên tỉnh = Cột C (2), Tên BĐX = Cột F (5)
+    const cTinh = 2; // Cột C
+    const cBdx = 5;  // Cột F
+    const cTenBc = findCol(['ten buu cuc', 'buu cuc/bd-vhx', 'buu cuc', 'bd-vhx', 'bdvhx', 'ten diem', 'diem ban'], [cTinh, cBdx]);
+    const cLoaiHinh = findCol(['loai hinh diem ban', 'loai hinh', 'loai diem', 'mo hinh'], [cTinh, cBdx]);
+    const cTamDung = findCol(['tam dung', 'trang thai', 'ngung hoat dong', 'tinh trang'], [cTinh, cBdx]);
+    const cLaoDong = findCol(['so luong lao dong', 'sl lao dong', 'tong lao dong', 'lao dong', 'sl ld', 'nhan su'], [cTinh, cBdx]);
 
     for (let i = headerIdx + 1; i < rows.length; i++) {
         const r = rows[i];
-        const bdtRaw = (cBdt >= 0 && r[cBdt]) ? r[cBdt].trim() : '';
-        const bdxRaw = (cBdx >= 0 && r[cBdx]) ? r[cBdx].trim() : '';
+        const tinhRaw = (r[cTinh] || '').trim();
+        const bdxRaw = (r[cBdx] || '').trim();
         const tenBc = (cTenBc >= 0 && r[cTenBc]) ? r[cTenBc].trim() : '';
         const loaiHinh = (cLoaiHinh >= 0 && r[cLoaiHinh]) ? r[cLoaiHinh].trim() : '';
         const tamDung = (cTamDung >= 0 && r[cTamDung]) ? r[cTamDung].trim() : '';
         const laoDong = (cLaoDong >= 0 && r[cLaoDong]) ? r[cLaoDong].trim() : '';
 
-        if (!bdxRaw && !tenBc) continue;
+        if (!tinhRaw || !bdxRaw) continue;
 
         const pt = { tenBc, loaiHinh, tamDung, laoDong };
-        const kBdt = normBdtKey(bdtRaw);
-        const kBdx = normUnitKey(bdxRaw);
+        const kTinh = normBdtKey(tinhRaw);
+        const kExact = normExactUnitKey(bdxRaw);
+        const kCore = normCoreUnitKey(bdxRaw);
 
-        if (kBdt && kBdx) {
-            const fullKey = kBdt + '|' + kBdx;
-            if (!byBdtAndBdx[fullKey]) byBdtAndBdx[fullKey] = [];
-            byBdtAndBdx[fullKey].push(pt);
+        if (kTinh && kExact) {
+            const key1 = kTinh + '|' + kExact;
+            if (!exactByProv[key1]) exactByProv[key1] = [];
+            exactByProv[key1].push(pt);
         }
-        if (kBdx) {
-            if (!byBdxOnly[kBdx]) byBdxOnly[kBdx] = [];
-            byBdxOnly[kBdx].push(pt);
+        if (kTinh && kCore) {
+            const key2 = kTinh + '|' + kCore;
+            if (!coreByProv[key2]) coreByProv[key2] = [];
+            coreByProv[key2].push(pt);
         }
     }
-    return { byBdtAndBdx, byBdxOnly };
+    return { exactByProv, coreByProv };
 }
 
 async function loadGdxData() {
@@ -1636,31 +1659,20 @@ async function loadGdxData() {
             return -1;
         };
 
-        let cStt = findCol(['stt']);
-        let cBdt = findCol(['bdt', 'buu dien tinh', 'tinh/tp', 'tinh tp', 'buu dien tp', 'tinh', 'cap 1']);
-        let cDonVi = findCol(['buu dien xa', 'bdx', 'ten don vi', 'don vi', 'buu cuc', 'dia ban', 'xa/phuong', 'xa', 'huyen', 'bdh', 'trung tam']);
-        let cTen = findCol(['ho va ten', 'ho ten', 'ten gdx', 'giam doc', 'nhan su', 'can bo', 'ten'], [cBdt, cDonVi]);
-        let cSdt = findCol(['sdt', 'so dien thoai', 'dien thoai', 'phone', 'di dong', 'tel', 'lien he']);
-        let cKv = findCol(['khu vuc', 'vung', 'mien', 'nhom']);
+        // Cố định đúng các cột theo cấu trúc sheet DS GĐX
+        const cBdt = 1;          // Cột B: Tên BĐT/TP
+        const cDonVi = 3;        // Cột D: Bưu điện xã/phường
+        const cPhuTrach = 4;     // Cột E: Phụ trách
+        const cHrm = 5;          // Cột F: HRM
+        const cDobH = 7;         // Cột H: Ngày sinh (1)
+        const cDobI = 8;         // Cột I: Ngày sinh (2)
+        const cChucVuTruoc = 14; // Cột O: Chức vụ trước
 
-        // Các cột cố định theo cấu trúc sheet DS GĐX
-        const cPhuTrach = 4;     // Cột E
-        const cHrm = 5;          // Cột F
-        const cDobH = 7;         // Cột H
-        const cDobI = 8;         // Cột I
-        const cChucVuTruoc = 14; // Cột O
-
-        const used = () => [cStt, cBdt, cDonVi, cTen, cPhuTrach, cHrm, cDobH, cDobI, cSdt, cKv, cChucVuTruoc].filter(x => x >= 0);
-        const nextFree = () => {
-            for (let i = 0; i < rawHeaders.length; i++) {
-                if (!used().includes(i)) return i;
-            }
-            return -1;
-        };
-        if (cBdt < 0) cBdt = nextFree();
-        if (cDonVi < 0) cDonVi = nextFree();
-        if (cTen < 0) cTen = nextFree();
-        if (cSdt < 0) cSdt = nextFree();
+        const fixedCols = [0, cBdt, cDonVi, cPhuTrach, cHrm, cDobH, cDobI, cChucVuTruoc];
+        let cTen = findCol(['ho va ten', 'ho ten', 'ten gdx', 'giam doc', 'nhan su', 'can bo', 'ten'], fixedCols);
+        let cSdt = findCol(['sdt', 'so dien thoai', 'dien thoai', 'phone', 'di dong', 'tel', 'lien he'], fixedCols);
+        let cKv = findCol(['khu vuc', 'vung', 'mien', 'nhom'], fixedCols);
+        if (cTen < 0) cTen = 6; // Fallback cột G
 
         // Tự động phát hiện định dạng ngày Mỹ (M/D/YYYY) hay VN (D/M/YYYY)
         let usVotes = 0, vnVotes = 0;
@@ -1680,11 +1692,11 @@ async function loadGdxData() {
         GDX_Data = [];
         for (let i = headerIdx + 1; i < rows.length; i++) {
             const r = rows[i];
-            const bdt = (cBdt >= 0 && r[cBdt]) ? r[cBdt].trim() : '';
-            const donVi = (cDonVi >= 0 && r[cDonVi]) ? r[cDonVi].trim() : '';
-            const ten = (cTen >= 0 && r[cTen]) ? r[cTen].trim() : '';
+            const bdt = (r[cBdt] || '').trim();
+            const donVi = (r[cDonVi] || '').trim();
             const phuTrach = (r[cPhuTrach] || '').trim();
             const hrm = (r[cHrm] || '').trim();
+            const ten = (cTen >= 0 && r[cTen]) ? r[cTen].trim() : '';
 
             const rawH = (r[cDobH] || '').trim();
             const rawI = (r[cDobI] || '').trim();
@@ -1703,14 +1715,15 @@ async function loadGdxData() {
 
             if (!bdt && !donVi && !ten && !sdt) continue;
 
-            // Ghép dữ liệu từ sheet Điểm theo BĐT/TP + Bưu điện xã/phường
+            // Đối chiếu chặt theo: (Cột B DS GĐX == Cột C Điểm) VÀ (Cột D DS GĐX == Cột F Điểm)
             const kBdt = normBdtKey(bdt);
-            const kBdx = normUnitKey(donVi);
+            const kExact = normExactUnitKey(donVi);
+            const kCore = normCoreUnitKey(donVi);
             let points = [];
-            if (kBdt && kBdx && diemIndex.byBdtAndBdx[kBdt + '|' + kBdx]) {
-                points = diemIndex.byBdtAndBdx[kBdt + '|' + kBdx];
-            } else if (kBdx && diemIndex.byBdxOnly[kBdx]) {
-                points = diemIndex.byBdxOnly[kBdx];
+            if (kBdt && kExact && diemIndex.exactByProv[kBdt + '|' + kExact]) {
+                points = diemIndex.exactByProv[kBdt + '|' + kExact];
+            } else if (kBdt && kCore && diemIndex.coreByProv[kBdt + '|' + kCore]) {
+                points = diemIndex.coreByProv[kBdt + '|' + kCore];
             }
 
             const pointsText = points.map(pt => [pt.tenBc, pt.loaiHinh, pt.tamDung, pt.laoDong].join(' ')).join(' ');
