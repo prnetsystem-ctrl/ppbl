@@ -6,14 +6,16 @@
 *{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0 auto;background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:14px;max-width:1300px;
     -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none;}
+input,select{-webkit-user-select:text;-moz-user-select:text;-ms-user-select:text;user-select:text}
 h1{font-size:19px;margin:0; display:flex; align-items:center; gap:10px;}
 h1 img { height: 32px; width: auto; max-width: 150px; object-fit: contain; }
 h2{font-size:14px;margin:0 0 8px}.sub,.lg{color:var(--mu);font-size:12px}.sub{margin:2px 0 10px}
 .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
 .tabs button{background:var(--cd);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer;font-weight:500;}
 .tabs button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
-.bar{display:flex;flex-wrap:wrap;gap:12px;background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:8px 12px;margin-bottom:10px}.bar label{font-size:12px;color:var(--mu);display:flex;gap:6px;align-items:center}
-select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:3px 6px;font:inherit;outline:none}
+.bar{display:flex;flex-wrap:wrap;gap:12px;background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:8px 12px;margin-bottom:10px;align-items:center}.bar label{font-size:12px;color:var(--mu);display:flex;gap:6px;align-items:center}
+select,input[type="text"],input[type="search"]{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:4px 8px;font:inherit;outline:none}
+input[type="text"]:focus,input[type="search"]:focus,select:focus{border-color:var(--ac)}
 .kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:10px}.k{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:10px}.k b{display:block;font-size:19px}.k span{font-size:13px;color:var(--mu)}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:10px}.c{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:14px;min-width:0}
 .row{display:grid;grid-template-columns:105px 1fr 48px;gap:6px;align-items:center;margin:3px 0;font-size:12px}.n{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v{text-align:right;color:var(--mu)}
@@ -22,6 +24,7 @@ select{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-ra
 .ok{color:var(--g);font-weight:600}.fl{color:var(--r);font-weight:600}.pu{color:var(--pu);font-weight:600}.v2{display:none}.v2.on{display:block}svg{width:100%;height:auto}svg text{fill:var(--mu);font-size:10px}
 .mix{display:flex;height:20px;border-radius:4px;overflow:hidden;margin:3px 0}.mix div{color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center}
 .ur:hover{background:var(--bg)}.ur.sel{background:var(--bg);outline:1px solid var(--ac);border-radius:4px}.mk{position:absolute;top:-2px;bottom:-2px;border-left:2px solid var(--tx);opacity:.45}.btn{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:4px 10px;font:inherit;cursor:pointer}
+.btn:disabled{opacity:.45;cursor:not-allowed}
 .ug{column-width:280px;column-gap:20px;margin-top:8px}.ug .row{break-inside:avoid;margin:2px 0;padding:2px 3px;font-size:13px;gap:5px}.ug .t{height:8px}.mix div{white-space:nowrap}
 .rp{max-width:880px;margin:0 auto;background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:18px 24px; position:relative;}.rp .rt{font-size:18px;color:var(--ac);margin:0 0 4px}.rp .rs{color:var(--ac);font-size:13px;opacity:.85}.rp .rm,.rp .rn{color:var(--mu);font-size:11.5px;font-style:italic}.rp .rm{border-bottom:2px solid var(--ac);padding-bottom:8px;margin:4px 0 10px}.rp h3{font-size:14px;margin:16px 0 6px;color:var(--ac)}.rp p{margin:6px 0;line-height:1.6}.rp ul{padding-left:20px;margin:6px 0}.rp li{margin:5px 0;line-height:1.55}.rp table{margin:8px 0}
 #loading {position: fixed;top: 0;left: 0;width: 100%;height: 100%;background: var(--bg);z-index: 9999;display: flex;justify-content: center;align-items: center;font-size: 16px;color: var(--pri); text-align: center; padding: 20px;}
@@ -88,6 +91,29 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 }
 .copy-btn:hover { background: #154c9c; }
 .copy-btn.copied { background: var(--g); }
+
+/* --- CSS TAB DANH SÁCH GĐX --- */
+.gdx-table th, .gdx-table td { text-align: left; vertical-align: middle; }
+.gdx-table th.num, .gdx-table td.num { text-align: center; width: 42px; }
+.gdx-table tbody tr:hover { background: var(--bg); }
+.gdx-phone { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.gdx-phone a { color: var(--ac); text-decoration: none; font-weight: 600; }
+.gdx-phone a:hover { text-decoration: underline; }
+.gdx-copy-mini {
+    background: var(--bg); color: var(--mu); border: 1px solid var(--bd);
+    border-radius: 4px; padding: 1px 6px; font-size: 11px; cursor: pointer;
+}
+.gdx-copy-mini:hover { color: var(--tx); border-color: var(--ac); }
+.gdx-copy-mini.ok-cp { background: var(--g); color: #fff; border-color: var(--g); }
+.gdx-badge {
+    display: inline-block; padding: 2px 7px; border-radius: 10px;
+    font-size: 11px; background: rgba(31,95,191,0.1); color: var(--ac); font-weight: 600; white-space: nowrap;
+}
+.gdx-chart-scroll { max-height: 290px; overflow-y: auto; padding-right: 4px; }
+.gdx-bar-row { cursor: pointer; padding: 3px 4px; border-radius: 4px; }
+.gdx-bar-row:hover { background: var(--bg); }
+.gdx-bar-row.sel { background: rgba(31,95,191,0.12); outline: 1px solid var(--ac); }
+.gdx-hl { background: rgba(224,161,43,0.3); border-radius: 2px; padding: 0 1px; }
 </style></head>
 
 <body class="locked">
@@ -113,11 +139,11 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 <div class="tabs">
     <button data-t="1" class="on">1. Tổng quan</button>
     <button data-t="u">2. Kết quả đơn vị</button>
-    <button data-t="2">3. Xu hướng tháng</button>
-    <button data-t="3">4. Khoảng trống &amp; xếp hạng</button>
-    <button data-t="4">5. Doanh thu thẻ</button>
-    <button data-t="6">6. Đấu thầu</button>
-    <button data-t="5">7. Báo cáo đánh giá tự động</button>
+    <button data-t="3">3. Khoảng trống &amp; xếp hạng</button>
+    <button data-t="4">4. Doanh thu thẻ</button>
+    <button data-t="6">5. Đấu thầu</button>
+    <button data-t="5">6. Báo cáo đánh giá tự động</button>
+    <button data-t="7">7. Danh sách GĐX</button>
 </div>
 <div class="bar" id="fb">
     <label>Nhóm đơn vị <select id="fg">
@@ -177,12 +203,16 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
     <div id="ud"></div>
 </div>
 
-<div class="v2" id="p2"><div class="grid"><div class="c"><h2>Thực hiện theo tháng so với KH và cùng kỳ</h2><div id="g1"></div><div class="lg">Cột = thực hiện · đường vàng = KH · đường xám đứt = cùng kỳ năm trước. B2B dồn vào cuối quý.</div></div><div class="c"><h2>Lũy kế thực hiện so với KH lũy kế</h2><div id="g2"></div></div></div></div>
+<!-- TAB 3: KHOẢNG TRỐNG & XẾP HẠNG -->
 <div class="v2" id="p3"><div class="grid"><div class="c"><h2>Xếp hạng % mục tiêu lũy kế</h2><div id="rk"></div><div class="lg">Vạch đứt = 100% mục tiêu lũy kế · xanh ≥100%, vàng ≥70%, đỏ &lt;70%</div></div><div class="c"><h2>10 đơn vị thiếu nhiều nhất</h2><div id="pa"></div></div><div class="c"><h2>Heatmap % KH năm theo kênh (top 12 đơn vị khoảng trống)</h2><div class="sc" id="hm"></div></div></div></div>
+
+<!-- TAB 4: DOANH THU THẺ -->
 <div class="v2" id="p4"><div class="kp" id="k4"></div><div class="grid"><div class="c"><h2>Kinh doanh thẻ theo tháng</h2><div id="g4"></div><div class="lg">Cột đỏ = tháng thẻ âm (cần rà soát điều chỉnh/hoàn trừ). Thẻ nằm trong tổng thực hiện, chưa có KH riêng.</div></div><div class="c"><h2>Đơn vị có thẻ cao nhất</h2><div id="tk"></div></div><div class="c"><h2>Theo nhóm đơn vị</h2><div id="tg"></div></div><div class="c" style="grid-column:1/-1"><h2>Đơn vị bị âm thẻ (theo tháng đã chọn)</h2><div class="sc" id="ng"></div></div></div></div>
+
+<!-- TAB 6: BÁO CÁO ĐÁNH GIÁ TỰ ĐỘNG -->
 <div class="v2" id="p5"><div class="rp" id="rp"></div></div>
 
-<!-- TAB 6: ĐẤU THẦU -->
+<!-- TAB 5: ĐẤU THẦU -->
 <div class="v2" id="p6">
     <div class="bar" style="margin-bottom:10px">
         <label>Năm <select id="td-year" onchange="renderTenderTab()"><option value="all">Tất cả các năm</option></select></label>
@@ -203,6 +233,54 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
     </div>
 </div>
 
+<!-- TAB 7: DANH SÁCH GĐX -->
+<div class="v2" id="p7">
+    <div class="bar" style="margin-bottom:10px">
+        <label style="flex:1;min-width:220px">Tìm nhanh
+            <input type="search" id="gdx-q" placeholder="Nhập tên GĐX, SĐT, đơn vị/xã, BĐT/TP..." style="width:100%;min-width:200px" oninput="onGdxFilterChange()">
+        </label>
+        <label>Khu vực
+            <select id="gdx-kv" onchange="onGdxKvChange()"><option value="">Tất cả khu vực</option></select>
+        </label>
+        <label>BĐT/TP
+            <select id="gdx-bdt" onchange="onGdxFilterChange()"><option value="">Tất cả BĐT/TP</option></select>
+        </label>
+        <label>Hiển thị
+            <select id="gdx-limit" onchange="window.gdxPage=0;renderGdxTable()">
+                <option value="25">25 dòng</option>
+                <option value="50" selected>50 dòng</option>
+                <option value="100">100 dòng</option>
+                <option value="500">500 dòng</option>
+            </select>
+        </label>
+        <button class="btn" onclick="resetGdxFilters()" style="margin-left:auto; background:var(--cd); border:1px solid var(--bd); color:var(--tx); font-weight:600">↺ Xóa lọc</button>
+    </div>
+
+    <div id="gdx-title"></div>
+    <div class="kp" id="gdx-kpi">
+        <div class="k"><span>Đang tải danh sách GĐX...</span><b>...</b></div>
+    </div>
+
+    <div class="grid" style="margin-bottom:10px">
+        <div class="c">
+            <div class="t-h3">SỐ LƯỢNG GĐX THEO BĐT/TP <span class="lg" style="font-weight:normal;text-transform:none">(bấm vào dòng để lọc nhanh)</span></div>
+            <div class="gdx-chart-scroll" id="gdx-bdt-chart"></div>
+        </div>
+        <div class="c">
+            <div class="t-h3">PHÂN BỔ GĐX THEO KHU VỰC <span class="lg" style="font-weight:normal;text-transform:none">(bấm vào dòng để lọc nhanh)</span></div>
+            <div class="gdx-chart-scroll" id="gdx-kv-chart"></div>
+        </div>
+    </div>
+
+    <div class="c">
+        <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
+            <div class="t-h3" style="margin:0">DANH SÁCH TRA CỨU GIÁM ĐỐC XÃ (GĐX)</div>
+            <span class="lg" id="gdx-count-info"></span>
+        </div>
+        <div class="sc" id="gdx-table-wrap"></div>
+    </div>
+</div>
+
 <script>
 // ==============================================
 // XỬ LÝ ĐĂNG NHẬP 
@@ -217,6 +295,7 @@ function checkLogin() {
         
         loadGoogleSheetData();
         loadTenderData();
+        loadGdxData();
     } else {
         document.getElementById('auth-err').style.display = 'block';
     }
@@ -248,11 +327,18 @@ function resetFilters() {
 // BẢO VỆ CHỐNG SAO CHÉP MÃ NGUỒN CƠ BẢN
 // ==============================================
 document.addEventListener('contextmenu', event => event.preventDefault());
-document.addEventListener('copy', event => { event.clipboardData.setData('text/plain', 'Sao chép bị vô hiệu hóa!'); event.preventDefault(); });
+document.addEventListener('copy', event => {
+    const tag = document.activeElement ? document.activeElement.tagName : '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    event.clipboardData.setData('text/plain', 'Sao chép bị vô hiệu hóa!');
+    event.preventDefault();
+});
 document.addEventListener('keydown', function(e) {
+    const tag = document.activeElement ? document.activeElement.tagName : '';
+    const isInput = (tag === 'INPUT' || tag === 'TEXTAREA');
     if (e.key === 'F12' || 
        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) || 
-       (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P' || e.key === 'c' || e.key === 'C'))) {
+       (e.ctrlKey && (e.key === 'u' || e.key === 'U' || e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P' || (!isInput && (e.key === 'c' || e.key === 'C'))))) {
         e.preventDefault();
         return false;
     }
@@ -282,7 +368,6 @@ function copyReportContent() {
                     textToCopy += "\n- " + li.innerText;
                 });
             } else if (node.classList.contains('sc')) {
-                // Table
                 const table = node.querySelector('table');
                 if(table) {
                     textToCopy += "\n\nBẢNG SỐ LIỆU:\n";
@@ -316,15 +401,15 @@ function copyReportContent() {
 // HÀM DÒ TÌM PHÂN VÙNG ĐƠN VỊ
 // ==============================================
 function getKhuVuc(ten) {
-    let t = ten.toUpperCase();
-    if(t.includes("TCND") || t.includes("PHBC")) return "PHBC+TCDN";
-    if(t.includes("HOÀN KIẾM") || t.includes("HÀ ĐÔNG") || t.includes("TỪ LIÊM") || t.includes("LONG BIÊN") || t.includes("ĐÔNG ANH") || t.includes("THANH TRÌ") || t.includes("CHƯƠNG MỸ") || t.includes("SƠN TÂY")) return "TT Hà Nội";
+    let t = (ten || "").toUpperCase();
+    if(t.includes("TCND") || t.includes("TCDN") || t.includes("PHBC")) return "PHBC+TCDN";
+    if(t.includes("HÀ NỘI") || t.includes("HOÀN KIẾM") || t.includes("HÀ ĐÔNG") || t.includes("TỪ LIÊM") || t.includes("LONG BIÊN") || t.includes("ĐÔNG ANH") || t.includes("THANH TRÌ") || t.includes("CHƯƠNG MỸ") || t.includes("SƠN TÂY")) return "TT Hà Nội";
     
     // Nhóm TT TP.HCM (Bao gồm BĐ cấp tỉnh BRVT và Bình Dương, và các TT trực thuộc TP.HCM)
-    if(t.includes("SÀI GÒN") || t.includes("TT PHÚ THỌ") || t.includes("CHỢ LỚN") || t.includes("NAM SÀI GÒN") || t.includes("GIA ĐỊNH") || t.includes("BÌNH CHÁNH") || t.includes("CỦ CHI") || t.includes("THỦ ĐỨC") || t.includes("BR VT") || t.includes("BR-VT") || t.includes("BÌNH DƯƠNG")) return "TT TP.HCM";
+    if(t.includes("SÀI GÒN") || t.includes("TT PHÚ THỌ") || t.includes("CHỢ LỚN") || t.includes("NAM SÀI GÒN") || t.includes("GIA ĐỊNH") || t.includes("BÌNH CHÁNH") || t.includes("CỦ CHI") || t.includes("THỦ ĐỨC") || t.includes("BR VT") || t.includes("BR-VT") || t.includes("BÀ RỊA") || t.includes("VŨNG TÀU") || t.includes("BÌNH DƯƠNG")) return "TT TP.HCM";
 
     // Nhóm Đông Nam Bộ (Bao gồm BĐ cấp tỉnh Đồng Nai và BĐ cấp tỉnh TT. TP.HCM)
-    if(t.includes("ĐỒNG NAI") || t.includes("TP.HCM") || t.includes("TP HCM") || t.includes("TPHCM") || t.includes("HỒ CHÍ MINH") || t.includes("HCM")) return "Đông Nam Bộ";
+    if(t.includes("ĐỒNG NAI") || t.includes("BÌNH PHƯỚC") || t.includes("TP.HCM") || t.includes("TP HCM") || t.includes("TPHCM") || t.includes("HỒ CHÍ MINH") || t.includes("HCM")) return "Đông Nam Bộ";
     
     // Miền Tây (Bao gồm Tây Ninh)
     if(t.includes("TÂY NINH") || t.includes("ĐỒNG THÁP") || t.includes("AN GIANG") || t.includes("VĨNH LONG") || t.includes("CẦN THƠ") || t.includes("CÀ MAU") || t.includes("SÓC TRĂNG") || t.includes("BẠC LIÊU") || t.includes("BẾN TRE") || t.includes("TRÀ VINH") || t.includes("KIÊN GIANG") || t.includes("HẬU GIANG") || t.includes("TIỀN GIANG") || t.includes("LONG AN")) return "Miền Tây";
@@ -337,7 +422,7 @@ function getKhuVuc(ten) {
     
     if(t.includes("THANH HÓA") || t.includes("NGHỆ AN") || t.includes("HÀ TĨNH") || t.includes("QUẢNG TRỊ") || t.includes("HUẾ") || t.includes("QUẢNG BÌNH")) return "Miền Trung";
     
-    if(t.includes("ĐÀ NẴNG") || t.includes("QUẢNG NGÃI") || t.includes("GIA LAI") || t.includes("ĐẮK LẮK") || t.includes("KHÁNH HÒA") || t.includes("LÂM ĐỒNG") || t.includes("NTB") || t.includes("QUẢNG NAM") || t.includes("BÌNH ĐỊNH") || t.includes("PHÚ YÊN") || t.includes("NINH THUẬN") || t.includes("BÌNH THUẬN") || t.includes("KONTUM") || t.includes("ĐẮK NÔNG")) return "NTB & TN";
+    if(t.includes("ĐÀ NẴNG") || t.includes("QUẢNG NGÃI") || t.includes("GIA LAI") || t.includes("ĐẮK LẮK") || t.includes("ĐĂK LĂK") || t.includes("KHÁNH HÒA") || t.includes("LÂM ĐỒNG") || t.includes("NTB") || t.includes("QUẢNG NAM") || t.includes("BÌNH ĐỊNH") || t.includes("PHÚ YÊN") || t.includes("NINH THUẬN") || t.includes("BÌNH THUẬN") || t.includes("KON TUM") || t.includes("KONTUM") || t.includes("ĐẮK NÔNG") || t.includes("ĐĂK NÔNG")) return "NTB & TN";
     
     return "Khác";
 }
@@ -352,18 +437,24 @@ function createEmptyGroup() {
 }
 
 // ==============================================
-// URL SHEET GOOGLE DOANH THU & ĐẤU THẦU
+// URL SHEET GOOGLE DOANH THU, ĐẤU THẦU & DS GĐX
 // ==============================================
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9nxZBO6P6MoaJHFmyEqTPJWP0zPByM-DNGKdUPwvVBnbrXHuHI530A-DgA35Q7rsbxRVx7xGU7E1R/pub?gid=1323893050&single=true&output=tsv";
 const TENDER_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRj3ZqmvFi5q_58y0JoKY2CNbINyu78kGT-AQVxpN23cLqbFa_Glep6X9wG8L70E3HXnzcb3K615IJt/pub?gid=1854147220&single=true&output=tsv";
+// THAY NHAP_GID_DS_GDX_VAO_DAY BẰNG MÃ GID CỦA TAB "DS GĐX" TRONG FILE "Doanh thu_skill_test"
+const GDX_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9nxZBO6P6MoaJHFmyEqTPJWP0zPByM-DNGKdUPwvVBnbrXHuHI530A-DgA35Q7rsbxRVx7xGU7E1R/pub?gid=NHAP_GID_DS_GDX_VAO_DAY&single=true&output=tsv";
 
 let N_data = [], M_data = {}, U_data = [], V_data = [];
 let Tender_Data = [];
+let GDX_Data = [];
+let GDX_Filtered = [];
+let GDX_ExtraCols = [];
 let max_month_th = 0; 
 let latest_year = new Date().getFullYear();
 
 window.t1Page = 0;
 window.t2Page = 0;
+window.gdxPage = 0;
 window.unitTenderList = [];
 window.invTenderList = [];
 
@@ -380,6 +471,30 @@ const parseVNNumber = (str) => {
     s = s.replace(/\./g, '').replace(/,/g, '.').replace(/[^\d.-]/g, '');
     return parseFloat(s) || 0;
 };
+
+const stripVN = (str) => {
+    return (str || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().trim();
+};
+
+const escHtml = (str) => (str || '').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function parseDelimitedText(text) {
+    const rows = [];
+    let row = [], inQuotes = false, val = "";
+    let delimiter = '\t';
+    if (text.indexOf('\t') === -1) delimiter = text.indexOf(';') !== -1 ? ';' : ',';
+    
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (c === '"') inQuotes = !inQuotes;
+        else if (c === delimiter && !inQuotes) { row.push(val.trim()); val = ""; }
+        else if (c === '\n' && !inQuotes) { row.push(val.trim()); if(row.join('') !== '') rows.push(row); row = []; val = ""; }
+        else if (c !== '\r') val += c;
+    }
+    if (val) row.push(val.trim());
+    if (row.length > 0 && row.join('') !== '') rows.push(row);
+    return rows;
+}
 
 function agg(g,c){const o={kh:[0,0,0,0,0,0,0,0,0,0,0,0],th:[0,0,0,0,0,0,0,0,0,0,0,0],ck:[0,0,0,0,0,0,0,0,0,0,0,0]};
  for(const G in M_data){if(g&&G!=g)continue;for(const C of["BL","GT","B2B"]){if(c!='T'&&C!=c)continue;const m=M_data[G][C];m.kh.forEach((v,i)=>o.kh[i]+=v);m.th.forEach((v,i)=>{o.th[i]+=v});m.ck.forEach((v,i)=>{o.ck[i]+=v})}}return o}
@@ -467,17 +582,6 @@ function r1(){
     const cols={BL:'#1f5fbf',GT:'#2e9e5b',B2B:'#e0a12b'},mix=k=>{const v=['BL','GT','B2B'].map(C=>{const b=agg(g,C);return k=='kh'?sm(b.kh,12)*cw:Math.max(sm(b.th,n),0)}),T=v.reduce((x,y)=>x+y,0)||1;return v.map((x,i)=>`<div style="width:${x/T*100}%;background:${Object.values(cols)[i]}">${x/T>.07?p(x/T):''}</div>`).join('')};
     $('mx').innerHTML=`<div class="lg">KH lũy kế</div><div class="mix">${mix('kh')}</div><div class="lg">Thực hiện lũy kế</div><div class="mix">${mix('th')}</div><div class="lg">${Object.keys(cols).map(C=>`<span style="color:${cols[C]}">■</span> ${CH[C]}`).join(' &nbsp; ')}</div>`
 }
-
-function r2(){const{g,c,n}=S(),a=agg(g,c),Wd=560,H=210,L=44,B=24,T=10,pw=(Wd-L-8)/12,mx=Math.max(...a.kh,...a.th,...a.ck,1)*1.1,y=v=>H-B-v/mx*(H-B-T),x=i=>L+pw*i+pw/2;
- let s=`<svg viewBox="0 0 ${Wd} ${H}">`;for(let i=0;i<=4;i++){const v=mx/1.1*i/4;s+=`<line x1="${L}" x2="${Wd-8}" y1="${y(v)}" y2="${y(v)}" stroke="var(--bd)"/><text x="${L-4}" y="${y(v)+3}" text-anchor="end">${f(v/1000)}k</text>`}
- for(let i=0;i<12;i++){s+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">T${i+1}</text>`;if(i<n)s+=`<rect x="${x(i)-pw*.3}" y="${y(a.th[i])}" width="${pw*.6}" height="${H-B-y(a.th[i])}" fill="var(--ac)" opacity=".85"/>`}
- const ln=(arr,k,cl,d)=>`<polyline fill="none" stroke="${cl}" stroke-width="2" ${d?'stroke-dasharray="4 3"':''} points="${arr.slice(0,k).map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`;
- $('g1').innerHTML=s+ln(a.kh,12,'var(--a)')+ln(a.ck,n,'var(--mu)',1)+'</svg>';
- const cu=arr=>arr.reduce((o,v,i)=>(o.push((o[i-1]||0)+v),o),[]),K=cu(a.kh),Tt=cu(a.th.slice(0,n)),mx2=Math.max(...K,1)*1.05,y2=v=>H-B-v/mx2*(H-B-T);
- let s2=`<svg viewBox="0 0 ${Wd} ${H}">`;for(let i=0;i<=4;i++){const v=mx2/1.05*i/4;s2+=`<line x1="${L}" x2="${Wd-8}" y1="${y2(v)}" y2="${y2(v)}" stroke="var(--bd)"/><text x="${L-4}" y="${y2(v)+3}" text-anchor="end">${f(v/1000)}k</text>`}
- for(let i=0;i<12;i++)s2+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">T${i+1}</text>`;
- const l2=(arr,cl)=>`<polyline fill="none" stroke="${cl}" stroke-width="2.5" points="${arr.map((v,i)=>x(i)+','+y2(v)).join(' ')}"/>`;
- $('g2').innerHTML=s2+l2(K,'var(--a)')+l2(Tt,'var(--ac)')+`</svg><div class="lg"><span style="color:var(--ac)">■</span> Thực hiện lũy kế &nbsp; <span style="color:var(--a)">■</span> KH lũy kế</div>`}
 
 function r3(){
     const {g, c, n} = S();
@@ -625,7 +729,6 @@ function r6(){
  
  $('ul').innerHTML='Thanh = '+(isMonth?`% hoàn thành KH Tháng ${m_sel}`: (q?`% hoàn thành KH Quý ${q}`:'% KH năm'))+' · vạch đứt = 100% KH kỳ'+((isMonth||q)?'':' · vạch đậm = mục tiêu lũy kế đến tháng đã chọn')+' · màu: xanh ≥100% '+((isMonth||q)?'KH kỳ':'mục tiêu')+', vàng ≥70%, đỏ &lt;70% · bấm vào một dòng để xem chi tiết. Bộ lọc nhóm, kênh, tháng ở trên đều áp dụng.';
  
- // PHẦN RENDER CHI TIẾT ĐƠN VỊ / MẠNG LƯỚI
  let isGlobal = !sel;
  let v = null;
  if (!isGlobal) {
@@ -744,7 +847,6 @@ function r6(){
     </div>
  </div></div>`;
 
- // RENDER BIỂU ĐỒ THÁNG CHI TIẾT (RIÊNG THÁNG CHỌN)
  const u_th_m = a.th[active_m-1]||0;
  const u_kh_m_T = a.kh[active_m-1]||0;
  $('ch-month-unit').innerHTML=['BL','GT','B2B'].map(C=>{
@@ -764,7 +866,7 @@ function r6(){
 
  if(isGlobal) {
      if($('global-q-dash')) $('global-q-dash').style.display = 'grid';
-     rq(g,c,n,cw); // Render lại biểu đồ Quý Global
+     rq(g,c,n,cw);
  } else {
      if($('global-q-dash')) $('global-q-dash').style.display = 'none';
  }
@@ -778,7 +880,6 @@ $('ud').addEventListener('click',e=>{if(e.target.id=='uc'){$('fu').value='';all(
 
 function all(){
     try{ r1(); }catch(e){console.error(e);}
-    try{ r2(); }catch(e){console.error(e);}
     try{ r3(); }catch(e){console.error(e);}
     try{ r4(); }catch(e){console.error(e);}
     try{ r6(); }catch(e){console.error(e);}
@@ -798,10 +899,14 @@ $('fq').addEventListener('input', e => {
 });
 ['fg','fc','fn'].forEach(i=>$(i).addEventListener('input',all));
 
-document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x==b));document.querySelectorAll('.v2').forEach(x=>x.classList.toggle('on',x.id=='p'+b.dataset.t));$('fb').style.display=b.dataset.t=='5'||b.dataset.t=='6'?'none':'flex'}));
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('on',x==b));
+    document.querySelectorAll('.v2').forEach(x=>x.classList.toggle('on',x.id=='p'+b.dataset.t));
+    $('fb').style.display=(b.dataset.t=='5'||b.dataset.t=='6'||b.dataset.t=='7')?'none':'flex';
+}));
 
 // ==============================================
-// FETCH DOANH THU & ĐẤU THẦU ĐỘC LẬP
+// FETCH DOANH THU
 // ==============================================
 async function loadGoogleSheetData() {
     try {
@@ -814,26 +919,12 @@ async function loadGoogleSheetData() {
             return;
         }
 
-        const rows = [];
-        let row = [], inQuotes = false, val = "";
-        let delimiter = '\t';
-        if (text.indexOf('\t') === -1) delimiter = text.indexOf(';') !== -1 ? ';' : ',';
-        
-        for (let i = 0; i < text.length; i++) {
-            const c = text[i];
-            if (c === '"') inQuotes = !inQuotes;
-            else if (c === delimiter && !inQuotes) { row.push(val.trim()); val = ""; }
-            else if (c === '\n' && !inQuotes) { row.push(val.trim()); if(row.join('') !== '') rows.push(row); row = []; val = ""; }
-            else if (c !== '\r') val += c;
-        }
-        if (val) row.push(val.trim());
-        if (row.length > 0 && row.join('') !== '') rows.push(row);
+        const rows = parseDelimitedText(text);
 
         N_data = []; 
         const U_map = {}; 
         let detectedMax = 0;
         
-        // KHỞI TẠO MẶC ĐỊNH SỐ 0 CHO CÁC NHÓM NGĂN CHẶN LỖI NAN
         const M_groups = {};
         Array.from($('fg').options).forEach(opt => {
             let text = opt.text;
@@ -848,8 +939,6 @@ async function loadGoogleSheetData() {
             if (cols.length < 3 || !cols[0]) continue;
             
             let bdx = cols[0] ? cols[0].toString().trim() : "";
-            let bdx_up = bdx.toUpperCase();
-            
             let original_nhom = cols[1] ? cols[1].toString().trim() : "";
             let nhom = getKhuVuc(bdx);
             
@@ -959,7 +1048,7 @@ async function loadGoogleSheetData() {
             $('loading').style.display = 'none';
             $('fu').innerHTML = '<option value="">— Tất cả đơn vị —</option>';
             V_data.forEach(v=>$('fu').add(new Option(v[0],v[0])));
-            all(); // Gọi tất cả các hàm render 1 lần
+            all();
         } else {
              $('loading').innerHTML = `<b>LỖI DỮ LIỆU:</b><br><br>Không tìm thấy dữ liệu hợp lệ trong Sheet Doanh thu.`;
         }
@@ -1112,25 +1201,14 @@ function rrep() {
     if($('rp')) $('rp').innerHTML = h;
 }
 
+// ==============================================
+// FETCH & RENDER ĐẤU THẦU
+// ==============================================
 async function loadTenderData() {
     try {
         const res = await fetch(TENDER_CSV_URL + "&_t=" + new Date().getTime());
         const text = await res.text();
-
-        const rows = [];
-        let row = [], inQuotes = false, val = "";
-        let delimiter = '\t';
-        if (text.indexOf('\t') === -1) delimiter = text.indexOf(';') !== -1 ? ';' : ',';
-        
-        for (let i = 0; i < text.length; i++) {
-            const c = text[i];
-            if (c === '"') inQuotes = !inQuotes;
-            else if (c === delimiter && !inQuotes) { row.push(val.trim()); val = ""; }
-            else if (c === '\n' && !inQuotes) { row.push(val.trim()); if(row.join('') !== '') rows.push(row); row = []; val = ""; }
-            else if (c !== '\r') val += c;
-        }
-        if (val) row.push(val.trim());
-        if (row.length > 0 && row.join('') !== '') rows.push(row);
+        const rows = parseDelimitedText(text);
 
         if (rows.length > 1) {
             const h = rows[0].map(s => s ? s.toLowerCase() : "");
@@ -1138,11 +1216,11 @@ async function loadTenderData() {
             const cT = h.findIndex(x => x.includes("tình trạng"));
             const cThang = h.findIndex(x => x === "tháng" || x === "thang");
             const cTrucTuyen = h.findIndex(x => x.includes("chào giá") || x.includes("trực tuyến"));
-            const cDv = 9; // Index 9 (Cột J)
+            const cDv = 9; // Cột J
             const cCDT = h.findIndex(x => x.includes("chủ đầu tư"));
-            const cGia = 18; // Index 18 (Cột S)
-            const cNam = 21; // Index 21 (Cột V)
-            const cKhuVuc = 24; // Index 24 (Cột Y)
+            const cGia = 18; // Cột S
+            const cNam = 21; // Cột V
+            const cKhuVuc = 24; // Cột Y
 
             Tender_Data = rows.slice(1).map(r => ({
                 tinhTrang: cT >= 0 ? (r[cT] || '') : '',
@@ -1424,15 +1502,361 @@ window.renderTenderTab = function() {
     drawTenderInvestors();
 }
 
-window.onload = () => {
-    document.querySelectorAll('.tabs button').forEach(b => {
-        b.addEventListener('click', () => {
-            document.querySelectorAll('.tabs button').forEach(x => x.classList.toggle('on', x == b));
-            document.querySelectorAll('.v2').forEach(x => x.classList.toggle('on', x.id == 'p' + b.dataset.t));
-            
-            const isNoUnitSelect = (b.dataset.t == '5' || b.dataset.t == '6');
-            $('fb').style.display = isNoUnitSelect ? 'none' : 'flex';
+// ==============================================
+// FETCH & RENDER TAB 7: DANH SÁCH GĐX
+// ==============================================
+async function loadGdxData() {
+    if (GDX_CSV_URL.includes("NHAP_GID_DS_GDX_VAO_DAY")) {
+        $('gdx-kpi').innerHTML = `<div class="k" style="grid-column:1/-1;border-left:4px solid var(--a)"><span>Chưa cấu hình mã GID của tab <b>DS GĐX</b></span><b style="font-size:14px;font-weight:500;margin-top:4px">Vui lòng mở file index.html, tìm dòng <code>GDX_CSV_URL</code> và thay <code>NHAP_GID_DS_GDX_VAO_DAY</code> bằng mã <code>gid</code> của tab <b>DS GĐX</b> trong Google Trang tính <i>Doanh thu_skill_test</i>.</b></div>`;
+        $('gdx-table-wrap').innerHTML = `<div class="lg">Chưa có dữ liệu hiển thị.</div>`;
+        return;
+    }
+    try {
+        const res = await fetch(GDX_CSV_URL + "&_t=" + new Date().getTime());
+        const text = await res.text();
+        if (text.trim().startsWith("<!DOCTYPE html>")) {
+            $('gdx-kpi').innerHTML = `<div class="k" style="grid-column:1/-1;color:var(--r)"><span>Lỗi kết nối</span><b style="font-size:14px">Không thể đọc tab DS GĐX. Kiểm tra lại mã GID hoặc quyền Xuất bản lên web của Google Trang tính.</b></div>`;
+            return;
+        }
+        const rows = parseDelimitedText(text);
+        if (rows.length < 2) {
+            $('gdx-kpi').innerHTML = `<div class="k" style="grid-column:1/-1"><span>Thông báo</span><b style="font-size:14px">Tab DS GĐX chưa có dữ liệu.</b></div>`;
+            return;
+        }
+
+        // Tìm dòng tiêu đề (bỏ qua các dòng tiêu đề gộp nếu có ở đầu sheet)
+        let headerIdx = 0;
+        for (let i = 0; i < Math.min(rows.length, 5); i++) {
+            const joined = stripVN(rows[i].join(' '));
+            if (joined.includes('ho ten') || joined.includes('ho va ten') || joined.includes('dien thoai') || joined.includes('sdt') || joined.includes('bdt') || joined.includes('buu dien')) {
+                headerIdx = i;
+                break;
+            }
+        }
+
+        const rawHeaders = rows[headerIdx];
+        const normH = rawHeaders.map(h => stripVN(h));
+
+        const findCol = (keywords, excludeIdx = []) => {
+            for (const kw of keywords) {
+                const idx = normH.findIndex((h, i) => !excludeIdx.includes(i) && h.includes(kw));
+                if (idx >= 0) return idx;
+            }
+            return -1;
+        };
+
+        let cStt = findCol(['stt']);
+        let cBdt = findCol(['bdt', 'buu dien tinh', 'tinh/tp', 'tinh tp', 'buu dien tp', 'tinh', 'cap 1']);
+        let cDonVi = findCol(['buu dien xa', 'bdx', 'ten don vi', 'don vi', 'buu cuc', 'dia ban', 'xa/phuong', 'xa', 'huyen', 'bdh', 'trung tam']);
+        let cTen = findCol(['ho va ten', 'ho ten', 'ten gdx', 'giam doc', 'nhan su', 'can bo', 'ten'], [cBdt, cDonVi]);
+        let cSdt = findCol(['sdt', 'so dien thoai', 'dien thoai', 'phone', 'di dong', 'tel', 'lien he']);
+        let cKv = findCol(['khu vuc', 'vung', 'mien', 'nhom']);
+        let cChucVu = findCol(['chuc vu', 'vi tri', 'vai tro', 'chuc danh']);
+
+        // Fallback theo thứ tự cột nếu tiêu đề không khớp từ khóa
+        const used = () => [cStt, cBdt, cDonVi, cTen, cSdt, cKv, cChucVu].filter(x => x >= 0);
+        const nextFree = () => {
+            for (let i = 0; i < rawHeaders.length; i++) {
+                if (!used().includes(i)) return i;
+            }
+            return -1;
+        };
+        if (cBdt < 0) cBdt = nextFree();
+        if (cDonVi < 0) cDonVi = nextFree();
+        if (cTen < 0) cTen = nextFree();
+        if (cSdt < 0) cSdt = nextFree();
+
+        // Lưu các cột phụ bổ sung (Email, Ghi chú, Mã Bưu cục...) nếu có
+        const coreCols = new Set([cStt, cBdt, cDonVi, cTen, cSdt, cKv, cChucVu].filter(x => x >= 0));
+        GDX_ExtraCols = [];
+        rawHeaders.forEach((h, i) => {
+            if (!coreCols.has(i) && h && h.trim() !== '') {
+                GDX_ExtraCols.push({ idx: i, name: h.trim() });
+            }
         });
-    });
+
+        GDX_Data = [];
+        for (let i = headerIdx + 1; i < rows.length; i++) {
+            const r = rows[i];
+            const bdt = (cBdt >= 0 && r[cBdt]) ? r[cBdt].trim() : '';
+            const donVi = (cDonVi >= 0 && r[cDonVi]) ? r[cDonVi].trim() : '';
+            const ten = (cTen >= 0 && r[cTen]) ? r[cTen].trim() : '';
+            let sdt = (cSdt >= 0 && r[cSdt]) ? r[cSdt].trim() : '';
+            // Chuẩn hóa số điện thoại VN nếu bị mất số 0 đầu (9 chữ số)
+            const digitsOnly = sdt.replace(/\D/g, '');
+            if (digitsOnly.length === 9 && /^[35789]/.test(digitsOnly)) {
+                sdt = '0' + digitsOnly;
+            }
+            const chucVu = (cChucVu >= 0 && r[cChucVu]) ? r[cChucVu].trim() : '';
+            let kv = (cKv >= 0 && r[cKv]) ? r[cKv].trim() : '';
+            if (!kv) kv = getKhuVuc(bdt || donVi);
+
+            if (!bdt && !donVi && !ten && !sdt) continue;
+
+            const extras = {};
+            GDX_ExtraCols.forEach(ec => { extras[ec.idx] = (r[ec.idx] || '').trim(); });
+
+            const searchBlob = stripVN([bdt, kv, donVi, ten, chucVu, sdt, Object.values(extras).join(' ')].join(' '));
+            const phoneDigits = sdt.replace(/\D/g, '');
+
+            GDX_Data.push({
+                bdt: bdt || 'Chưa rõ BĐT/TP',
+                kv: kv || 'Khác',
+                donVi,
+                ten,
+                sdt,
+                phoneDigits,
+                chucVu,
+                extras,
+                searchBlob
+            });
+        }
+
+        populateGdxDropdowns();
+        renderGdxTab();
+    } catch (err) {
+        console.error("Lỗi tải dữ liệu DS GĐX:", err);
+        $('gdx-kpi').innerHTML = `<div class="k" style="grid-column:1/-1;color:var(--r)"><span>Lỗi tải dữ liệu</span><b style="font-size:14px">Không thể kết nối đến sheet DS GĐX. Vui lòng thử tải lại trang.</b></div>`;
+    }
+}
+
+function populateGdxDropdowns() {
+    const kvs = [...new Set(GDX_Data.map(d => d.kv).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'vi'));
+    const kvSel = $('gdx-kv');
+    kvSel.innerHTML = '<option value="">Tất cả khu vực</option>';
+    kvs.forEach(k => kvSel.add(new Option(k, k)));
+    updateGdxBdtOptions();
+}
+
+function updateGdxBdtOptions() {
+    const kv = $('gdx-kv').value;
+    const curBdt = $('gdx-bdt').value;
+    const bdts = [...new Set(GDX_Data.filter(d => !kv || d.kv === kv).map(d => d.bdt).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'vi'));
+    const bdtSel = $('gdx-bdt');
+    bdtSel.innerHTML = '<option value="">Tất cả BĐT/TP</option>';
+    bdts.forEach(b => bdtSel.add(new Option(b, b)));
+    if (bdts.includes(curBdt)) bdtSel.value = curBdt;
+}
+
+function onGdxKvChange() {
+    updateGdxBdtOptions();
+    window.gdxPage = 0;
+    renderGdxTab();
+}
+
+function onGdxFilterChange() {
+    window.gdxPage = 0;
+    renderGdxTab();
+}
+
+function resetGdxFilters() {
+    $('gdx-q').value = '';
+    $('gdx-kv').value = '';
+    updateGdxBdtOptions();
+    $('gdx-bdt').value = '';
+    window.gdxPage = 0;
+    renderGdxTab();
+}
+
+window.selectGdxBdt = function(bdtName) {
+    const sel = $('gdx-bdt');
+    sel.value = (sel.value === bdtName) ? '' : bdtName;
+    window.gdxPage = 0;
+    renderGdxTab();
 };
+
+window.selectGdxKv = function(kvName) {
+    const sel = $('gdx-kv');
+    sel.value = (sel.value === kvName) ? '' : kvName;
+    updateGdxBdtOptions();
+    window.gdxPage = 0;
+    renderGdxTab();
+};
+
+window.copyGdxPhone = function(phone, btn) {
+    if (!phone) return;
+    navigator.clipboard.writeText(phone).then(() => {
+        const old = btn.innerText;
+        btn.innerText = '✓';
+        btn.classList.add('ok-cp');
+        setTimeout(() => { btn.innerText = old; btn.classList.remove('ok-cp'); }, 1500);
+    }).catch(() => {});
+};
+
+function highlightMatch(text, rawQuery) {
+    const safe = escHtml(text);
+    const q = (rawQuery || '').trim();
+    if (!q || !text) return safe;
+    const normText = stripVN(text);
+    const normQ = stripVN(q);
+    if (!normQ) return safe;
+    const idx = normText.indexOf(normQ);
+    if (idx < 0) return safe;
+    return escHtml(text.slice(0, idx)) + `<span class="gdx-hl">${escHtml(text.slice(idx, idx + q.length))}</span>` + escHtml(text.slice(idx + q.length));
+}
+
+function renderGdxTab() {
+    if (!GDX_Data.length) return;
+
+    const rawQ = $('gdx-q').value.trim();
+    const normQ = stripVN(rawQ);
+    const digitsQ = rawQ.replace(/\D/g, '');
+    const fKv = $('gdx-kv').value;
+    const fBdt = $('gdx-bdt').value;
+
+    // Lọc danh sách
+    GDX_Filtered = GDX_Data.filter(d => {
+        if (fKv && d.kv !== fKv) return false;
+        if (fBdt && d.bdt !== fBdt) return false;
+        if (normQ) {
+            const matchText = d.searchBlob.includes(normQ);
+            const matchPhone = digitsQ.length >= 3 && d.phoneDigits.includes(digitsQ);
+            if (!matchText && !matchPhone) return false;
+        }
+        return true;
+    });
+
+    // Tiêu đề thông minh
+    const titleParts = [];
+    titleParts.push(fBdt ? `BĐT/TP ${escHtml(fBdt)}` : (fKv ? `Khu vực ${escHtml(fKv)}` : 'Toàn mạng lưới'));
+    if (rawQ) titleParts.push(`Từ khóa: "${escHtml(rawQ)}"`);
+    $('gdx-title').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${titleParts.join(' · ')}</span></div>`;
+
+    // KPI Cards
+    const totalAll = GDX_Data.length;
+    const totalShow = GDX_Filtered.length;
+    const bdtSet = new Set(GDX_Filtered.map(d => d.bdt));
+    const dvSet = new Set(GDX_Filtered.map(d => d.bdt + '|' + d.donVi).filter(x => !x.endsWith('|')));
+    const hasPhone = GDX_Filtered.filter(d => d.phoneDigits.length >= 9).length;
+
+    const bdtCounts = {};
+    GDX_Filtered.forEach(d => { bdtCounts[d.bdt] = (bdtCounts[d.bdt] || 0) + 1; });
+    const topBdtEntry = Object.entries(bdtCounts).sort((a,b) => b[1] - a[1])[0];
+
+    const kpiArr = [
+        ['Tổng số GĐX', `${f(totalShow)} <small style="font-size:12px;font-weight:normal;color:var(--mu)">/ ${f(totalAll)}</small>`],
+        ['Số BĐT/TP', f(bdtSet.size)],
+        ['Số đơn vị / BĐX', f(dvSet.size || totalShow)],
+        ['Có số điện thoại', `${f(hasPhone)} <small style="font-size:12px;font-weight:normal;color:var(--g)">(${totalShow ? p(hasPhone/totalShow) : '–'})</small>`],
+        ['BĐT/TP nhiều GĐX nhất', topBdtEntry ? `<span style="font-size:14px">${escHtml(topBdtEntry[0])} (${f(topBdtEntry[1])})</span>` : '–']
+    ];
+    $('gdx-kpi').innerHTML = kpiArr.map(([x,y]) => `<div class="k"><span>${x}</span><b>${y}</b></div>`).join('');
+
+    // Biểu đồ BĐT/TP (dựa trên bộ lọc Khu vực & từ khóa, giữ tất cả BĐT để dễ chuyển đổi nhanh)
+    const chartBase = GDX_Data.filter(d => {
+        if (fKv && d.kv !== fKv) return false;
+        if (normQ) {
+            const matchText = d.searchBlob.includes(normQ);
+            const matchPhone = digitsQ.length >= 3 && d.phoneDigits.includes(digitsQ);
+            if (!matchText && !matchPhone) return false;
+        }
+        return true;
+    });
+    const bdtChartMap = {};
+    chartBase.forEach(d => { bdtChartMap[d.bdt] = (bdtChartMap[d.bdt] || 0) + 1; });
+    const bdtSorted = Object.entries(bdtChartMap).sort((a,b) => b[1] - a[1]);
+    const maxBdt = bdtSorted.length ? bdtSorted[0][1] : 1;
+
+    $('gdx-bdt-chart').innerHTML = bdtSorted.length ? bdtSorted.map(([name, cnt]) => `
+        <div class="row gdx-bar-row${fBdt === name ? ' sel' : ''}" style="grid-template-columns:145px 1fr 52px" onclick="selectGdxBdt('${name.replace(/'/g, "\\'")}')">
+            <span class="n" title="${escHtml(name)}">${escHtml(name)}</span>
+            <div class="t p"><i style="width:${(cnt / maxBdt) * 100}%;background:${fBdt === name ? 'var(--g)' : 'var(--ac)'}"></i></div>
+            <span class="v" style="color:var(--tx);font-weight:600">${f(cnt)}</span>
+        </div>
+    `).join('') : '<div class="lg">Không có dữ liệu phù hợp.</div>';
+
+    // Biểu đồ Khu vực
+    const kvBase = GDX_Data.filter(d => {
+        if (normQ) {
+            const matchText = d.searchBlob.includes(normQ);
+            const matchPhone = digitsQ.length >= 3 && d.phoneDigits.includes(digitsQ);
+            if (!matchText && !matchPhone) return false;
+        }
+        return true;
+    });
+    const kvMap = {};
+    kvBase.forEach(d => { kvMap[d.kv] = (kvMap[d.kv] || 0) + 1; });
+    const kvSorted = Object.entries(kvMap).sort((a,b) => b[1] - a[1]);
+    const maxKv = kvSorted.length ? kvSorted[0][1] : 1;
+    const sumKv = kvBase.length || 1;
+
+    $('gdx-kv-chart').innerHTML = kvSorted.length ? kvSorted.map(([name, cnt]) => `
+        <div class="row gdx-bar-row${fKv === name ? ' sel' : ''}" style="grid-template-columns:120px 1fr 82px" onclick="selectGdxKv('${name.replace(/'/g, "\\'")}')">
+            <span class="n" title="${escHtml(name)}">${escHtml(name)}</span>
+            <div class="t p"><i style="width:${(cnt / maxKv) * 100}%;background:${fKv === name ? 'var(--g)' : 'var(--a)'}"></i></div>
+            <span class="v" style="color:var(--tx)"><b>${f(cnt)}</b> <span style="color:var(--mu)">(${p(cnt/sumKv)})</span></span>
+        </div>
+    `).join('') : '<div class="lg">Không có dữ liệu phù hợp.</div>';
+
+    renderGdxTable();
+}
+
+window.changeGdxPage = function(dir) {
+    window.gdxPage += dir;
+    renderGdxTable();
+};
+
+function renderGdxTable() {
+    const rawQ = $('gdx-q') ? $('gdx-q').value.trim() : '';
+    const limit = parseInt($('gdx-limit') ? $('gdx-limit').value : '50', 10) || 50;
+    const total = GDX_Filtered.length;
+    const maxP = Math.max(0, Math.ceil(total / limit) - 1);
+    if (window.gdxPage < 0) window.gdxPage = 0;
+    if (window.gdxPage > maxP) window.gdxPage = maxP;
+
+    const start = window.gdxPage * limit;
+    const slice = GDX_Filtered.slice(start, start + limit);
+
+    $('gdx-count-info').innerText = total
+        ? `Hiển thị ${f(start + 1)}–${f(Math.min(start + slice.length, total))} trong tổng số ${f(total)} GĐX`
+        : 'Không tìm thấy kết quả phù hợp';
+
+    if (!slice.length) {
+        $('gdx-table-wrap').innerHTML = `<div class="lg" style="padding:18px 0;text-align:center">Không tìm thấy GĐX nào khớp với bộ lọc hiện tại.</div>`;
+        return;
+    }
+
+    const hasChucVu = GDX_Data.some(d => d.chucVu);
+    const extraHeaders = GDX_ExtraCols.slice(0, 3).map(ec => `<th>${escHtml(ec.name)}</th>`).join('');
+
+    const tbody = slice.map((d, i) => {
+        const phoneHtml = d.sdt
+            ? `<div class="gdx-phone"><a href="tel:${escHtml(d.phoneDigits || d.sdt)}">${highlightMatch(d.sdt, rawQ)}</a><button class="gdx-copy-mini" title="Sao chép SĐT" onclick="copyGdxPhone('${escHtml(d.sdt).replace(/'/g, "\\'")}', this)">Copy</button></div>`
+            : '<span class="lg">–</span>';
+        const extraCells = GDX_ExtraCols.slice(0, 3).map(ec => `<td>${highlightMatch(d.extras[ec.idx] || '', rawQ)}</td>`).join('');
+        return `<tr>
+            <td class="num">${start + i + 1}</td>
+            <td><span class="gdx-badge">${highlightMatch(d.bdt, rawQ)}</span></td>
+            <td>${escHtml(d.kv)}</td>
+            <td>${highlightMatch(d.donVi || '–', rawQ)}</td>
+            <td><b>${highlightMatch(d.ten || '–', rawQ)}</b></td>
+            ${hasChucVu ? `<td>${highlightMatch(d.chucVu || '–', rawQ)}</td>` : ''}
+            <td>${phoneHtml}</td>
+            ${extraCells}
+        </tr>`;
+    }).join('');
+
+    $('gdx-table-wrap').innerHTML = `
+        <table class="gdx-table">
+            <thead>
+                <tr>
+                    <th class="num">#</th>
+                    <th>BĐT/TP</th>
+                    <th>Khu vực</th>
+                    <th>Đơn vị / Bưu điện xã</th>
+                    <th>Họ và tên GĐX</th>
+                    ${hasChucVu ? '<th>Chức vụ</th>' : ''}
+                    <th>Số điện thoại</th>
+                    ${extraHeaders}
+                </tr>
+            </thead>
+            <tbody>${tbody}</tbody>
+        </table>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px">
+            <button class="btn" onclick="changeGdxPage(-1)" ${window.gdxPage === 0 ? 'disabled' : ''}>◀ Trước</button>
+            <span class="lg">Trang ${window.gdxPage + 1} / ${maxP + 1}</span>
+            <button class="btn" onclick="changeGdxPage(1)" ${window.gdxPage >= maxP ? 'disabled' : ''}>Sau ▶</button>
+        </div>
+    `;
+}
 </script></body></html>
