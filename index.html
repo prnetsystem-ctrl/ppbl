@@ -284,7 +284,7 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 <div class="v2" id="p8">
     <div class="bar gdx-bar" style="margin-bottom:10px">
         <label style="flex:1;min-width:170px">Tìm nhanh
-            <input type="search" id="dtd-q" placeholder="Tìm BĐT/TP/TT, BĐX/P, Điểm bán, mã điểm..." style="width:100%;min-width:140px" oninput="onDtdFilterChange()">
+            <input type="search" id="dtd-q" placeholder="Tìm BĐT/TP/TT, BĐX/P, Mã điểm, Điểm bán..." style="width:100%;min-width:140px" oninput="onDtdFilterChange()">
         </label>
         <label>BĐT/TP/TT
             <select id="dtd-bdt" style="max-width:155px" onchange="onDtdBdtChange()"><option value="">Tất cả BĐT/TP/TT</option></select>
@@ -308,8 +308,8 @@ body.locked > *:not(#auth-overlay) { display: none !important; }
 
     <div class="grid" style="margin-bottom:10px">
         <div class="c">
-            <div class="t-h3">DOANH THU THEO BĐT/TP/TT <span class="lg" style="font-weight:normal;text-transform:none">(bấm vào dòng để lọc nhanh)</span></div>
-            <div class="gdx-chart-scroll" id="dtd-bdt-chart"></div>
+            <div class="t-h3">DOANH THU THEO BƯU ĐIỆN XÃ/PHƯỜNG <span class="lg" style="font-weight:normal;text-transform:none">(Doanh thu bán lẻ · bấm vào dòng để lọc nhanh)</span></div>
+            <div class="gdx-chart-scroll" id="dtd-bdx-chart"></div>
         </div>
         <div class="c">
             <div class="t-h3">TOP 15 ĐIỂM BÁN DOANH THU CAO NHẤT</div>
@@ -482,7 +482,7 @@ const DTD_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9nxZBO6P6
 let N_data = [], M_data = {}, U_data = [], V_data = [];
 let Tender_Data = [];
 let GDX_Data = [], GDX_Filtered = [];
-let DTD_Data = [], DTD_Filtered = [], DTD_NumCols = [], DTD_PrimaryCol = null, DTD_HasMonth = false;
+let DTD_Data = [], DTD_Filtered = [], DTD_NumCols = [], DTD_PrimaryCol = null, DTD_BlCol = null, DTD_HasMonth = false;
 let max_month_th = 0; 
 let latest_year = new Date().getFullYear();
 
@@ -511,7 +511,6 @@ const stripVN = (str) => {
     return (str || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().trim();
 };
 
-// Chuẩn hóa tên Tỉnh / BĐT-TP để khớp chính xác giữa Cột B (DS GĐX) và Cột C (Điểm)
 const normBdtKey = (str) => {
     let s = stripVN(str)
         .replace(/^(buu dien tinh|buu dien thanh pho|buu dien tp\.?|bdtp|bdt|tinh|thanh pho|tp\.?)\s+/g, '')
@@ -2053,7 +2052,6 @@ async function loadDtdData() {
             return;
         }
 
-        // Tìm dòng tiêu đề
         let headerIdx = 0;
         for (let i = 0; i < Math.min(rows.length, 6); i++) {
             const joined = stripVN(rows[i].join(' '));
@@ -2081,10 +2079,8 @@ async function loadDtdData() {
         let cMaDiem = findCol(['ma diem', 'ma buu cuc', 'ma bc', 'ma don vi', 'code'], [cBdt, cBdx, cDiem]);
         let cLoaiHinh = findCol(['loai hinh', 'mo hinh', 'loai diem'], [cBdt, cBdx, cDiem]);
         let cThang = findCol(['thang'], [cBdt, cBdx, cDiem]);
-        // Đảm bảo cThang không nhầm với cột "Tháng 1", "Tháng 2"...
         if (cThang >= 0 && /\d/.test(normH[cThang])) cThang = -1;
 
-        // Fallback nếu không khớp tên cột
         const usedText = () => [cStt, cBdt, cBdx, cDiem, cMaDiem, cLoaiHinh, cThang].filter(x => x >= 0);
         const nextFree = () => {
             for (let i = 0; i < rawHeaders.length; i++) {
@@ -2096,14 +2092,12 @@ async function loadDtdData() {
         if (cBdx < 0) cBdx = nextFree();
         if (cDiem < 0) cDiem = nextFree();
 
-        // Nhận diện các cột số liệu doanh thu
         const textSet = new Set([cStt, cBdt, cBdx, cDiem, cMaDiem, cLoaiHinh, cThang].filter(x => x >= 0));
         DTD_NumCols = [];
         for (let i = 0; i < rawHeaders.length; i++) {
             if (textSet.has(i)) continue;
             const title = (rawHeaders[i] || '').trim();
             if (!title) continue;
-            // Kiểm tra mẫu dữ liệu xem có phải cột số không
             let numHits = 0, nonEmpty = 0;
             for (let r = headerIdx + 1; r < Math.min(rows.length, headerIdx + 30); r++) {
                 const v = (rows[r][i] || '').trim();
@@ -2112,53 +2106,83 @@ async function loadDtdData() {
                 if (/^-?[\d.,\s%]+$/.test(v)) numHits++;
             }
             if (nonEmpty === 0 || numHits / nonEmpty >= 0.5) {
-                DTD_NumCols.push({ idx: i, name: title, norm: normH[i] });
+                DTD_NumCols.push({ idx: i, name: title, norm: normH[i], scale: 1 });
             }
         }
 
-        // Chọn cột Doanh thu chính (ưu tiên Tổng / Lũy kế / Doanh thu / Thực hiện)
+        // Kiểm tra cột Thẻ: nếu đang là đơn vị đồng (max >= 100.000) thì chia 1.000.000 để quy về triệu đồng
+        DTD_NumCols.forEach(c => {
+            if (c.norm.includes('the')) {
+                let maxAbs = 0;
+                for (let i = headerIdx + 1; i < rows.length; i++) {
+                    const v = Math.abs(parseVNNumber(rows[i][c.idx]));
+                    if (v > maxAbs) maxAbs = v;
+                }
+                if (maxAbs >= 100000) c.scale = 1000000;
+            }
+        });
+
         DTD_PrimaryCol =
             DTD_NumCols.find(c => c.norm.includes('tong') || c.norm.includes('luy ke')) ||
             DTD_NumCols.find(c => c.norm.includes('doanh thu') || c.norm.includes('thuc hien')) ||
             DTD_NumCols[DTD_NumCols.length - 1] || null;
+
+        // Cột Doanh thu Bán lẻ dùng cho biểu đồ "Doanh thu theo Bưu điện Xã/Phường"
+        DTD_BlCol =
+            DTD_NumCols.find(c => c.norm.includes('ban le') || c.norm === 'bl' || c.norm.includes('dt bl')) ||
+            DTD_PrimaryCol;
 
         DTD_HasMonth = cThang >= 0;
         DTD_Data = [];
 
         for (let i = headerIdx + 1; i < rows.length; i++) {
             const r = rows[i];
-            const bdt = (cBdt >= 0 && r[cBdt]) ? r[cBdt].trim() : '';
-            const bdx = (cBdx >= 0 && r[cBdx]) ? r[cBdx].trim() : '';
-            const diem = (cDiem >= 0 && r[cDiem]) ? r[cDiem].trim() : '';
-            const maDiem = (cMaDiem >= 0 && r[cMaDiem]) ? r[cMaDiem].trim() : '';
+            let bdt = (cBdt >= 0 && r[cBdt]) ? r[cBdt].trim() : '';
+            let bdx = (cBdx >= 0 && r[cBdx]) ? r[cBdx].trim() : '';
+            let diemRaw = (cDiem >= 0 && r[cDiem]) ? r[cDiem].trim() : '';
+            let maDiem = (cMaDiem >= 0 && r[cMaDiem]) ? r[cMaDiem].trim() : '';
             const loaiHinh = (cLoaiHinh >= 0 && r[cLoaiHinh]) ? r[cLoaiHinh].trim() : '';
             const thang = (cThang >= 0 && r[cThang]) ? r[cThang].trim() : '';
 
-            if (!bdt && !bdx && !diem) continue;
-            // Bỏ qua dòng tổng cộng ở cuối sheet nếu có
-            const checkTotal = stripVN(bdt + ' ' + bdx + ' ' + diem);
+            if (!bdt && !bdx && !diemRaw) continue;
+            const checkTotal = stripVN(bdt + ' ' + bdx + ' ' + diemRaw);
             if (checkTotal === 'tong' || checkTotal === 'tong cong' || checkTotal.startsWith('tong cong ')) continue;
+
+            // 1. Bỏ "..số-" trước BĐT/TP/TT
+            bdt = bdt.replace(/^\d+\s*[-–—]\s*/, '').trim();
+
+            // 2. Bỏ 5 ký tự đầu trước BĐX/P
+            if (bdx.length > 5) bdx = bdx.slice(5).trim();
+
+            // 3. Tách 6 ký tự đầu tiên trước Điểm bán thành Mã điểm bán, bỏ 6 ký tự đầu và dấu "-" ở Điểm bán
+            let diem = diemRaw;
+            if (diemRaw.length > 6) {
+                maDiem = diemRaw.slice(0, 6).trim();
+                diem = diemRaw.slice(6).replace(/^\s*[-–—]\s*/, '').trim();
+            }
 
             const vals = {};
             let sumAll = 0;
             DTD_NumCols.forEach(c => {
-                const v = parseVNNumber(r[c.idx]);
+                const v = parseVNNumber(r[c.idx]) / c.scale;
                 vals[c.idx] = v;
                 sumAll += v;
             });
 
             const dt = DTD_PrimaryCol ? (vals[DTD_PrimaryCol.idx] || 0) : sumAll;
-            const searchBlob = stripVN([bdt, bdx, diem, maDiem, loaiHinh, thang].join(' '));
+            const dtBl = DTD_BlCol ? (vals[DTD_BlCol.idx] || 0) : dt;
+            const searchBlob = stripVN([bdt, bdx, maDiem, diem, loaiHinh, thang].join(' '));
 
             DTD_Data.push({
                 bdt: bdt || 'Chưa rõ BĐT/TP/TT',
                 bdx: bdx || '–',
-                diem: diem || '–',
                 maDiem,
+                diem: diem || '–',
                 loaiHinh,
                 thang,
                 vals,
                 dt,
+                dtBl,
                 searchBlob
             });
         }
@@ -2245,10 +2269,10 @@ function resetDtdFilters() {
     renderDtdTab();
 }
 
-window.selectDtdBdt = function(bdtName) {
-    const sel = $('dtd-bdt');
-    sel.value = (sel.value === bdtName) ? '' : bdtName;
-    onDtdBdtChange();
+window.selectDtdBdx = function(bdxName) {
+    const sel = $('dtd-bdx');
+    sel.value = (sel.value === bdxName) ? '' : bdxName;
+    onDtdBdxChange();
 };
 
 function renderDtdTab() {
@@ -2270,7 +2294,6 @@ function renderDtdTab() {
         return true;
     }).sort((a, b) => b.dt - a.dt);
 
-    // Tiêu đề thông minh
     const parts = [];
     if (fDiem) parts.push(`Điểm bán: ${escHtml(fDiem)}`);
     else if (fBdx) parts.push(`BĐX/P: ${escHtml(fBdx)}`);
@@ -2280,9 +2303,8 @@ function renderDtdTab() {
     if (rawQ) parts.push(`Từ khóa: "${escHtml(rawQ)}"`);
     $('dtd-title').innerHTML = `<div class="stitle"><span style="color:var(--mu);font-size:10px">●</span> <span style="color:var(--mu)">Đang xem:</span> <span style="color:var(--tx);font-weight:bold">${parts.join(' · ')}</span></div>`;
 
-    // KPI Cards
     const totalDt = DTD_Filtered.reduce((s, d) => s + d.dt, 0);
-    const diemSet = new Set(DTD_Filtered.map(d => d.bdt + '|' + d.bdx + '|' + d.diem));
+    const diemSet = new Set(DTD_Filtered.map(d => d.bdt + '|' + d.bdx + '|' + d.maDiem + '|' + d.diem));
     const bdxSet = new Set(DTD_Filtered.map(d => d.bdt + '|' + d.bdx));
     const bdtSet = new Set(DTD_Filtered.map(d => d.bdt));
     const activeDiem = DTD_Filtered.filter(d => d.dt > 0).length;
@@ -2298,29 +2320,33 @@ function renderDtdTab() {
     ];
     $('dtd-kpi').innerHTML = kpiArr.map(([x,y]) => `<div class="k"><span>${x}</span><b>${y}</b></div>`).join('');
 
-    // Biểu đồ Doanh thu theo BĐT/TP/TT
-    const bdtBase = DTD_Data.filter(d => {
+    // Biểu đồ Doanh thu theo Bưu điện Xã/Phường (Doanh thu bán lẻ)
+    const bdxBase = DTD_Data.filter(d => {
+        if (fBdt && d.bdt !== fBdt) return false;
         if (fMonth && d.thang !== fMonth) return false;
         if (normQ && !d.searchBlob.includes(normQ)) return false;
         return true;
     });
-    const bdtMap = {};
-    bdtBase.forEach(d => { bdtMap[d.bdt] = (bdtMap[d.bdt] || 0) + d.dt; });
-    const bdtSorted = Object.entries(bdtMap).sort((a,b) => b[1] - a[1]);
-    const maxBdt = bdtSorted.length ? Math.max(bdtSorted[0][1], 1) : 1;
+    const bdxMap = {};
+    bdxBase.forEach(d => {
+        if (!d.bdx || d.bdx === '–') return;
+        bdxMap[d.bdx] = (bdxMap[d.bdx] || 0) + d.dtBl;
+    });
+    const bdxSorted = Object.entries(bdxMap).sort((a,b) => b[1] - a[1]);
+    const maxBdx = bdxSorted.length ? Math.max(bdxSorted[0][1], 1) : 1;
 
-    $('dtd-bdt-chart').innerHTML = bdtSorted.length ? bdtSorted.map(([name, val]) => `
-        <div class="row gdx-bar-row${fBdt === name ? ' sel' : ''}" style="grid-template-columns:145px 1fr 78px" onclick="selectDtdBdt('${name.replace(/'/g, "\\'")}')">
+    $('dtd-bdx-chart').innerHTML = bdxSorted.length ? bdxSorted.map(([name, val]) => `
+        <div class="row gdx-bar-row${fBdx === name ? ' sel' : ''}" style="grid-template-columns:155px 1fr 78px" onclick="selectDtdBdx('${name.replace(/'/g, "\\'")}')">
             <span class="n" title="${escHtml(name)}">${escHtml(name)}</span>
-            <div class="t p"><i style="width:${Math.max(0, (val / maxBdt) * 100)}%;background:${fBdt === name ? 'var(--g)' : 'var(--ac)'}"></i></div>
+            <div class="t p"><i style="width:${Math.max(0, (val / maxBdx) * 100)}%;background:${fBdx === name ? 'var(--g)' : 'var(--ac)'}"></i></div>
             <span class="v" style="color:var(--tx);font-weight:600">${f(val)}</span>
         </div>
     `).join('') : '<div class="lg">Không có dữ liệu phù hợp.</div>';
 
-    // Biểu đồ Top 15 Điểm bán (gộp theo điểm nếu có nhiều dòng tháng)
+    // Biểu đồ Top 15 Điểm bán
     const diemMap = {};
     DTD_Filtered.forEach(d => {
-        const key = d.diem + '||' + d.bdt;
+        const key = d.maDiem + '||' + d.diem + '||' + d.bdt;
         if (!diemMap[key]) diemMap[key] = { name: d.diem, bdt: d.bdt, dt: 0 };
         diemMap[key].dt += d.dt;
     });
@@ -2363,7 +2389,6 @@ function renderDtdTable() {
         return;
     }
 
-    const hasMa = DTD_Data.some(d => d.maDiem);
     const hasLh = DTD_Data.some(d => d.loaiHinh);
     const numHeaders = DTD_NumCols.map(c => `<th class="rgt">${escHtml(c.name)}</th>`).join('');
 
@@ -2377,7 +2402,7 @@ function renderDtdTable() {
             <td class="num">${start + i + 1}</td>
             <td><span class="gdx-badge">${highlightMatch(d.bdt, rawQ)}</span></td>
             <td>${highlightMatch(d.bdx, rawQ)}</td>
-            ${hasMa ? `<td style="white-space:nowrap">${highlightMatch(d.maDiem || '–', rawQ)}</td>` : ''}
+            <td style="white-space:nowrap">${highlightMatch(d.maDiem || '–', rawQ)}</td>
             <td><b>${highlightMatch(d.diem, rawQ)}</b></td>
             ${hasLh ? `<td>${highlightMatch(d.loaiHinh || '–', rawQ)}</td>` : ''}
             ${DTD_HasMonth ? `<td style="white-space:nowrap">${highlightMatch(d.thang || '–', rawQ)}</td>` : ''}
@@ -2385,12 +2410,11 @@ function renderDtdTable() {
         </tr>`;
     }).join('');
 
-    // Dòng tổng cộng cho toàn bộ dữ liệu đang lọc
     const totalCells = DTD_NumCols.map(c => {
         const sumCol = DTD_Filtered.reduce((s, d) => s + (d.vals[c.idx] || 0), 0);
         return `<td class="rgt"><b>${f(sumCol)}</b></td>`;
     }).join('');
-    const colSpanLeft = 4 + (hasMa ? 1 : 0) + (hasLh ? 1 : 0) + (DTD_HasMonth ? 1 : 0);
+    const colSpanLeft = 5 + (hasLh ? 1 : 0) + (DTD_HasMonth ? 1 : 0);
 
     $('dtd-table-wrap').innerHTML = `
         <table class="gdx-table">
@@ -2399,7 +2423,7 @@ function renderDtdTable() {
                     <th class="num">#</th>
                     <th>BĐT/TP/TT</th>
                     <th>BĐX/P</th>
-                    ${hasMa ? '<th>Mã điểm</th>' : ''}
+                    <th>Mã điểm bán</th>
                     <th>Điểm bán</th>
                     ${hasLh ? '<th>Loại hình</th>' : ''}
                     ${DTD_HasMonth ? '<th>Tháng</th>' : ''}
